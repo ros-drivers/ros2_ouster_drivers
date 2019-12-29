@@ -9,6 +9,7 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(ouster_msgs REQUIRED)
@@ -33,6 +34,7 @@ set(dependencies
   builtin_interfaces
   tf2_ros
   ouster_msgs
+  tf2_geometry_msgs
 )
 
 add_library(${library_name} SHARED

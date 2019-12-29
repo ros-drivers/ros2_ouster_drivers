@@ -24,7 +24,6 @@ using namespace std::chrono_literals;
 
 // TODOs
 // main method in a good designed way
-// TF + frame id params
 // all allocation at startup
 // lifecycle node lauch file
 // readme
@@ -47,6 +46,9 @@ OusterDriver::OusterDriver(const rclcpp::NodeOptions & options)
   this->declare_parameter("imu_port", 7503);
   this->declare_parameter("lidar_port", 7502);
   this->declare_parameter("lidar_mode", std::string("512x10"));
+  this->declare_parameter("sensor_frame", std::string("laser_sensor_frame"));
+  this->declare_parameter("laser_frame", std::string("laser_data_frame"));
+  this->declare_parameter("imu_frame", std::string("imu_data_frame"));
 }
 
 OusterDriver::~OusterDriver()
@@ -84,6 +86,9 @@ void OusterDriver::onConfigure()
 
   _sensor = std::make_shared<SensorInterface>(OS1::OS1Sensor());
   _sensor->configure(lidar_config);
+
+  _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(shared_from_this()); //TODO will this work with lifecycle publisher?
+  broadcastStaticTransforms();
 }
 
 void OusterDriver::onActivate()
@@ -121,10 +126,28 @@ void OusterDriver::onCleanup()
   _pc_pub.reset();
   _imu_pub.reset();
   _sensor.reset();
+  _tf_b.reset();
 }
 
 void OusterDriver::onShutdown()
 {
+}
+
+void OusterDriver::broadcastStaticTransforms()
+{
+  std::string laser_sensor_frame = get_parameter("laser_sensor_frame").as_string();
+  std::string laser_data_frame = get_parameter("laser_data_frame").as_string();
+  std::string imu_data_frame = get_parameter("imu_data_frame").as_string();
+  if (_tf_b)
+  {
+    ros2_ouster::Metadata mdata = _sensor->getMetadata();
+    std::vector<geometry_msgs::msg::TransformStamped> transforms;
+    transforms.push_back(toMsg(mdata.imu_to_sensor_transform,
+      laser_sensor_frame, imu_data_frame, this->now()));
+    transforms.push_back(toMsg(mdata.lidar_to_sensor_transform,
+      laser_sensor_frame, laser_data_frame, this->now()));
+    _tf_b->sendTransform(transforms);
+  }
 }
 
 void OusterDriver::processData()

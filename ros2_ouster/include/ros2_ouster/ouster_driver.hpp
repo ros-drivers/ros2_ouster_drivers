@@ -23,6 +23,8 @@
 #include "std_srvs/srv/empty.hpp"
 #include "ouster_msgs/srv/get_metadata.hpp"
 
+#include "tf2_ros/static_transform_broadcaster.h"
+
 #include "ros2_ouster/OS1/OS1_sensor.hpp"
 #include "ros2_ouster/conversions.hpp"
 
@@ -90,6 +92,11 @@ private:
   void processData();
 
   /**
+   * @brief Create TF2 frames for the lidar sensor
+   */
+  void broadcastStaticTransforms();
+
+  /**
   * @brief service callback to reset the lidar
   * @param request_header Header of rmw request
   * @param request Shared ptr of the Empty request
@@ -121,6 +128,8 @@ private:
 
   SensorInterface::SharedPtr _sensor;
   rclcpp::TimerBase::SharedPtr _process_timer;
+
+  std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
 };
 
 }  // namespace ros2_ouster
