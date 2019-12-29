@@ -25,23 +25,3 @@ TODO create table
 `sensor_msgs/PointCloud2` pointcloud topic
 
 TODO services
-
-
-## Examples
-
-TODO
-[more gifs and point to ROS1 driver / youtube videos again]
-
-## Lifecycle
-
-This ROS2 driver makes use of Lifecycle nodes. If you're not familiar with lifecycle, or managed nodes, please familiarize yourself with the [ROS2 design](https://design.ros2.org/articles/node_lifecycle.html) document on it.
-
-The lifecycle node allow for the driver to have a deterministic setup and tear down and is a new feature in ROS2. The launch script will need to use a lifecycle node launcher to transition into the active state to start processing data.
-
-## Component
-
-This ROS2 driver makes use of Component nodes. If you're not familiar with component nodes please familiarize yourself with the [ROS2 design](https://index.ros.org/doc/ros2/Tutorials/Composition) document on it.
-
-The component node allow for the driver and its processing nodes to be launched into the same process and is a new feature in ROS2. This allows the sensor and its data clients to operate without serialization or copying between nodes sharing a memory pool.
-
-There's a little work in ROS2 Eloquent to launch a component-lifecycle node using only the roslaunch API. It may be necessary to include the Ouster driver in your lifecycle manager to transition into the active state when loading the driver into a process as a component.
