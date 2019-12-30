@@ -57,7 +57,7 @@ add_executable(${executable_name}
 
 target_link_libraries(${executable_name} ${library_name})
 
-install(TARGETS ${executable_name} #${library_name}
+install(TARGETS ${executable_name} ${library_name}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
@@ -65,6 +65,14 @@ install(TARGETS ${executable_name} #${library_name}
 
 install(DIRECTORY include/
   DESTINATION include/
+)
+
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY params
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

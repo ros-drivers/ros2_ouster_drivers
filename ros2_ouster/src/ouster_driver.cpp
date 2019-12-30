@@ -25,7 +25,6 @@ using namespace std::chrono_literals;
 // TODOs
 // main method in a good designed way
 // all allocation at startup
-// lifecycle node lauch file
 // readme
 // register component
 // support save/reading in yaml
@@ -33,16 +32,8 @@ using namespace std::chrono_literals;
 OusterDriver::OusterDriver(const rclcpp::NodeOptions & options)
 : LifecycleInterface("OusterDriver", options)
 {
-  try {
-    this->declare_parameter("lidar_ip");
-    this->declare_parameter("computer_ip");
-  } catch (...) {
-    RCLCPP_FATAL(this->get_logger(),
-      "Failed to get lidar or IMU IP address or "
-      "hostname. An IP address for both are required!");
-    exit(-1);
-  }
-
+  this->declare_parameter("lidar_ip");
+  this->declare_parameter("computer_ip");
   this->declare_parameter("imu_port", 7503);
   this->declare_parameter("lidar_port", 7502);
   this->declare_parameter("lidar_mode", std::string("512x10"));
@@ -58,8 +49,16 @@ OusterDriver::~OusterDriver()
 void OusterDriver::onConfigure()
 {
   ros2_ouster::Configuration lidar_config;
+  try {
   lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
   lidar_config.computer_ip = get_parameter("computer_ip").as_string();
+  } catch (...) {
+    RCLCPP_FATAL(this->get_logger(),
+      "Failed to get lidar or IMU IP address or "
+      "hostname. An IP address for both are required!");
+    exit(-1);
+  }
+
   lidar_config.imu_port = get_parameter("imu_port").as_int();
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
