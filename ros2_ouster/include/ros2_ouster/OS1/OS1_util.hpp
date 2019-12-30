@@ -1,3 +1,4 @@
+// Copyright 2020
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -10,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__OS1_UTIL_HPP_
-#define ROS2_OUSTER__OS1_UTIL_HPP_
+#ifndef ROS2_OUSTER__OS1__OS1_UTIL_HPP_
+#define ROS2_OUSTER__OS1__OS1_UTIL_HPP_
 
 
 #include <algorithm>
@@ -24,32 +25,32 @@
 namespace OS1
 {
 extern const std::vector<double> beam_altitude_angles = {
-    16.611,  16.084,  15.557,  15.029,  14.502,  13.975,  13.447,  12.920,
-    12.393,  11.865,  11.338,  10.811,  10.283,  9.756,   9.229,   8.701,
-    8.174,   7.646,   7.119,   6.592,   6.064,   5.537,   5.010,   4.482,
-    3.955,   3.428,   2.900,   2.373,   1.846,   1.318,   0.791,   0.264,
-    -0.264,  -0.791,  -1.318,  -1.846,  -2.373,  -2.900,  -3.428,  -3.955,
-    -4.482,  -5.010,  -5.537,  -6.064,  -6.592,  -7.119,  -7.646,  -8.174,
-    -8.701,  -9.229,  -9.756,  -10.283, -10.811, -11.338, -11.865, -12.393,
-    -12.920, -13.447, -13.975, -14.502, -15.029, -15.557, -16.084, -16.611,
+  16.611, 16.084, 15.557, 15.029, 14.502, 13.975, 13.447, 12.920,
+  12.393, 11.865, 11.338, 10.811, 10.283, 9.756, 9.229, 8.701,
+  8.174, 7.646, 7.119, 6.592, 6.064, 5.537, 5.010, 4.482,
+  3.955, 3.428, 2.900, 2.373, 1.846, 1.318, 0.791, 0.264,
+  -0.264, -0.791, -1.318, -1.846, -2.373, -2.900, -3.428, -3.955,
+  -4.482, -5.010, -5.537, -6.064, -6.592, -7.119, -7.646, -8.174,
+  -8.701, -9.229, -9.756, -10.283, -10.811, -11.338, -11.865, -12.393,
+  -12.920, -13.447, -13.975, -14.502, -15.029, -15.557, -16.084, -16.611,
 };
 
 extern const std::vector<double> beam_azimuth_angles = {
-    3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-    3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-    3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-    3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-    3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-    3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-    3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-    3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
+  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
+  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
+  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
+  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
+  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
+  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
+  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
+  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
 };
 
 extern const std::vector<double> imu_to_sensor_transform = {
-    1, 0, 0, 6.253, 0, 1, 0, -11.775, 0, 0, 1, 7.645, 0, 0, 0, 1};
+  1, 0, 0, 6.253, 0, 1, 0, -11.775, 0, 0, 1, 7.645, 0, 0, 0, 1};
 
 extern const std::vector<double> lidar_to_sensor_transform = {
-    -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 36.18, 0, 0, 0, 1};
+  -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 36.18, 0, 0, 0, 1};
 
 /**
  * Design values for altitude and azimuth offset angles. Can be used if
@@ -79,27 +80,29 @@ extern const std::vector<double> lidar_to_sensor_transform;
  * @param beam_altitude_angles altitude in degrees for each of H beams
  * @return xyz direction unit vectors for each point in the lidar scan
  */
-std::vector<double> make_xyz_lut(int W, int H,
-                                 const std::vector<double>& azimuth_angles,
-                                 const std::vector<double>& altitude_angles) {
-    const int n = W * H;
-    std::vector<double> xyz = std::vector<double>(3 * n, 0);
+std::vector<double> make_xyz_lut(
+  int W, int H,
+  const std::vector<double> & azimuth_angles,
+  const std::vector<double> & altitude_angles)
+{
+  const int n = W * H;
+  std::vector<double> xyz = std::vector<double>(3 * n, 0);
 
-    for (int icol = 0; icol < W; icol++) {
-        double h_angle_0 = 2.0 * M_PI * icol / W;
-        for (int ipx = 0; ipx < H; ipx++) {
-            int ind = 3 * (icol * H + ipx);
-            double h_angle =
-                (azimuth_angles.at(ipx) * 2 * M_PI / 360.0) + h_angle_0;
+  for (int icol = 0; icol < W; icol++) {
+    double h_angle_0 = 2.0 * M_PI * icol / W;
+    for (int ipx = 0; ipx < H; ipx++) {
+      int ind = 3 * (icol * H + ipx);
+      double h_angle =
+        (azimuth_angles.at(ipx) * 2 * M_PI / 360.0) + h_angle_0;
 
-            xyz[ind + 0] = std::cos(altitude_angles[ipx] * 2 * M_PI / 360.0) *
-                           std::cos(h_angle);
-            xyz[ind + 1] = -std::cos(altitude_angles[ipx] * 2 * M_PI / 360.0) *
-                           std::sin(h_angle);
-            xyz[ind + 2] = std::sin(altitude_angles[ipx] * 2 * M_PI / 360.0);
-        }
+      xyz[ind + 0] = std::cos(altitude_angles[ipx] * 2 * M_PI / 360.0) *
+        std::cos(h_angle);
+      xyz[ind + 1] = -std::cos(altitude_angles[ipx] * 2 * M_PI / 360.0) *
+        std::sin(h_angle);
+      xyz[ind + 2] = std::sin(altitude_angles[ipx] * 2 * M_PI / 360.0);
     }
-    return xyz;
+  }
+  return xyz;
 }
 /**
  * Generate a table of pixel offsets based on the scan width (512, 1024, or 2048
@@ -109,23 +112,26 @@ std::vector<double> make_xyz_lut(int W, int H,
  * @param W number of columns in the lidar scan. One of 512, 1024, or 2048.
  * @return vector of H pixel offsets
  */
-std::vector<int> get_px_offset(int lidar_mode) {
-    auto repeat = [](int n, const std::vector<int>& v) {
-        std::vector<int> res{};
-        for (int i = 0; i < n; i++) res.insert(res.end(), v.begin(), v.end());
-        return res;
+std::vector<int> get_px_offset(int lidar_mode)
+{
+  auto repeat = [](int n, const std::vector<int> & v) {
+      std::vector<int> res{};
+      for (int i = 0; i < n; i++) {
+        res.insert(res.end(), v.begin(), v.end());
+      }
+      return res;
     };
 
-    switch (lidar_mode) {
-        case 512:
-            return repeat(16, {0, 3, 6, 9});
-        case 1024:
-            return repeat(16, {0, 6, 12, 18});
-        case 2048:
-            return repeat(16, {0, 12, 24, 36});
-        default:
-            return std::vector<int>{64, 0};
-    }
+  switch (lidar_mode) {
+    case 512:
+      return repeat(16, {0, 3, 6, 9});
+    case 1024:
+      return repeat(16, {0, 6, 12, 18});
+    case 2048:
+      return repeat(16, {0, 12, 24, 36});
+    default:
+      return std::vector<int>{64, 0};
+  }
 }
 
 /**
@@ -150,66 +156,66 @@ std::vector<int> get_px_offset(int lidar_mode) {
  * @return a function taking a lidar packet buffer and random-access iterator to
  * which data is added for every point in the scan.
  */
-template <typename iterator_type, typename F, typename C>
-std::function<void(const uint8_t*, iterator_type it)> batch_to_iter(
-    const std::vector<double>& xyz_lut, int W, int H,
-    const typename iterator_type::value_type& empty, C&& c, F&& f) {
-    int next_m_id{W};
-    int32_t cur_f_id{-1};
+template<typename iterator_type, typename F, typename C>
+std::function<void(const uint8_t *, iterator_type it)> batch_to_iter(
+  const std::vector<double> & xyz_lut, int W, int H,
+  const typename iterator_type::value_type & empty, C && c, F && f)
+{
+  int next_m_id{W};
+  int32_t cur_f_id{-1};
 
-    int64_t scan_ts{-1L};
+  int64_t scan_ts{-1L};
 
-    return [=](const uint8_t* packet_buf, iterator_type it) mutable {
+  return [ = ](const uint8_t * packet_buf, iterator_type it) mutable {
+           for (int icol = 0; icol < OS1::columns_per_buffer; icol++) {
+             const uint8_t * col_buf = OS1::nth_col(icol, packet_buf);
+             const uint16_t m_id = OS1::col_measurement_id(col_buf);
+             const uint16_t f_id = OS1::col_frame_id(col_buf);
+             const uint64_t ts = OS1::col_timestamp(col_buf);
+             const bool valid = OS1::col_valid(col_buf) == 0xffffffff;
 
-        for (int icol = 0; icol < OS1::columns_per_buffer; icol++) {
-            const uint8_t* col_buf = OS1::nth_col(icol, packet_buf);
-            const uint16_t m_id = OS1::col_measurement_id(col_buf);
-            const uint16_t f_id = OS1::col_frame_id(col_buf);
-            const uint64_t ts = OS1::col_timestamp(col_buf);
-            const bool valid = OS1::col_valid(col_buf) == 0xffffffff;
+             // drop invalid / out-of-bounds data in case of misconfiguration
+             if (!valid || m_id >= W || f_id + 1 == cur_f_id) {continue}
 
-            // drop invalid / out-of-bounds data in case of misconfiguration
-            if (!valid || m_id >= W || f_id + 1 == cur_f_id) continue;
+             if (f_id != cur_f_id) {
+               // if not initializing with first packet
+               if (scan_ts != -1) {
+                 // zero out remaining missing columns
+                 std::fill(it + (H * next_m_id), it + (H * W), empty);
+                 f(scan_ts);
+               }
 
-            if (f_id != cur_f_id) {
-                // if not initializing with first packet
-                if (scan_ts != -1) {
-                    // zero out remaining missing columns
-                    std::fill(it + (H * next_m_id), it + (H * W), empty);
-                    f(scan_ts);
-                }
+               // start new frame
+               scan_ts = ts;
+               next_m_id = 0;
+               cur_f_id = f_id;
+             }
 
-                // start new frame
-                scan_ts = ts;
-                next_m_id = 0;
-                cur_f_id = f_id;
-            }
+             // zero out missing columns if we jumped forward
+             if (m_id >= next_m_id) {
+               std::fill(it + (H * next_m_id), it + (H * m_id), empty);
+               next_m_id = m_id + 1;
+             }
 
-            // zero out missing columns if we jumped forward
-            if (m_id >= next_m_id) {
-                std::fill(it + (H * next_m_id), it + (H * m_id), empty);
-                next_m_id = m_id + 1;
-            }
+             // index of the first point in current packet
+             const int idx = H * m_id;
 
-            // index of the first point in current packet
-            const int idx = H * m_id;
+             for (uint8_t ipx = 0; ipx < H; ipx++) {
+               const uint8_t * px_buf = OS1::nth_px(ipx, col_buf);
+               uint32_t r = OS1::px_range(px_buf);
+               int ind = 3 * (idx + ipx);
 
-            for (uint8_t ipx = 0; ipx < H; ipx++) {
-                const uint8_t* px_buf = OS1::nth_px(ipx, col_buf);
-                uint32_t r = OS1::px_range(px_buf);
-                int ind = 3 * (idx + ipx);
-
-                // x, y, z(m), i, ts, reflectivity, ring, noise, range (mm)
-                it[idx + ipx] = c(r * 0.001f * xyz_lut[ind + 0],
-                                  r * 0.001f * xyz_lut[ind + 1],
-                                  r * 0.001f * xyz_lut[ind + 2],
-                                  OS1::px_signal_photons(px_buf), ts - scan_ts,
-                                  OS1::px_reflectivity(px_buf), ipx,
-                                  OS1::px_noise_photons(px_buf), r);
-            }
-        }
-    };
-  }
+               // x, y, z(m), i, ts, reflectivity, ring, noise, range (mm)
+               it[idx + ipx] = c(r * 0.001f * xyz_lut[ind + 0],
+                   r * 0.001f * xyz_lut[ind + 1],
+                   r * 0.001f * xyz_lut[ind + 2],
+                   OS1::px_signal_photons(px_buf), ts - scan_ts,
+                   OS1::px_reflectivity(px_buf), ipx,
+                   OS1::px_noise_photons(px_buf), r);
+             }
+           }
+         };
 }
+}  // namespace OS1
 
-#endif // ROS2_OUSTER__OS1_UTIL_HPP_
+#endif  // ROS2_OUSTER__OS1__OS1_UTIL_HPP_

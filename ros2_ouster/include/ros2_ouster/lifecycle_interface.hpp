@@ -1,3 +1,4 @@
+// Copyright 2020
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -12,6 +13,8 @@
 
 #ifndef ROS2_OUSTER__LIFECYCLE_INTERFACE_HPP_
 #define ROS2_OUSTER__LIFECYCLE_INTERFACE_HPP_
+
+#include <string>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -50,7 +53,7 @@ public:
    * @return SUCCESS
    */
   CallbackReturn on_activate(const rclcpp_lifecycle::State & state) override;
-  
+
   /**
    * @brief Deactivate class members
    * @param state Reference to LifeCycle node state
@@ -64,7 +67,7 @@ public:
    * @return SUCCESS
    */
   CallbackReturn on_error(const rclcpp_lifecycle::State & state) override;
-  
+
   /**
    * @brief Called when in shutdown lifecycle state to exit node's lifecycle
    * @param state Reference to LifeCycle node state
@@ -92,7 +95,7 @@ public:
 
   /**
    * @brief lifecycle node's implementation of deactivate step
-   */ 
+   */
   virtual void onDeactivate() = 0;
 
   /**
@@ -107,13 +110,13 @@ public:
 
   /**
    * @brief lifecycle node's implementation of cleanup step
-   */ 
+   */
   virtual void onCleanup() = 0;
 
   /**
    * @brief Get active state of lifecycle node
    * @return if the lifecycle node is currently active
-   */ 
+   */
   inline bool isActive()
   {
     return is_active;
@@ -123,6 +126,6 @@ private:
   bool is_active;
 };
 
-}  // namespace LifecycleInterface
+}  // namespace lifecycle_interface
 
 #endif  // ROS2_OUSTER__LIFECYCLE_INTERFACE_HPP_

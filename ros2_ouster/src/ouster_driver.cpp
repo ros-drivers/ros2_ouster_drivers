@@ -1,3 +1,4 @@
+// Copyright 2020
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -11,6 +12,9 @@
 // limitations under the License.
 
 #include <chrono>
+#include <vector>
+#include <string>
+#include <memory>
 #include "ros2_ouster/ouster_driver.hpp"
 
 namespace ros2_ouster
@@ -22,12 +26,11 @@ using std::placeholders::_3;
 
 using namespace std::chrono_literals;
 
-// TODOs
+// TODO(stevemacenski):
 // main method in a good designed way
+// linting
 // all allocation at startup
 // readme
-// register component
-// support save/reading in yaml
 
 OusterDriver::OusterDriver(const rclcpp::NodeOptions & options)
 : LifecycleInterface("OusterDriver", options)
@@ -50,8 +53,8 @@ void OusterDriver::onConfigure()
 {
   ros2_ouster::Configuration lidar_config;
   try {
-  lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
-  lidar_config.computer_ip = get_parameter("computer_ip").as_string();
+    lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
+    lidar_config.computer_ip = get_parameter("computer_ip").as_string();
   } catch (...) {
     RCLCPP_FATAL(this->get_logger(),
       "Failed to get lidar or IMU IP address or "
@@ -86,7 +89,8 @@ void OusterDriver::onConfigure()
   _sensor = std::make_shared<SensorInterface>(OS1::OS1Sensor());
   _sensor->configure(lidar_config);
 
-  _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(shared_from_this()); //TODO will this work with lifecycle publisher?
+  // TODO(stevemacenski): will this work with lifecycle publisher?
+  _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(shared_from_this());
   broadcastStaticTransforms();
 }
 
@@ -100,7 +104,7 @@ void OusterDriver::onActivate()
 
   // speed of the Ouster lidars is 1280 hz
   _process_timer = create_wall_timer(781250ns,
-    std::bind(&OusterDriver::processData, this));
+      std::bind(&OusterDriver::processData, this));
 }
 
 void OusterDriver::onError()
@@ -137,8 +141,7 @@ void OusterDriver::broadcastStaticTransforms()
   std::string laser_sensor_frame = get_parameter("laser_sensor_frame").as_string();
   std::string laser_data_frame = get_parameter("laser_data_frame").as_string();
   std::string imu_data_frame = get_parameter("imu_data_frame").as_string();
-  if (_tf_b)
-  {
+  if (_tf_b) {
     ros2_ouster::Metadata mdata = _sensor->getMetadata();
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
     transforms.push_back(toMsg(mdata.imu_to_sensor_transform,
@@ -151,14 +154,14 @@ void OusterDriver::broadcastStaticTransforms()
 
 void OusterDriver::processData()
 {
-  //TODO this full method
+  // TODO(stevemacenski) this full method
   // if (auto state = _sensor->poll() && _sensor->isValid(state))
   // {
-    // if (auto data = _sensor_client->get(state)) // data type will be a pkt processed
-    // {
-        // data_processors[state]->handle(data);  // take and buffer / convert / publish
+  // if (auto data = _sensor_client->get(state)) // data type will be a pkt processed
+  // {
+  // data_processors[state]->handle(data);  // take and buffer / convert / publish
   //         I'd really like to not have the publishers in this.... maybe a functor?
-    // }
+  // }
   // }
 }
 
@@ -167,8 +170,7 @@ void OusterDriver::resetService(
   const std::shared_ptr<std_srvs::srv::Empty::Request> request,
   std::shared_ptr<std_srvs::srv::Empty::Response> response)
 {
-  if (!this->isActive())
-  {
+  if (!this->isActive()) {
     return;
   }
 
@@ -186,8 +188,7 @@ void OusterDriver::getMetadata(
   const std::shared_ptr<ouster_msgs::srv::GetMetadata::Request> request,
   std::shared_ptr<ouster_msgs::srv::GetMetadata::Response> response)
 {
-  if (!this->isActive())
-  {
+  if (!this->isActive()) {
     return;
   }
   response->metadata = toMsg(_sensor->getMetadata());

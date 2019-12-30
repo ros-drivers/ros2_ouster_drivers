@@ -1,3 +1,4 @@
+// Copyright 2020
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -42,7 +43,7 @@ public:
    * @brief A constructor for ros2_ouster::OusterDriver
    * @param options Node options for lifecycle node interfaces
    */
-  OusterDriver(const rclcpp::NodeOptions & options);
+  explicit OusterDriver(const rclcpp::NodeOptions & options);
 
   /**
    * @brief A destructor for ros2_ouster::OusterDriver
@@ -51,7 +52,7 @@ public:
 
   /**
    * @brief lifecycle node's implementation of configure step
-   * which will configure ROS interfaces and allocate resources 
+   * which will configure ROS interfaces and allocate resources
    */
   void onConfigure() override;
 

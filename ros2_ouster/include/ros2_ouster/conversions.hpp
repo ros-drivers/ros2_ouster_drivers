@@ -1,3 +1,4 @@
+// Copyright 2020
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -12,6 +13,9 @@
 
 #ifndef ROS2_OUSTER__CONVERSIONS_HPP_
 #define ROS2_OUSTER__CONVERSIONS_HPP_
+
+#include <string>
+#include <vector>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2/LinearMath/Transform.h"
@@ -38,11 +42,11 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
   msg.imu_port = mdata.imu_port;
   msg.lidar_port = mdata.lidar_port;
   return msg;
-};
+}
 
 inline geometry_msgs::msg::TransformStamped toMsg(
-    const std::vector<double> & mat, const std::string & frame,
-    const std::string & child_frame, const rclcpp::Time & time)
+  const std::vector<double> & mat, const std::string & frame,
+  const std::string & child_frame, const rclcpp::Time & time)
 {
   assert(mat.size() == 16);
 
@@ -50,7 +54,7 @@ inline geometry_msgs::msg::TransformStamped toMsg(
 
   tf.setOrigin({mat[3] / 1e3, mat[7] / 1e3, mat[11] / 1e3});
   tf.setBasis({mat[0], mat[1], mat[2], mat[4], mat[5],
-    mat[6], mat[8], mat[9], mat[10]});
+      mat[6], mat[8], mat[9], mat[10]});
 
   geometry_msgs::msg::TransformStamped msg;
   msg.header.stamp = time;

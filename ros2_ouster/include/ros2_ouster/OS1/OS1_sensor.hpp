@@ -1,3 +1,4 @@
+// Copyright 2020
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -10,8 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__OS1_SENSOR_HPP_
-#define ROS2_OUSTER__OS1_SENSOR_HPP_
+#ifndef ROS2_OUSTER__OS1__OS1_SENSOR_HPP_
+#define ROS2_OUSTER__OS1__OS1_SENSOR_HPP_
+
+#include <memory>
 
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/OS1/OS1.hpp"
@@ -46,4 +49,4 @@ private:
 
 }  // namespace OS1
 
-#endif  // ROS2_OUSTER__OS1_SENSOR_HPP_
+#endif  // ROS2_OUSTER__OS1__OS1_SENSOR_HPP_

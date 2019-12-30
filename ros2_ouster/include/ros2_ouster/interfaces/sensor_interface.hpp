@@ -1,3 +1,4 @@
+// Copyright 2020
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -10,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__SENSOR_INTERFACE_HPP_
-#define ROS2_OUSTER__SENSOR_INTERFACE_HPP_
+#ifndef ROS2_OUSTER__INTERFACES__SENSOR_INTERFACE_HPP_
+#define ROS2_OUSTER__INTERFACES__SENSOR_INTERFACE_HPP_
 
 #include <memory>
 
@@ -32,25 +33,25 @@ public:
   /**
    * @brief A sensor interface constructor
    */
-  SensorInterface() {};
+  SensorInterface() {}
 
   /**
    * @brief Reset lidar sensor
-   */  
-  virtual void reset(const ros2_ouster::Configuration & config) {};
+   */
+  virtual void reset(const ros2_ouster::Configuration & config) {}
 
   /**
    * @brief Configure lidar sensor
    */
-  virtual void configure(const ros2_ouster::Configuration & config) {};
+  virtual void configure(const ros2_ouster::Configuration & config) {}
 
   /**
    * @brief Get lidar sensor's metadata
    * @return sensor metadata struct
    */
-  virtual ros2_ouster::Metadata getMetadata() {};
+  virtual ros2_ouster::Metadata getMetadata() {}
 };
 
 }  // namespace ros2_ouster
 
-#endif  // ROS2_OUSTER__SENSOR_INTERFACE_HPP_
+#endif  // ROS2_OUSTER__INTERFACES__SENSOR_INTERFACE_HPP_

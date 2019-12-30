@@ -1,3 +1,4 @@
+// Copyright 2020
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -37,7 +38,7 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
     config.lidar_ip, config.computer_ip,
     OS1::lidar_mode_of_string(config.lidar_mode),
     config.lidar_port, config.imu_port);
-  
+
   if (!_ouster_client) {
     throw ("Failed to create connection to lidar.");
   }
@@ -46,7 +47,7 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
 ros2_ouster::Metadata OS1Sensor::getMetadata()
 {
   if (_ouster_client) {
-    return OS1::parse_metadata(OS1::get_metadata(*_ouster_client));  
+    return OS1::parse_metadata(OS1::get_metadata(*_ouster_client));
   } else {
     return {"UNKNOWN", "UNKNOWN", "UNNKOWN", "UNNKOWN",
       {}, {}, {}, {}, 7503, 7502};
