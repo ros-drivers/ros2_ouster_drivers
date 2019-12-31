@@ -57,8 +57,8 @@ add_executable(${executable_name}
 
 target_link_libraries(${executable_name} ${library_name})
 
-rclcpp_components_register_nodes(ouster_driver_core "${PROJECT_NAME}::OusterDriver")
-set(node_plugins "${node_plugins}${PROJECT_NAME}::OusterDriver;$<TARGET_FILE:OusterDriver>\n")
+#rclcpp_components_register_nodes(ouster_driver_core "${PROJECT_NAME}::OS1Driver")
+#set(node_plugins "${node_plugins}${PROJECT_NAME}::OS1Driver;$<TARGET_FILE:ouster_driver>\n")
 
 install(TARGETS ${executable_name} ${library_name}
   ARCHIVE DESTINATION lib

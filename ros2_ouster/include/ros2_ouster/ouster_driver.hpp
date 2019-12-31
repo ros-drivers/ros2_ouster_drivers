@@ -26,8 +26,9 @@
 
 #include "tf2_ros/static_transform_broadcaster.h"
 
-#include "ros2_ouster/OS1/OS1_sensor.hpp"
 #include "ros2_ouster/conversions.hpp"
+#include "ros2_ouster/interfaces/configuration.hpp"
+#include "ros2_ouster/interfaces/metadata.hpp"
 
 namespace ros2_ouster
 {
@@ -36,6 +37,7 @@ namespace ros2_ouster
  * @brief A lifecycle interface implementation of a Ouster OS-1 Lidar
  * driver in ROS2.
  */
+template<typename SensorT>
 class OusterDriver : public lifecycle_interface::LifecycleInterface
 {
 public:
@@ -127,7 +129,7 @@ private:
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
   rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
 
-  SensorInterface::SharedPtr _sensor;
+  typename SensorT::SharedPtr _sensor;
   rclcpp::TimerBase::SharedPtr _process_timer;
 
   std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;

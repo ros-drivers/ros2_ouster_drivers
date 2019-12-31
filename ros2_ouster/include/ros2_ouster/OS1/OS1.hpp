@@ -123,7 +123,9 @@ inline bool operator<=(const version & u, const version & v)
  */
 inline std::string to_string(version v)
 {
-  if (v == invalid_version) {return "UNKNOWN"}
+  if (v == invalid_version) {
+    return "UNKNOWN";
+  }
 
   std::stringstream ss{};
   ss << "v" << v.major << "." << v.minor << "." << v.patch;
@@ -490,8 +492,12 @@ inline client_state poll_client(const client & c, const int timeout_sec = 1)
     std::cerr << "select: " << std::strerror(errno) << std::endl;
     res = client_state(res | ERROR);
   } else if (retval) {
-    if (FD_ISSET(c.lidar_fd, &rfds)) {res = client_state(res | LIDAR_DATA)}
-    if (FD_ISSET(c.imu_fd, &rfds)) {res = client_state(res | IMU_DATA)}
+    if (FD_ISSET(c.lidar_fd, &rfds)) {
+      res = client_state(res | LIDAR_DATA);
+    }
+    if (FD_ISSET(c.imu_fd, &rfds)) {
+      res = client_state(res | IMU_DATA);
+    }
   }
   return res;
 }

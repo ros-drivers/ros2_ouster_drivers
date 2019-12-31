@@ -15,7 +15,7 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include "ros2_ouster/ouster_driver.hpp"
+#include "ros2_ouster/driver_types.hpp"
 
 namespace ros2_ouster
 {
@@ -28,11 +28,10 @@ using namespace std::chrono_literals;
 
 // TODO(stevemacenski):
 // main method in a good designed way
-// linting
-// all allocation at startup
 // readme
 
-OusterDriver::OusterDriver(const rclcpp::NodeOptions & options)
+template<typename SensorT>
+OusterDriver<SensorT>::OusterDriver(const rclcpp::NodeOptions & options)
 : LifecycleInterface("OusterDriver", options)
 {
   this->declare_parameter("lidar_ip");
@@ -45,11 +44,13 @@ OusterDriver::OusterDriver(const rclcpp::NodeOptions & options)
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
 }
 
-OusterDriver::~OusterDriver()
+template<typename SensorT>
+OusterDriver<SensorT>::~OusterDriver()
 {
 }
 
-void OusterDriver::onConfigure()
+template<typename SensorT>
+void OusterDriver<SensorT>::onConfigure()
 {
   ros2_ouster::Configuration lidar_config;
   try {
@@ -86,7 +87,7 @@ void OusterDriver::onConfigure()
   _metadata_srv = this->create_service<ouster_msgs::srv::GetMetadata>(
     "get_metadata", std::bind(&OusterDriver::getMetadata, this, _1, _2, _3));
 
-  _sensor = std::make_shared<SensorInterface>(OS1::OS1Sensor());
+  _sensor = std::make_shared<SensorT>();
   _sensor->configure(lidar_config);
 
   // TODO(stevemacenski): will this work with lifecycle publisher?
@@ -94,7 +95,8 @@ void OusterDriver::onConfigure()
   broadcastStaticTransforms();
 }
 
-void OusterDriver::onActivate()
+template<typename SensorT>
+void OusterDriver<SensorT>::onActivate()
 {
   _range_im_pub->on_activate();
   _intensity_im_pub->on_activate();
@@ -107,11 +109,13 @@ void OusterDriver::onActivate()
       std::bind(&OusterDriver::processData, this));
 }
 
-void OusterDriver::onError()
+template<typename SensorT>
+void OusterDriver<SensorT>::onError()
 {
 }
 
-void OusterDriver::onDeactivate()
+template<typename SensorT>
+void OusterDriver<SensorT>::onDeactivate()
 {
   _range_im_pub->on_deactivate();
   _intensity_im_pub->on_deactivate();
@@ -121,7 +125,8 @@ void OusterDriver::onDeactivate()
   _process_timer.reset();
 }
 
-void OusterDriver::onCleanup()
+template<typename SensorT>
+void OusterDriver<SensorT>::onCleanup()
 {
   _range_im_pub.reset();
   _intensity_im_pub.reset();
@@ -132,11 +137,13 @@ void OusterDriver::onCleanup()
   _tf_b.reset();
 }
 
-void OusterDriver::onShutdown()
+template<typename SensorT>
+void OusterDriver<SensorT>::onShutdown()
 {
 }
 
-void OusterDriver::broadcastStaticTransforms()
+template<typename SensorT>
+void OusterDriver<SensorT>::broadcastStaticTransforms()
 {
   std::string laser_sensor_frame = get_parameter("laser_sensor_frame").as_string();
   std::string laser_data_frame = get_parameter("laser_data_frame").as_string();
@@ -152,7 +159,8 @@ void OusterDriver::broadcastStaticTransforms()
   }
 }
 
-void OusterDriver::processData()
+template<typename SensorT>
+void OusterDriver<SensorT>::processData()
 {
   // TODO(stevemacenski) this full method
   // if (auto state = _sensor->poll() && _sensor->isValid(state))
@@ -165,7 +173,8 @@ void OusterDriver::processData()
   // }
 }
 
-void OusterDriver::resetService(
+template<typename SensorT>
+void OusterDriver<SensorT>::resetService(
   const std::shared_ptr<rmw_request_id_t>/*request_header*/,
   const std::shared_ptr<std_srvs::srv::Empty::Request> request,
   std::shared_ptr<std_srvs::srv::Empty::Response> response)
@@ -183,7 +192,8 @@ void OusterDriver::resetService(
   _sensor->reset(lidar_config);
 }
 
-void OusterDriver::getMetadata(
+template<typename SensorT>
+void OusterDriver<SensorT>::getMetadata(
   const std::shared_ptr<rmw_request_id_t>/*request_header*/,
   const std::shared_ptr<ouster_msgs::srv::GetMetadata::Request> request,
   std::shared_ptr<ouster_msgs::srv::GetMetadata::Response> response)
@@ -195,10 +205,3 @@ void OusterDriver::getMetadata(
 }
 
 }  // namespace ros2_ouster
-
-#include "rclcpp_components/register_node_macro.hpp"
-
-// Register the component with class_loader.
-// This acts as a sort of entry point, allowing the component to be discoverable when its library
-// is being loaded into a running process.
-RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::OusterDriver)
