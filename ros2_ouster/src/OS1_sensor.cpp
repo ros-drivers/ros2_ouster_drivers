@@ -11,7 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #include "ros2_ouster/OS1/OS1_sensor.hpp"
+#include "ros2_ouster/exception.hpp"
 
 namespace OS1
 {
@@ -30,7 +33,8 @@ void OS1Sensor::reset(const ros2_ouster::Configuration & config)
 void OS1Sensor::configure(const ros2_ouster::Configuration & config)
 {
   if (!OS1::lidar_mode_of_string(config.lidar_mode)) {
-    throw ("Invalid lidar mode %s!", config.lidar_mode.c_str());
+    throw ros2_ouster::OusterDriverException(
+            std::string("Invalid lidar mode %s!", config.lidar_mode.c_str()));
     exit(-1);
   }
 
@@ -40,7 +44,8 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
     config.lidar_port, config.imu_port);
 
   if (!_ouster_client) {
-    throw ("Failed to create connection to lidar.");
+    throw ros2_ouster::OusterDriverException(
+            std::string("Failed to create connection to lidar."));
   }
 }
 

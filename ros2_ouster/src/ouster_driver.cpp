@@ -88,7 +88,13 @@ void OusterDriver<SensorT>::onConfigure()
     "get_metadata", std::bind(&OusterDriver::getMetadata, this, _1, _2, _3));
 
   _sensor = std::make_shared<SensorT>();
-  _sensor->configure(lidar_config);
+
+  try {
+    _sensor->configure(lidar_config);
+  } catch (const OusterDriverException & e) {
+    RCLCPP_FATAL(this->get_logger(), "Exception thrown: (%s)", e.what());
+    exit(-1);
+  }
 
   // TODO(stevemacenski): will this work with lifecycle publisher?
   _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(shared_from_this());
@@ -145,9 +151,9 @@ void OusterDriver<SensorT>::onShutdown()
 template<typename SensorT>
 void OusterDriver<SensorT>::broadcastStaticTransforms()
 {
-  std::string laser_sensor_frame = get_parameter("laser_sensor_frame").as_string();
-  std::string laser_data_frame = get_parameter("laser_data_frame").as_string();
-  std::string imu_data_frame = get_parameter("imu_data_frame").as_string();
+  std::string laser_sensor_frame = get_parameter("sensor_frame").as_string();
+  std::string laser_data_frame = get_parameter("laser_frame").as_string();
+  std::string imu_data_frame = get_parameter("imu_frame").as_string();
   if (_tf_b) {
     ros2_ouster::Metadata mdata = _sensor->getMetadata();
     std::vector<geometry_msgs::msg::TransformStamped> transforms;

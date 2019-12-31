@@ -29,6 +29,7 @@
 #include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/interfaces/configuration.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
+#include "ros2_ouster/exception.hpp"
 
 namespace ros2_ouster
 {
