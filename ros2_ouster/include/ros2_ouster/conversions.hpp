@@ -21,12 +21,35 @@
 #include "tf2/LinearMath/Transform.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "ouster_msgs/msg/metadata.hpp"
+
 #include "ros2_ouster/OS1/OS1.hpp"
 
 namespace ros2_ouster
 {
+
 /**
- * @brief A sensor interface constructor
+ * @brief Convert ClientState to string
+ */
+inline std::string toString(const ClientState & state)
+{
+  switch (state) {
+    case TIMEOUT:
+      return std::string("timeout");
+    case ERROR:
+      return std::string("error");
+    case EXIT:
+      return std::string("exit");
+    case IMU_DATA:
+      return std::string("lidar data");
+    case LIDAR_DATA:
+      return std::string("imu data");
+    default:
+      return std::string("unknown");
+  }
+}
+
+/**
+ * @brief Convert metadata to message format
  */
 inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
 {
@@ -44,6 +67,9 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
   return msg;
 }
 
+/**
+ * @brief Convert transformation to message format
+ */
 inline geometry_msgs::msg::TransformStamped toMsg(
   const std::vector<double> & mat, const std::string & frame,
   const std::string & child_frame, const rclcpp::Time & time)

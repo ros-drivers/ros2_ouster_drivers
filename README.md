@@ -14,9 +14,9 @@ Documentation can be generated using Doxygen.
 
 ## Design
 
-See design doc in `design/*` directory [here](design/design_doc.md).
+See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 
-## Interfaces
+## ROS Interfaces
 
 TODO create table
 `sensor_msgs/Image` range image topic
@@ -26,6 +26,14 @@ TODO create table
 
 TODO services
 
+## Extensions
+TODO
+
+### Additional Lidar Processing
+TODO
+
+### Additional Lidar Units
+TODO
 
 ## Examples
 

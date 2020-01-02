@@ -16,6 +16,7 @@
 
 #include <memory>
 
+#include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/OS1/OS1.hpp"
 
@@ -29,11 +30,13 @@ public:
 
   /**
    * @brief Reset lidar sensor
+   * @param configuration file to use
    */
   void reset(const ros2_ouster::Configuration & config) override;
 
   /**
    * @brief Configure lidar sensor
+   * @param configuration file to use
    */
   void configure(const ros2_ouster::Configuration & config) override;
 
@@ -42,6 +45,40 @@ public:
    * @return sensor metadata struct
    */
   ros2_ouster::Metadata getMetadata() override;
+
+  /**
+   * @brief Ask sensor to get its current state for data collection
+   * @return the state enum value
+   */
+  ros2_ouster::ClientState get() override;
+
+  /**
+   * @brief reading the packet corresponding to the sensor state
+   * @param state of the sensor
+   * @return the packet of data
+   */
+  uint8_t * read_packet(const ros2_ouster::ClientState & state) override;
+
+  /**
+   * @brief Factory method to get a pointer to a processor
+   * to create the image (range, intensity, noise) interfaces
+   * @return Raw pointer to a data processor interface to use 
+   */
+  ros2_ouster::DataProcessorInterface * createImageProcessor() override;
+
+  /**
+   * @brief Factory method to get a pointer to a processor
+   * to create the pointcloud (PointXYZ be default) interface
+   * @return Raw pointer to a data processor interface to use 
+   */
+  ros2_ouster::DataProcessorInterface * createPointcloudProcessor() override;
+
+  /**
+   * @brief Factory method to get a pointer to a processor
+   * to create the IMU interface
+   * @return Raw pointer to a data processor interface to use 
+   */
+  ros2_ouster::DataProcessorInterface * createIMUProcessor() override;
 
 private:
   std::shared_ptr<client> _ouster_client;

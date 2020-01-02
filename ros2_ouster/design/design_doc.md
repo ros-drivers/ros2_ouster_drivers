@@ -31,6 +31,7 @@ The goal of these drivers is as follows:
 - Create a high quality ROS2 driver for the OS-1 lidar
 - Create lifecycle and component interfaces to enable new ROS2 features
 - Better handle different types of data in the driver to enable future sensors and data through interfaces.
+- Designed for future OS lidar series and expansion of processor capabilities
 
 Non-goals are as follows:
 - Support additional sensors from other vendors
@@ -41,7 +42,7 @@ Non-goals are as follows:
 
 ## Milestones
 
-### Milestone 0 [Achieved]
+### Milestone 0
 - Achieve ROS1 driver functionality with OS-1 lidar
 - Analyze ROS1 driver for positive and negative attributes
 - Port relavent code from ROS1 to ROS2 for this driver
@@ -83,7 +84,7 @@ ROS2 provides component nodes to allow us to register multiple nodes into a sing
 
 ### Data Interface and Implementations
 
-When a packet comes in from the sensor, we need to process it for IMU, PointCloud, Image, and potentially more. Therefore, we need an interface for the data to allow extendability over time. This is particularly important for the `PointCloud2` if we wish to support more point types than a `PointXYZ` (ei `PointXYZi`) as well as the `Image` if we would like to make use of compression or other encoding representations.
+When a packet comes in from the sensor, we need to process it for IMU, PointCloud, Image, and potentially more. Therefore, we need an interface for the data to allow extendability over time. This is particularly important for the `PointCloud2` if we wish to support more point types than a `PointXYZ` (ei `PointXYZi`) as well as the `Image` if we would like to make use of compression or other encoding representations. Since a single packet (LIDAR) could be useful to different data processor interfaces (range image, pointcloud, intensity image, etc), I want to support easy expansions of capabilities for a sensor to process data.
 
 We need a few core implementations:
 - Image
@@ -132,7 +133,7 @@ A goal of 80% test coverage.
 
 Right now, the ROS2 launch system will not allow for both component nodes to be composed and lifecycle nodes to be stepped through its lifecycle to the activation stage automatically. The example launch files may need to be only stepping through the lifecycle stages but in the future a solution needs to be found to compose lifecycle nodes if there's not an external lifecycle manager.
 
-The exact mechanism for creating sensor data interfaces for the lidar is up in the air. It could equally use an abstract interface as well as make use of templating. 
+The exact mechanism for creating sensor data interfaces for the lidar is up in the air. It could equally use a factory as well as make use of templating. 
 
 Some forks of the Ouster driver in ROS1 created factories for multiple types of Pointclouds in PCL to include intensity, range, and noise information. In the base implementation, it will include only a `PointXYZ` cloud, but the interfaces need to be designed to support other cloud types for easy implementation.
 
