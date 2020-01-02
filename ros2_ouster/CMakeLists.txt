@@ -12,12 +12,15 @@ find_package(geometry_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(pcl_conversions REQUIRED)
 find_package(ouster_msgs REQUIRED)
+find_package(PCL REQUIRED COMPONENTS common)
 
 find_package(jsoncpp REQUIRED)
 
 include_directories(
   include
+  ${PCL_INCLUDE_DIRS}
 )
 
 set(executable_name ouster_driver)
@@ -35,12 +38,13 @@ set(dependencies
   tf2_ros
   ouster_msgs
   tf2_geometry_msgs
+  pcl_conversions
 )
 
 add_library(${library_name} SHARED
   src/ouster_driver.cpp
   src/lifecycle_interface.cpp
-  src/OS1_sensor.cpp
+  src/OS1/OS1_sensor.cpp
 )
 
 ament_target_dependencies(${library_name}
@@ -49,6 +53,7 @@ ament_target_dependencies(${library_name}
 
 target_link_libraries(${library_name}
   jsoncpp
+  ${PCL_LIBRARIES}
 )
 
 add_executable(${executable_name}

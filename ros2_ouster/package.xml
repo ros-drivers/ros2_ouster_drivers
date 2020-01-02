@@ -22,6 +22,8 @@
   <depend>tf2_geometry_msgs</depend>
   <depend>launch</depend>
   <depend>launch_ros</depend>
+  <depend>pcl_conversions</depend>
+  <depend>libpcl-all</depend>
 
   <test_depend>ament_lint_common</test_depend>
   <test_depend>ament_lint_auto</test_depend>
