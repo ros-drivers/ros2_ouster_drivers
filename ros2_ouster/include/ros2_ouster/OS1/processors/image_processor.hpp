@@ -112,13 +112,11 @@ public:
         _reflectivity_image->header.stamp = t;
 
         std::vector<image_os::ImageOS>::iterator it;
-        for (it = _information_image.begin();
-        it != _information_image.end(); ++it)
-        {
-          _range_image->data[0] = it->range;
-          _noise_image->data[0] = it->noise;
-          _intensity_image->data[0] = it->intensity;
-          _reflectivity_image->data[0] = it->reflectivity;
+        for (uint i = 0; i != _information_image.size(); i++) {
+          _range_image->data[i] = _information_image[i].range;
+          _noise_image->data[i] = _information_image[i].noise;
+          _intensity_image->data[i] = _information_image[i].intensity;
+          _reflectivity_image->data[i] = _information_image[i].reflectivity;
         }
 
         if (_range_image_pub->get_subscription_count() > 0) {
