@@ -17,12 +17,19 @@
 #include <string>
 #include <vector>
 
+#include "pcl/point_types.h"
+#include "pcl/point_cloud.h"
+#include "pcl_conversions/pcl_conversions.h"
+
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2/LinearMath/Transform.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "ouster_msgs/msg/metadata.hpp"
 
 #include "ros2_ouster/OS1/OS1.hpp"
+#include "ros2_ouster/OS1/OS1_packet.hpp"
+#include "ros2_ouster/point_os.hpp"
+#include "ros2_ouster/image_os.hpp"
 
 namespace ros2_ouster
 {
@@ -88,6 +95,61 @@ inline geometry_msgs::msg::TransformStamped toMsg(
   msg.child_frame_id = child_frame;
   msg.transform = tf2::toMsg(tf);
 
+  return msg;
+}
+
+/**
+ * @brief Convert IMU to message format
+ */
+inline sensor_msgs::msg::Imu toMsg(
+  const uint8_t * buf,
+  const std::string & frame)
+{
+  const double standard_g = 9.80665;
+  sensor_msgs::msg::Imu m;
+  m.orientation.x = 0;
+  m.orientation.y = 0;
+  m.orientation.z = 0;
+  m.orientation.w = 1;
+
+  rclcpp::Time t(OS1::imu_gyro_ts(buf));
+  m.header.stamp = t;
+  m.header.frame_id = frame;
+
+  m.linear_acceleration.x = OS1::imu_la_x(buf) * standard_g;
+  m.linear_acceleration.y = OS1::imu_la_y(buf) * standard_g;
+  m.linear_acceleration.z = OS1::imu_la_z(buf) * standard_g;
+
+  m.angular_velocity.x = OS1::imu_av_x(buf) * M_PI / 180.0;
+  m.angular_velocity.y = OS1::imu_av_y(buf) * M_PI / 180.0;
+  m.angular_velocity.z = OS1::imu_av_z(buf) * M_PI / 180.0;
+
+  for (int i = 0; i < 9; i++) {
+    m.orientation_covariance[i] = -1;
+    m.angular_velocity_covariance[i] = 0;
+    m.linear_acceleration_covariance[i] = 0;
+  }
+  for (int i = 0; i < 9; i += 4) {
+    m.linear_acceleration_covariance[i] = 0.01;
+    m.angular_velocity_covariance[i] = 6e-4;
+  }
+
+  return m;
+}
+
+/**
+ * @brief Convert Pointcloud to message format
+ */
+inline sensor_msgs::msg::PointCloud2 toMsg(
+  const pcl::PointCloud<point_os::PointOS> & cloud,
+  std::chrono::nanoseconds timestamp,
+  const std::string & frame)
+{
+  sensor_msgs::msg::PointCloud2 msg;
+  pcl::toROSMsg(cloud, msg);
+  msg.header.frame_id = frame;
+  rclcpp::Time t(timestamp.count());
+  msg.header.stamp = t;
   return msg;
 }
 

@@ -11,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__LIFECYCLE_INTERFACE_HPP_
-#define ROS2_OUSTER__LIFECYCLE_INTERFACE_HPP_
+#ifndef ROS2_OUSTER__INTERFACES__LIFECYCLE_INTERFACE_HPP_
+#define ROS2_OUSTER__INTERFACES__LIFECYCLE_INTERFACE_HPP_
 
 #include <string>
 
@@ -128,4 +128,4 @@ private:
 
 }  // namespace lifecycle_interface
 
-#endif  // ROS2_OUSTER__LIFECYCLE_INTERFACE_HPP_
+#endif  // ROS2_OUSTER__INTERFACES__LIFECYCLE_INTERFACE_HPP_

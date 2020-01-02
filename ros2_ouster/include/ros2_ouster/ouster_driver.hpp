@@ -15,8 +15,10 @@
 #define ROS2_OUSTER__OUSTER_DRIVER_HPP_
 
 #include <memory>
+#include <map>
+#include <string>
 
-#include "ros2_ouster/lifecycle_interface.hpp"
+#include "ros2_ouster/interfaces/lifecycle_interface.hpp"
 
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -28,8 +30,7 @@
 
 #include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/interfaces/configuration.hpp"
-#include "ros2_ouster/interfaces/metadata.hpp"
-#include "ros2_ouster/exception.hpp"
+#include "ros2_ouster/interfaces/data_processor_interface.hpp"
 
 namespace ros2_ouster
 {
@@ -42,6 +43,9 @@ template<typename SensorT>
 class OusterDriver : public lifecycle_interface::LifecycleInterface
 {
 public:
+  using DataProcessorMap = std::multimap<ClientState, DataProcessorInterface *>;
+  using DataProcessorMapIt = DataProcessorMap::iterator;
+
   /**
    * @brief A constructor for ros2_ouster::OusterDriver
    * @param options Node options for lifecycle node interfaces
@@ -98,7 +102,7 @@ private:
   /**
    * @brief Create TF2 frames for the lidar sensor
    */
-  void broadcastStaticTransforms();
+  void broadcastStaticTransforms(const ros2_ouster::Metadata & mdata);
 
   /**
   * @brief service callback to reset the lidar
@@ -122,17 +126,14 @@ private:
     const std::shared_ptr<ouster_msgs::srv::GetMetadata::Request> request,
     std::shared_ptr<ouster_msgs::srv::GetMetadata::Response> response);
 
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_im_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_im_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_im_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr _imu_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pc_pub;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
   rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
 
   typename SensorT::SharedPtr _sensor;
+  std::multimap<ClientState, DataProcessorInterface *> _data_processors;
   rclcpp::TimerBase::SharedPtr _process_timer;
 
+  std::string _laser_sensor_frame, _laser_data_frame, _imu_data_frame;
   std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
 };
 

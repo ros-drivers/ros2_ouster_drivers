@@ -15,10 +15,12 @@
 #define ROS2_OUSTER__OS1__OS1_SENSOR_HPP_
 
 #include <memory>
+#include <vector>
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/OS1/OS1.hpp"
+#include "ros2_ouster/OS1/processor_factories.hpp"
 
 namespace OS1
 {
@@ -57,31 +59,12 @@ public:
    * @param state of the sensor
    * @return the packet of data
    */
-  uint8_t * read_packet(const ros2_ouster::ClientState & state) override;
-
-  /**
-   * @brief Factory method to get a pointer to a processor
-   * to create the image (range, intensity, noise) interfaces
-   * @return Raw pointer to a data processor interface to use 
-   */
-  ros2_ouster::DataProcessorInterface * createImageProcessor() override;
-
-  /**
-   * @brief Factory method to get a pointer to a processor
-   * to create the pointcloud (PointXYZ be default) interface
-   * @return Raw pointer to a data processor interface to use 
-   */
-  ros2_ouster::DataProcessorInterface * createPointcloudProcessor() override;
-
-  /**
-   * @brief Factory method to get a pointer to a processor
-   * to create the IMU interface
-   * @return Raw pointer to a data processor interface to use 
-   */
-  ros2_ouster::DataProcessorInterface * createIMUProcessor() override;
+  uint8_t * readPacket(const ros2_ouster::ClientState & state) override;
 
 private:
   std::shared_ptr<client> _ouster_client;
+  std::vector<uint8_t> _lidar_packet;
+  std::vector<uint8_t> _imu_packet;
 };
 
 }  // namespace OS1

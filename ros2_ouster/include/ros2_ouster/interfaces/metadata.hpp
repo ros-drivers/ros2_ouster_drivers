@@ -19,6 +19,19 @@
 
 namespace ros2_ouster
 {
+
+/**
+ * @brief client response on current state
+ */
+enum ClientState
+{
+  TIMEOUT = 0,
+  ERROR = 1,
+  LIDAR_DATA = 2,
+  IMU_DATA = 4,
+  EXIT = 8
+};
+
 /**
  * @brief metadata about Ouster lidar sensor
  */

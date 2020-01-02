@@ -24,48 +24,6 @@
 
 namespace OS1
 {
-extern const std::vector<double> beam_altitude_angles = {
-  16.611, 16.084, 15.557, 15.029, 14.502, 13.975, 13.447, 12.920,
-  12.393, 11.865, 11.338, 10.811, 10.283, 9.756, 9.229, 8.701,
-  8.174, 7.646, 7.119, 6.592, 6.064, 5.537, 5.010, 4.482,
-  3.955, 3.428, 2.900, 2.373, 1.846, 1.318, 0.791, 0.264,
-  -0.264, -0.791, -1.318, -1.846, -2.373, -2.900, -3.428, -3.955,
-  -4.482, -5.010, -5.537, -6.064, -6.592, -7.119, -7.646, -8.174,
-  -8.701, -9.229, -9.756, -10.283, -10.811, -11.338, -11.865, -12.393,
-  -12.920, -13.447, -13.975, -14.502, -15.029, -15.557, -16.084, -16.611,
-};
-
-extern const std::vector<double> beam_azimuth_angles = {
-  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-  3.164, 1.055, -1.055, -3.164, 3.164, 1.055, -1.055, -3.164,
-};
-
-extern const std::vector<double> imu_to_sensor_transform = {
-  1, 0, 0, 6.253, 0, 1, 0, -11.775, 0, 0, 1, 7.645, 0, 0, 0, 1};
-
-extern const std::vector<double> lidar_to_sensor_transform = {
-  -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 36.18, 0, 0, 0, 1};
-
-/**
- * Design values for altitude and azimuth offset angles. Can be used if
- * calibrated values are not available.
- */
-extern const std::vector<double> beam_altitude_angles;
-extern const std::vector<double> beam_azimuth_angles;
-
-/**
- * Design values for imu and lidar to sensor-frame transforms. See the OS-1
- * manual for details.
- */
-extern const std::vector<double> imu_to_sensor_transform;
-extern const std::vector<double> lidar_to_sensor_transform;
-
 /**
  * Generate a matrix of unit vectors pointing radially outwards, useful for
  * efficiently computing cartesian coordinates from ranges.  The result is a n x
@@ -80,7 +38,7 @@ extern const std::vector<double> lidar_to_sensor_transform;
  * @param beam_altitude_angles altitude in degrees for each of H beams
  * @return xyz direction unit vectors for each point in the lidar scan
  */
-std::vector<double> make_xyz_lut(
+inline std::vector<double> make_xyz_lut(
   int W, int H,
   const std::vector<double> & azimuth_angles,
   const std::vector<double> & altitude_angles)
@@ -112,7 +70,7 @@ std::vector<double> make_xyz_lut(
  * @param W number of columns in the lidar scan. One of 512, 1024, or 2048.
  * @return vector of H pixel offsets
  */
-std::vector<int> get_px_offset(int lidar_mode)
+inline std::vector<int> get_px_offset(int lidar_mode)
 {
   auto repeat = [](int n, const std::vector<int> & v) {
       std::vector<int> res{};
@@ -150,8 +108,8 @@ std::vector<int> get_px_offset(int lidar_mode)
  * @param W number of columns in the lidar scan. One of 512, 1024, or 2048.
  * @param H number of rows in the lidar scan. 64 for the OS1 family of sensors.
  * @param empty value to insert for mossing data
- * @param c function to construct a value from x, y, z (m), i, ts, reflectivity,
- * ring, noise, range (mm). Needed to use with Eigen datatypes.
+ * @param c function to construct a value from x, y, z (m), intensity, ts, reflectivity,
+ * ring, column, noise, range (mm). Needed to use with Eigen datatypes.
  * @param f callback invoked when batching a scan is done.
  * @return a function taking a lidar packet buffer and random-access iterator to
  * which data is added for every point in the scan.
@@ -175,7 +133,9 @@ std::function<void(const uint8_t *, iterator_type it)> batch_to_iter(
              const bool valid = OS1::col_valid(col_buf) == 0xffffffff;
 
              // drop invalid / out-of-bounds data in case of misconfiguration
-             if (!valid || m_id >= W || f_id + 1 == cur_f_id) {continue}
+             if (!valid || m_id >= W || f_id + 1 == cur_f_id) {
+               continue;
+             }
 
              if (f_id != cur_f_id) {
                // if not initializing with first packet
@@ -205,12 +165,12 @@ std::function<void(const uint8_t *, iterator_type it)> batch_to_iter(
                uint32_t r = OS1::px_range(px_buf);
                int ind = 3 * (idx + ipx);
 
-               // x, y, z(m), i, ts, reflectivity, ring, noise, range (mm)
+               // x, y, z(m), intensity, ts, reflectivity, ring, column, noise, range (mm)
                it[idx + ipx] = c(r * 0.001f * xyz_lut[ind + 0],
                    r * 0.001f * xyz_lut[ind + 1],
                    r * 0.001f * xyz_lut[ind + 2],
                    OS1::px_signal_photons(px_buf), ts - scan_ts,
-                   OS1::px_reflectivity(px_buf), ipx,
+                   OS1::px_reflectivity(px_buf), ipx, m_id,
                    OS1::px_noise_photons(px_buf), r);
              }
            }

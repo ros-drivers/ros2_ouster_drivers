@@ -15,6 +15,9 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <utility>
+
+#include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/driver_types.hpp"
 
 namespace ros2_ouster
@@ -23,12 +26,7 @@ namespace ros2_ouster
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
-
 using namespace std::chrono_literals;
-
-// TODO(stevemacenski):
-// main method in a good designed way
-// readme
 
 template<typename SensorT>
 OusterDriver<SensorT>::OusterDriver(const rclcpp::NodeOptions & options)
@@ -67,21 +65,15 @@ void OusterDriver<SensorT>::onConfigure()
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
 
+  _laser_sensor_frame = get_parameter("sensor_frame").as_string();
+  _laser_data_frame = get_parameter("laser_frame").as_string();
+  _imu_data_frame = get_parameter("imu_frame").as_string();
+
   RCLCPP_INFO(this->get_logger(),
     "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());
   RCLCPP_INFO(this->get_logger(),
     "Broadcasting data from sensor to %s.", lidar_config.computer_ip.c_str());
 
-  _range_im_pub = this->create_publisher<sensor_msgs::msg::Image>(
-    "range_image", rclcpp::SensorDataQoS());
-  _intensity_im_pub = this->create_publisher<sensor_msgs::msg::Image>(
-    "intensity_image", rclcpp::SensorDataQoS());
-  _noise_im_pub = this->create_publisher<sensor_msgs::msg::Image>(
-    "noise_image", rclcpp::SensorDataQoS());
-  _imu_pub = this->create_publisher<sensor_msgs::msg::Imu>(
-    "imu", rclcpp::SensorDataQoS());
-  _pc_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>(
-    "points", rclcpp::SensorDataQoS());
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
   _metadata_srv = this->create_service<ouster_msgs::srv::GetMetadata>(
@@ -96,19 +88,22 @@ void OusterDriver<SensorT>::onConfigure()
     exit(-1);
   }
 
-  // TODO(stevemacenski): will this work with lifecycle publisher?
+  ros2_ouster::Metadata mdata = _sensor->getMetadata();
+
+  _data_processors = ros2_ouster::createProcessors(
+    shared_from_this(), mdata, _imu_data_frame, _laser_data_frame);
+
   _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(shared_from_this());
-  broadcastStaticTransforms();
+  broadcastStaticTransforms(mdata);
 }
 
 template<typename SensorT>
 void OusterDriver<SensorT>::onActivate()
 {
-  _range_im_pub->on_activate();
-  _intensity_im_pub->on_activate();
-  _noise_im_pub->on_activate();
-  _pc_pub->on_activate();
-  _imu_pub->on_activate();
+  DataProcessorMapIt it;
+  for (it = _data_processors.begin(); it != _data_processors.end(); ++it) {
+    it->second->onActivate();
+  }
 
   // speed of the Ouster lidars is 1280 hz
   _process_timer = create_wall_timer(781250ns,
@@ -123,22 +118,18 @@ void OusterDriver<SensorT>::onError()
 template<typename SensorT>
 void OusterDriver<SensorT>::onDeactivate()
 {
-  _range_im_pub->on_deactivate();
-  _intensity_im_pub->on_deactivate();
-  _noise_im_pub->on_deactivate();
-  _pc_pub->on_deactivate();
-  _imu_pub->on_deactivate();
   _process_timer.reset();
+
+  DataProcessorMapIt it;
+  for (it = _data_processors.begin(); it != _data_processors.end(); ++it) {
+    it->second->onDeactivate();
+  }
 }
 
 template<typename SensorT>
 void OusterDriver<SensorT>::onCleanup()
 {
-  _range_im_pub.reset();
-  _intensity_im_pub.reset();
-  _noise_im_pub.reset();
-  _pc_pub.reset();
-  _imu_pub.reset();
+  _data_processors.clear();
   _sensor.reset();
   _tf_b.reset();
 }
@@ -149,18 +140,15 @@ void OusterDriver<SensorT>::onShutdown()
 }
 
 template<typename SensorT>
-void OusterDriver<SensorT>::broadcastStaticTransforms()
+void OusterDriver<SensorT>::broadcastStaticTransforms(
+  const ros2_ouster::Metadata & mdata)
 {
-  std::string laser_sensor_frame = get_parameter("sensor_frame").as_string();
-  std::string laser_data_frame = get_parameter("laser_frame").as_string();
-  std::string imu_data_frame = get_parameter("imu_frame").as_string();
   if (_tf_b) {
-    ros2_ouster::Metadata mdata = _sensor->getMetadata();
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
     transforms.push_back(toMsg(mdata.imu_to_sensor_transform,
-      laser_sensor_frame, imu_data_frame, this->now()));
+      _laser_sensor_frame, _imu_data_frame, this->now()));
     transforms.push_back(toMsg(mdata.lidar_to_sensor_transform,
-      laser_sensor_frame, laser_data_frame, this->now()));
+      _laser_sensor_frame, _laser_data_frame, this->now()));
     _tf_b->sendTransform(transforms);
   }
 }
@@ -168,15 +156,21 @@ void OusterDriver<SensorT>::broadcastStaticTransforms()
 template<typename SensorT>
 void OusterDriver<SensorT>::processData()
 {
-  // TODO(stevemacenski) this full method
-  // if (auto state = _sensor->poll() && _sensor->isValid(state))
-  // {
-  // if (auto data = _sensor_client->get(state)) // data type will be a pkt processed
-  // {
-  // data_processors[state]->handle(data);  // take and buffer / convert / publish
-  //         I'd really like to not have the publishers in this.... maybe a functor?
-  // }
-  // }
+  ClientState state = _sensor->get();
+  uint8_t * packet_data = _sensor->readPacket(state);
+  if (packet_data) {
+    std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
+    key_its = _data_processors.equal_range(state);
+    for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
+      try {
+        it->second->process(packet_data);
+      } catch (const OusterDriverException & e) {
+        RCLCPP_WARN(this->get_logger(),
+          "Failed to process packet with exception %s", e.what());
+        return;
+      }
+    }
+  }
 }
 
 template<typename SensorT>

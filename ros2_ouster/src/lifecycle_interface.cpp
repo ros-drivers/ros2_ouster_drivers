@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "ros2_ouster/lifecycle_interface.hpp"
+#include "ros2_ouster/interfaces/lifecycle_interface.hpp"
 
 namespace lifecycle_interface
 {

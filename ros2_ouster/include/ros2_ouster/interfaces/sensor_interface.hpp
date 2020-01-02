@@ -18,6 +18,7 @@
 
 #include "ros2_ouster/interfaces/metadata.hpp"
 #include "ros2_ouster/interfaces/configuration.hpp"
+#include "ros2_ouster/interfaces/data_processor_interface.hpp"
 
 namespace ros2_ouster
 {
@@ -37,13 +38,28 @@ public:
 
   /**
    * @brief Reset lidar sensor
+   * @param configuration file to use
    */
   virtual void reset(const ros2_ouster::Configuration & config) {}
 
   /**
    * @brief Configure lidar sensor
+   * @param configuration file to use
    */
   virtual void configure(const ros2_ouster::Configuration & config) {}
+
+  /**
+   * @brief Ask sensor to get its current state for data collection
+   * @return the state enum value
+   */
+  virtual ros2_ouster::ClientState get() {}
+
+  /**
+   * @brief reading the packet corresponding to the sensor state
+   * @param state of the sensor
+   * @return the packet of data
+   */
+  virtual uint8_t * readPacket(const ros2_ouster::ClientState & state) {}
 
   /**
    * @brief Get lidar sensor's metadata

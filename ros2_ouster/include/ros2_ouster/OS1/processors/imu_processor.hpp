@@ -1,0 +1,95 @@
+// Copyright 2020
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef ROS2_OUSTER__OS1__PROCESSORS__IMU_PROCESSOR_HPP_
+#define ROS2_OUSTER__OS1__PROCESSORS__IMU_PROCESSOR_HPP_
+
+#include <vector>
+#include <memory>
+#include <string>
+
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/imu.hpp"
+
+#include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/conversions.hpp"
+
+namespace OS1
+{
+
+/**
+ * @class OS1::IMUProcessor
+ * @brief A data processor interface implementation of a processor
+ * for creating IMU in the driver in ROS2.
+ */
+class IMUProcessor : public ros2_ouster::DataProcessorInterface
+{
+public:
+  /**
+   * @brief A constructor for OS1::IMUProcessor
+   * @param node Node for creating interfaces
+   * @param mdata metadata about the sensor
+   * @param frame frame_id to use for messages
+   */
+  IMUProcessor(
+    const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
+    const ros2_ouster::Metadata & mdata,
+    const std::string & frame)
+  : DataProcessorInterface(), _frame(frame)
+  {
+    _pub = node->create_publisher<sensor_msgs::msg::Imu>(
+      "imu", rclcpp::SensorDataQoS());
+  }
+
+  /**
+   * @brief A destructor clearing memory allocated
+   */
+  ~IMUProcessor()
+  {
+    _pub.reset();
+  }
+
+  /**
+   * @brief Process method to create imu
+   * @param data the packet data
+   */
+  bool process(uint8_t * data) override
+  {
+    _pub->publish(ros2_ouster::toMsg(data, _frame));
+    return true;
+  }
+
+  /**
+   * @brief Activating processor from lifecycle state transitions
+   */
+  void onActivate() override
+  {
+    _pub->on_activate();
+  }
+
+  /**
+   * @brief Deactivating processor from lifecycle state transitions
+   */
+  void onDeactivate() override
+  {
+    _pub->on_deactivate();
+  }
+
+private:
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr _pub;
+  std::string _frame;
+};
+
+}  // namespace OS1
+
+#endif  // ROS2_OUSTER__OS1__PROCESSORS__IMU_PROCESSOR_HPP_

@@ -14,7 +14,9 @@
 #include <string>
 
 #include "ros2_ouster/OS1/OS1_sensor.hpp"
+#include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/exception.hpp"
+#include "ros2_ouster/interfaces/metadata.hpp"
 
 namespace OS1
 {
@@ -22,6 +24,8 @@ namespace OS1
 OS1Sensor::OS1Sensor()
 : SensorInterface()
 {
+  _lidar_packet.resize(lidar_packet_bytes + 1);
+  _imu_packet.resize(imu_packet_bytes + 1);
 }
 
 void OS1Sensor::reset(const ros2_ouster::Configuration & config)
@@ -46,6 +50,37 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
   if (!_ouster_client) {
     throw ros2_ouster::OusterDriverException(
             std::string("Failed to create connection to lidar."));
+  }
+}
+
+ros2_ouster::ClientState OS1Sensor::get()
+{
+  const ClientState state = OS1::poll_client(*_ouster_client);
+
+  if (state != ClientState::LIDAR_DATA && state != ClientState::IMU_DATA) {
+    throw ros2_ouster::OusterDriverException(
+            std::string("Failed to get valid sensor data "
+            "information from lidar, returned state %s.",
+            ros2_ouster::toString(state).c_str()));
+  }
+  return state;
+}
+
+uint8_t * OS1Sensor::readPacket(const ros2_ouster::ClientState & state)
+{
+  switch (state) {
+    case ClientState::IMU_DATA:
+      if (read_imu_packet(*_ouster_client, _lidar_packet.data())) {
+        return _lidar_packet.data();
+      } else {
+        return nullptr;
+      }
+    case ClientState::LIDAR_DATA:
+      if (read_lidar_packet(*_ouster_client, _imu_packet.data())) {
+        return _imu_packet.data();
+      } else {
+        return nullptr;
+      }
   }
 }
 
