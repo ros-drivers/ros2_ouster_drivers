@@ -23,14 +23,16 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 
 ## ROS Interfaces
 
+<center>
 
-| Topic             | Type                    |
-|-------------------|-------------------------|
-| `range_image`     | sensor_msgs/Image       |
-| `intensity_image` | sensor_msgs/Image       |
-| `noise_image`     | sensor_msgs/Image       |
-| `points`          | sensor_msgs/PointCloud2 |
-| `imu`             | sensor_msgs/Imu         |
+| Topic                | Type                    |
+|----------------------|-------------------------|
+| `range_image`        | sensor_msgs/Image       |
+| `intensity_image`    | sensor_msgs/Image       |
+| `noise_image`        | sensor_msgs/Image       |
+| `reflectivity_image` | sensor_msgs/Image       |
+| `points`             | sensor_msgs/PointCloud2 |
+| `imu`                | sensor_msgs/Imu         |
 
 | Service           | Type                    |
 |-------------------|-------------------------|
@@ -47,6 +49,8 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `sensor_frame`    | String                  | TF frame of sensor, default `laser_sensor_frame`    |
 | `laser_frame`     | String                  | TF frame of laser data, default `laser_data_frame`  |
 | `imu_frame`       | String                  | TF frame of imu data, default `imu_data_frame`      |
+
+</center>
 
 Note: TF will provide you the transformations from the sensor frame to each of the data frames.
 
