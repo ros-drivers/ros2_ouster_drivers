@@ -2,7 +2,7 @@
 
 These are an implementation of ROS2 drivers for the Ouster OS-1 3D lidars. This includes all models of the OS-1 from 16 to 128 beams. 
 
-You can find a few videos looking over the sensor below:
+You can find a few videos looking over the sensor below. They both introduce the ROS1 driver but are extremely useful references regardless:
 
 OS-1 Networking Setup      |  OS-1 Data Overview
 :-------------------------:|:-------------------------:
