@@ -121,10 +121,21 @@ public:
           _reflectivity_image->data[0] = it->reflectivity;
         }
 
-        _range_image_pub->publish(std::move(_range_image));
-        _noise_image_pub->publish(std::move(_noise_image));
-        _intensity_image_pub->publish(std::move(_intensity_image));
-        _reflectivity_image_pub->publish(std::move(_reflectivity_image));
+        if (_range_image_pub->get_subscription_count() > 0) {
+          _range_image_pub->publish(std::move(_range_image));
+        }
+
+        if (_noise_image_pub->get_subscription_count() > 0) {
+          _noise_image_pub->publish(std::move(_noise_image));
+        }
+
+        if (_intensity_image_pub->get_subscription_count() > 0) {
+          _intensity_image_pub->publish(std::move(_intensity_image));
+        }
+
+        if (_reflectivity_image_pub->get_subscription_count() > 0) {
+          _reflectivity_image_pub->publish(std::move(_reflectivity_image));
+        }
       });
   }
 

@@ -65,7 +65,9 @@ public:
    */
   bool process(uint8_t * data) override
   {
-    _pub->publish(ros2_ouster::toMsg(data, _frame));
+    if (_pub->get_subscription_count() > 0) {
+      _pub->publish(ros2_ouster::toMsg(data, _frame));
+    }
     return true;
   }
 

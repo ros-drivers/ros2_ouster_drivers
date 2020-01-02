@@ -67,8 +67,10 @@ public:
       _xyz_lut, _width, _height, {}, &point_os::PointOS::make,
       [&](uint64_t scan_ts) mutable
       {
-        _pub->publish(ros2_ouster::toMsg(*_cloud,
-        std::chrono::nanoseconds(scan_ts), _frame));
+        if (_pub->get_subscription_count() > 0) {
+          _pub->publish(ros2_ouster::toMsg(*_cloud,
+          std::chrono::nanoseconds(scan_ts), _frame));
+        }
       });
   }
 
