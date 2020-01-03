@@ -108,10 +108,14 @@ public:
 
         std::vector<image_os::ImageOS>::iterator it;
         for (uint i = 0; i != _information_image.size(); i++) {
-          _range_image.data[i] = _information_image[i].range;
-          _noise_image.data[i] = _information_image[i].noise;
-          _intensity_image.data[i] = _information_image[i].intensity;
-          _reflectivity_image.data[i] = _information_image[i].reflectivity;
+          _range_image.data[i] =
+            255 - std::min(std::round(_information_image[i].range * 5e-3), 255.0);
+          _noise_image.data[i] =
+            std::min(_information_image[i].noise, static_cast<uint16_t>(255));
+          _intensity_image.data[i] =
+            std::min(_information_image[i].intensity, 255.0f);
+          _reflectivity_image.data[i] =
+            std::min(_information_image[i].reflectivity, static_cast<uint16_t>(255));
         }
 
         if (_range_image_pub->get_subscription_count() > 0 &&
