@@ -18,6 +18,8 @@
 #include <map>
 #include <string>
 
+#include "ros2_ouster/conversions.hpp"
+
 #include "ros2_ouster/interfaces/lifecycle_interface.hpp"
 
 #include "sensor_msgs/msg/image.hpp"
@@ -28,7 +30,6 @@
 
 #include "tf2_ros/static_transform_broadcaster.h"
 
-#include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/interfaces/configuration.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 

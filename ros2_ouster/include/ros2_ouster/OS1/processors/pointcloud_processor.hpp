@@ -18,17 +18,13 @@
 #include <memory>
 #include <string>
 
-#include "pcl/point_types.h"
-#include "pcl/point_cloud.h"
-#include "pcl_conversions/pcl_conversions.h"
+#include "ros2_ouster/conversions.hpp"
 
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/OS1/OS1.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"
-#include "ros2_ouster/point_os.hpp"
 
 namespace OS1
 {
@@ -51,7 +47,7 @@ public:
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ros2_ouster::Metadata & mdata,
     const std::string & frame)
-  : DataProcessorInterface(), _frame(frame)
+  : DataProcessorInterface(), _node(node), _frame(frame)
   {
     uint32_t _height = OS1::pixels_per_column;
     uint32_t _width = OS1::n_cols_of_lidar_mode(
@@ -59,7 +55,7 @@ public:
     _xyz_lut = OS1::make_xyz_lut(_width, _height, mdata.beam_azimuth_angles,
         mdata.beam_altitude_angles);
     _cloud = std::make_shared<pcl::PointCloud<point_os::PointOS>>(_width, _height);
-    _pub = node->create_publisher<sensor_msgs::msg::PointCloud2>(
+    _pub = _node->create_publisher<sensor_msgs::msg::PointCloud2>(
       "points", rclcpp::SensorDataQoS());
 
     _batch_and_publish =
@@ -67,9 +63,11 @@ public:
       _xyz_lut, _width, _height, {}, &point_os::PointOS::make,
       [&](uint64_t scan_ts) mutable
       {
-        if (_pub->get_subscription_count() > 0) {
+        if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
+          std::cout << "Publishing..." << std::endl;
           _pub->publish(ros2_ouster::toMsg(*_cloud,
-          std::chrono::nanoseconds(scan_ts), _frame));
+            std::chrono::nanoseconds(scan_ts), _frame));
+          std::cout << "Published" << std::endl;
         }
       });
   }
@@ -114,6 +112,7 @@ private:
   _batch_and_publish;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pub;
   std::shared_ptr<pcl::PointCloud<point_os::PointOS>> _cloud;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::vector<double> _xyz_lut;
   std::string _frame;
   uint32_t _height;

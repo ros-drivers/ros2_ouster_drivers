@@ -40,6 +40,7 @@ def generate_launch_description():
         node_executable='ouster_driver',
         node_name='ouster_driver',
         output='screen',
+        emulate_tty=True,
         parameters=[parameter_file],
         node_namespace='/',
     )

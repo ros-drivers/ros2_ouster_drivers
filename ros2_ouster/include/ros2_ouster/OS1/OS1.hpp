@@ -583,8 +583,8 @@ inline ros2_ouster::Metadata parse_metadata(const std::string & meta)
   info.fw_rev = root["build_rev"].asString();
 
   info.mode = root["lidar_mode"].asString();
-  info.lidar_port = root["lidar_mode"].asInt();
-  info.imu_port = root["imu_mode"].asInt();
+  info.lidar_port = root["lidar_port"].asInt();
+  info.imu_port = root["lidar_port"].asInt();
 
   for (const auto & v : root["beam_altitude_angles"]) {
     info.beam_altitude_angles.push_back(v.asDouble());

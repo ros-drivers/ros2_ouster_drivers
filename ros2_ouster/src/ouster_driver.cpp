@@ -75,9 +75,9 @@ void OusterDriver<SensorT>::onConfigure()
     "Broadcasting data from sensor to %s.", lidar_config.computer_ip.c_str());
 
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
-    "reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
+    "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
   _metadata_srv = this->create_service<ouster_msgs::srv::GetMetadata>(
-    "get_metadata", std::bind(&OusterDriver::getMetadata, this, _1, _2, _3));
+    "~/get_metadata", std::bind(&OusterDriver::getMetadata, this, _1, _2, _3));
 
   _sensor = std::make_shared<SensorT>();
 
@@ -106,8 +106,8 @@ void OusterDriver<SensorT>::onActivate()
   }
 
   // speed of the Ouster lidars is 1280 hz
-  _process_timer = create_wall_timer(781250ns,
-      std::bind(&OusterDriver::processData, this));
+  _process_timer = this->create_wall_timer(781250ns,
+     std::bind(&OusterDriver<SensorT>::processData, this));
 }
 
 template<typename SensorT>
@@ -129,6 +129,7 @@ void OusterDriver<SensorT>::onDeactivate()
 template<typename SensorT>
 void OusterDriver<SensorT>::onCleanup()
 {
+  _process_timer.reset();
   _data_processors.clear();
   _sensor.reset();
   _tf_b.reset();
@@ -137,6 +138,10 @@ void OusterDriver<SensorT>::onCleanup()
 template<typename SensorT>
 void OusterDriver<SensorT>::onShutdown()
 {
+  _process_timer.reset();
+  _data_processors.clear();
+  _sensor.reset();
+  _tf_b.reset();
 }
 
 template<typename SensorT>
@@ -156,20 +161,24 @@ void OusterDriver<SensorT>::broadcastStaticTransforms(
 template<typename SensorT>
 void OusterDriver<SensorT>::processData()
 {
-  ClientState state = _sensor->get();
-  uint8_t * packet_data = _sensor->readPacket(state);
-  if (packet_data) {
-    std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
-    key_its = _data_processors.equal_range(state);
-    for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
-      try {
+  try {
+    ClientState state = _sensor->get();
+    RCLCPP_DEBUG(this->get_logger(),
+      "Packet with state: %s",
+      ros2_ouster::toString(state).c_str());
+
+    uint8_t * packet_data = _sensor->readPacket(state);
+
+    if (packet_data) {
+      std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
+      key_its = _data_processors.equal_range(state);
+      for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
         it->second->process(packet_data);
-      } catch (const OusterDriverException & e) {
-        RCLCPP_WARN(this->get_logger(),
-          "Failed to process packet with exception %s", e.what());
-        return;
       }
     }
+  } catch (const OusterDriverException & e) {
+    RCLCPP_WARN(this->get_logger(),
+      "Failed to process packet with exception %s", e.what());
   }
 }
 

@@ -21,11 +21,13 @@
 
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
+#include "ros2_ouster/image_os.hpp"
+
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "pcl_conversions/pcl_conversions.h"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"
-#include "ros2_ouster/image_os.hpp"
 
 namespace OS1
 {
@@ -48,7 +50,7 @@ public:
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ros2_ouster::Metadata & mdata,
     const std::string & frame)
-  : DataProcessorInterface(), _frame(frame)
+  : DataProcessorInterface(), _node(node), _frame(frame)
   {
     uint32_t _height = OS1::pixels_per_column;
     uint32_t _width = OS1::n_cols_of_lidar_mode(
@@ -57,13 +59,13 @@ public:
     _xyz_lut = OS1::make_xyz_lut(_width, _height, mdata.beam_azimuth_angles,
         mdata.beam_altitude_angles);
 
-    _range_image_pub = node->create_publisher<sensor_msgs::msg::Image>(
+    _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", rclcpp::SensorDataQoS());
-    _intensity_image_pub = node->create_publisher<sensor_msgs::msg::Image>(
+    _intensity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "intensity_image", rclcpp::SensorDataQoS());
-    _noise_image_pub = node->create_publisher<sensor_msgs::msg::Image>(
+    _noise_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "noise_image", rclcpp::SensorDataQoS());
-    _reflectivity_image_pub = node->create_publisher<sensor_msgs::msg::Image>(
+    _reflectivity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "reflectivity_image", rclcpp::SensorDataQoS());
 
     _range_image = std::make_unique<sensor_msgs::msg::Image>();
@@ -192,6 +194,7 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_image_pub;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _reflectivity_image_pub;
   std::function<void(const uint8_t *, std::vector<image_os::ImageOS>::iterator)> _batch_and_publish;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   uint32_t _height;
   uint32_t _width;
   std::vector<double> _xyz_lut;

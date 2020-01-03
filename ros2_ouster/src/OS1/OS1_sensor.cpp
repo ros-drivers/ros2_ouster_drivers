@@ -13,8 +13,8 @@
 
 #include <string>
 
-#include "ros2_ouster/OS1/OS1_sensor.hpp"
 #include "ros2_ouster/conversions.hpp"
+#include "ros2_ouster/OS1/OS1_sensor.hpp"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
 
@@ -57,12 +57,16 @@ ros2_ouster::ClientState OS1Sensor::get()
 {
   const ClientState state = OS1::poll_client(*_ouster_client);
 
-  if (state != ClientState::LIDAR_DATA && state != ClientState::IMU_DATA) {
+  if (state == ClientState::EXIT) {
     throw ros2_ouster::OusterDriverException(
             std::string("Failed to get valid sensor data "
-            "information from lidar, returned state %s.",
-            ros2_ouster::toString(state).c_str()));
+            "information from lidar, returned exit!"));
+  } else if (state == ClientState::ERROR) {
+    throw ros2_ouster::OusterDriverException(
+            std::string("Failed to get valid sensor data "
+            "information from lidar, returned error!"));
   }
+
   return state;
 }
 

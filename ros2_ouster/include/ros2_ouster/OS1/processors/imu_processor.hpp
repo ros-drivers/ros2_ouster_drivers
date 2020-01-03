@@ -18,11 +18,12 @@
 #include <memory>
 #include <string>
 
-#include "rclcpp/rclcpp.hpp"
+#include "ros2_ouster/conversions.hpp"
+
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
-#include "ros2_ouster/conversions.hpp"
 
 namespace OS1
 {
@@ -45,7 +46,7 @@ public:
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ros2_ouster::Metadata & mdata,
     const std::string & frame)
-  : DataProcessorInterface(), _frame(frame)
+  : DataProcessorInterface(), _node(node), _frame(frame)
   {
     _pub = node->create_publisher<sensor_msgs::msg::Imu>(
       "imu", rclcpp::SensorDataQoS());
@@ -65,7 +66,7 @@ public:
    */
   bool process(uint8_t * data) override
   {
-    if (_pub->get_subscription_count() > 0) {
+    if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
       _pub->publish(ros2_ouster::toMsg(data, _frame));
     }
     return true;
@@ -89,6 +90,7 @@ public:
 
 private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr _pub;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::string _frame;
 };
 

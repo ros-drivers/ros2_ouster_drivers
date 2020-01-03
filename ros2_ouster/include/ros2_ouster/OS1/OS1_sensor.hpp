@@ -17,10 +17,11 @@
 #include <memory>
 #include <vector>
 
+#include "ros2_ouster/OS1/processor_factories.hpp"
+
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/OS1/OS1.hpp"
-#include "ros2_ouster/OS1/processor_factories.hpp"
 
 namespace OS1
 {
