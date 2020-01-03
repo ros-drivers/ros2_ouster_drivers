@@ -478,21 +478,20 @@ inline ClientState poll_client(const client & c, const int timeout_sec = 1)
 
   int retval = select(max_fd + 1, &rfds, NULL, NULL, &tv);
 
-  ClientState res = ClientState(0);
   if (retval == -1 && errno == EINTR) {
-    res = ClientState::EXIT;
+    return ClientState::EXIT;
   } else if (retval == -1) {
     std::cerr << "select: " << std::strerror(errno) << std::endl;
-    res = ClientState(res | ClientState::ERROR);
+    return ClientState::ERROR;
   } else if (retval) {
     if (FD_ISSET(c.lidar_fd, &rfds)) {
-      res = ClientState(res | ClientState::LIDAR_DATA);
+      return ClientState::LIDAR_DATA;
     }
     if (FD_ISSET(c.imu_fd, &rfds)) {
-      res = ClientState(res | ClientState::IMU_DATA);
+      return ClientState::IMU_DATA;
     }
   }
-  return res;
+  return ClientState::TIMEOUT;
 }
 
 /**
