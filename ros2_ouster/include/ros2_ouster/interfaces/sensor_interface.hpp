@@ -37,6 +37,11 @@ public:
   SensorInterface() {}
 
   /**
+   * @brief A sensor interface destructor
+   */
+  virtual ~SensorInterface() {}
+
+  /**
    * @brief Reset lidar sensor
    * @param configuration file to use
    */

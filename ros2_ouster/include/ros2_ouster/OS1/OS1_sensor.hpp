@@ -19,6 +19,7 @@
 
 #include "ros2_ouster/OS1/processor_factories.hpp"
 
+#include "ouster_msgs/msg/packet.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/OS1/OS1.hpp"
@@ -30,6 +31,8 @@ class OS1Sensor : public ros2_ouster::SensorInterface
 {
 public:
   OS1Sensor();
+
+  ~OS1Sensor() override;
 
   /**
    * @brief Reset lidar sensor

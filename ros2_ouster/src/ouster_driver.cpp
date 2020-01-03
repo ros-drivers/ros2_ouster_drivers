@@ -118,6 +118,7 @@ void OusterDriver<SensorT>::onError()
 template<typename SensorT>
 void OusterDriver<SensorT>::onDeactivate()
 {
+  _process_timer->cancel();
   _process_timer.reset();
 
   DataProcessorMapIt it;
@@ -129,19 +130,24 @@ void OusterDriver<SensorT>::onDeactivate()
 template<typename SensorT>
 void OusterDriver<SensorT>::onCleanup()
 {
-  _process_timer.reset();
   _data_processors.clear();
-  _sensor.reset();
   _tf_b.reset();
+  _reset_srv.reset();
+  _metadata_srv.reset();
 }
 
 template<typename SensorT>
 void OusterDriver<SensorT>::onShutdown()
 {
+  _process_timer->cancel();
   _process_timer.reset();
-  _data_processors.clear();
-  _sensor.reset();
   _tf_b.reset();
+
+  DataProcessorMapIt it;
+  for (it = _data_processors.begin(); it != _data_processors.end(); ++it) {
+    delete it->second;
+  }
+  _data_processors.clear();
 }
 
 template<typename SensorT>
@@ -178,7 +184,7 @@ void OusterDriver<SensorT>::processData()
     }
   } catch (const OusterDriverException & e) {
     RCLCPP_WARN(this->get_logger(),
-      "Failed to process packet with exception %s", e.what());
+      "Failed to process packet with exception %s.", e.what());
   }
 }
 

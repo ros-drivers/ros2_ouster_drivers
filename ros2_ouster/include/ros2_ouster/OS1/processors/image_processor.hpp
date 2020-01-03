@@ -19,12 +19,9 @@
 #include <string>
 #include <utility>
 
-#include "pcl/point_types.h"
-#include "pcl/point_cloud.h"
-#include "ros2_ouster/image_os.hpp"
-#include "pcl_conversions/pcl_conversions.h"
+#include "ros2_ouster/conversions.hpp"
 
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "sensor_msgs/msg/image.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"
@@ -68,37 +65,33 @@ public:
     _reflectivity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "reflectivity_image", rclcpp::SensorDataQoS());
 
-    _range_image = std::make_unique<sensor_msgs::msg::Image>();
-    _range_image->width = _width;
-    _range_image->height = _height;
-    _range_image->step = _width;
-    _range_image->encoding = "mono8";
-    _range_image->header.frame_id = _frame;
-    _range_image->data.resize(_width * _height);
+    _range_image.width = _width;
+    _range_image.height = _height;
+    _range_image.step = _width;
+    _range_image.encoding = "mono8";
+    _range_image.header.frame_id = _frame;
+    _range_image.data.resize(_width * _height);
 
-    _intensity_image = std::make_unique<sensor_msgs::msg::Image>();
-    _intensity_image->width = _width;
-    _intensity_image->height = _height;
-    _intensity_image->step = _width;
-    _intensity_image->encoding = "mono8";
-    _intensity_image->header.frame_id = _frame;
-    _intensity_image->data.resize(_width * _height);
+    _intensity_image.width = _width;
+    _intensity_image.height = _height;
+    _intensity_image.step = _width;
+    _intensity_image.encoding = "mono8";
+    _intensity_image.header.frame_id = _frame;
+    _intensity_image.data.resize(_width * _height);
 
-    _noise_image = std::make_unique<sensor_msgs::msg::Image>();
-    _noise_image->width = _width;
-    _noise_image->height = _height;
-    _noise_image->step = _width;
-    _noise_image->encoding = "mono8";
-    _noise_image->header.frame_id = _frame;
-    _noise_image->data.resize(_width * _height);
+    _noise_image.width = _width;
+    _noise_image.height = _height;
+    _noise_image.step = _width;
+    _noise_image.encoding = "mono8";
+    _noise_image.header.frame_id = _frame;
+    _noise_image.data.resize(_width * _height);
 
-    _reflectivity_image = std::make_unique<sensor_msgs::msg::Image>();
-    _reflectivity_image->width = _width;
-    _reflectivity_image->height = _height;
-    _reflectivity_image->step = _width;
-    _reflectivity_image->encoding = "mono8";
-    _reflectivity_image->header.frame_id = _frame;
-    _reflectivity_image->data.resize(_width * _height);
+    _reflectivity_image.width = _width;
+    _reflectivity_image.height = _height;
+    _reflectivity_image.step = _width;
+    _reflectivity_image.encoding = "mono8";
+    _reflectivity_image.header.frame_id = _frame;
+    _reflectivity_image.data.resize(_width * _height);
 
     _information_image.resize(_width * _height);
 
@@ -108,42 +101,41 @@ public:
       [&](uint64_t scan_ts) mutable
       {
         rclcpp::Time t(scan_ts);
-        _range_image->header.stamp = t;
-        _noise_image->header.stamp = t;
-        _intensity_image->header.stamp = t;
-        _reflectivity_image->header.stamp = t;
+        _range_image.header.stamp = t;
+        _noise_image.header.stamp = t;
+        _intensity_image.header.stamp = t;
+        _reflectivity_image.header.stamp = t;
 
         std::vector<image_os::ImageOS>::iterator it;
         for (uint i = 0; i != _information_image.size(); i++) {
-          _range_image->data[i] = _information_image[i].range;
-          _noise_image->data[i] = _information_image[i].noise;
-          _intensity_image->data[i] = _information_image[i].intensity;
-          _reflectivity_image->data[i] = _information_image[i].reflectivity;
+          _range_image.data[i] = _information_image[i].range;
+          _noise_image.data[i] = _information_image[i].noise;
+          _intensity_image.data[i] = _information_image[i].intensity;
+          _reflectivity_image.data[i] = _information_image[i].reflectivity;
         }
 
         if (_range_image_pub->get_subscription_count() > 0 &&
         _range_image_pub->is_activated())
         {
-          std::cout << "PUBLISHING" << std::endl;
-          _range_image_pub->publish(std::move(_range_image));
+          _range_image_pub->publish(_range_image);
         }
 
         if (_noise_image_pub->get_subscription_count() > 0 &&
         _noise_image_pub->is_activated())
         {
-          _noise_image_pub->publish(std::move(_noise_image));
+          _noise_image_pub->publish(_noise_image);
         }
 
         if (_intensity_image_pub->get_subscription_count() > 0 &&
         _intensity_image_pub->is_activated())
         {
-          _intensity_image_pub->publish(std::move(_intensity_image));
+          _intensity_image_pub->publish(_intensity_image);
         }
 
         if (_reflectivity_image_pub->get_subscription_count() > 0 &&
         _reflectivity_image_pub->is_activated())
         {
-          _reflectivity_image_pub->publish(std::move(_reflectivity_image));
+          _reflectivity_image_pub->publish(_reflectivity_image);
         }
       });
   }
@@ -194,10 +186,10 @@ public:
 
 private:
   std::vector<image_os::ImageOS> _information_image;
-  sensor_msgs::msg::Image::UniquePtr _range_image;
-  sensor_msgs::msg::Image::UniquePtr _noise_image;
-  sensor_msgs::msg::Image::UniquePtr _intensity_image;
-  sensor_msgs::msg::Image::UniquePtr _reflectivity_image;
+  sensor_msgs::msg::Image _range_image;
+  sensor_msgs::msg::Image _noise_image;
+  sensor_msgs::msg::Image _intensity_image;
+  sensor_msgs::msg::Image _reflectivity_image;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_image_pub;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_image_pub;

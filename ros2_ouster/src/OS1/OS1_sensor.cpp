@@ -28,6 +28,13 @@ OS1Sensor::OS1Sensor()
   _imu_packet.resize(imu_packet_bytes + 1);
 }
 
+OS1Sensor::~OS1Sensor()
+{
+  _ouster_client.reset();
+  _lidar_packet.clear();
+  _imu_packet.clear();
+}
+
 void OS1Sensor::reset(const ros2_ouster::Configuration & config)
 {
   _ouster_client.reset();
@@ -55,13 +62,13 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
 
 ros2_ouster::ClientState OS1Sensor::get()
 {
-  const ClientState state = OS1::poll_client(*_ouster_client);
+  const ros2_ouster::ClientState state = OS1::poll_client(*_ouster_client);
 
-  if (state == ClientState::EXIT) {
+  if (state == ros2_ouster::ClientState::EXIT) {
     throw ros2_ouster::OusterDriverException(
             std::string("Failed to get valid sensor data "
             "information from lidar, returned exit!"));
-  } else if (state == ClientState::ERROR) {
+  } else if (state == ros2_ouster::ClientState::ERROR) {
     throw ros2_ouster::OusterDriverException(
             std::string("Failed to get valid sensor data "
             "information from lidar, returned error!"));
@@ -73,14 +80,14 @@ ros2_ouster::ClientState OS1Sensor::get()
 uint8_t * OS1Sensor::readPacket(const ros2_ouster::ClientState & state)
 {
   switch (state) {
-    case ClientState::IMU_DATA:
-      if (read_imu_packet(*_ouster_client, _lidar_packet.data())) {
+    case ros2_ouster::ClientState::LIDAR_DATA:
+      if (read_lidar_packet(*_ouster_client, _lidar_packet.data())) {
         return _lidar_packet.data();
       } else {
         return nullptr;
       }
-    case ClientState::LIDAR_DATA:
-      if (read_lidar_packet(*_ouster_client, _imu_packet.data())) {
+    case ros2_ouster::ClientState::IMU_DATA:
+      if (read_imu_packet(*_ouster_client, _imu_packet.data())) {
         return _imu_packet.data();
       } else {
         return nullptr;

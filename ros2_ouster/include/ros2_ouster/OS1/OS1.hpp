@@ -48,14 +48,15 @@ using ns = std::chrono::nanoseconds;
 
 struct client
 {
-  int lidar_fd;
-  int imu_fd;
-  Json::Value meta;
   ~client()
   {
     close(lidar_fd);
     close(imu_fd);
   }
+
+  int lidar_fd{7502};
+  int imu_fd{7503};
+  Json::Value meta;
 };
 
 enum lidar_mode
@@ -453,8 +454,6 @@ inline std::shared_ptr<client> init_client(
 }
 
 
-using ros2_ouster::ClientState;
-
 /**
  * Block for up to timeout_sec until either data is ready or an error occurs.
  * @param cli client returned by init_client associated with the connection
@@ -463,7 +462,7 @@ using ros2_ouster::ClientState;
  * LIDAR_DATA) is true if lidar data is ready to read, and (s & IMU_DATA) is
  * true if imu data is ready to read
  */
-inline ClientState poll_client(const client & c, const int timeout_sec = 1)
+inline ros2_ouster::ClientState poll_client(const client & c, const int timeout_sec = 1)
 {
   fd_set rfds;
   FD_ZERO(&rfds);
@@ -479,19 +478,19 @@ inline ClientState poll_client(const client & c, const int timeout_sec = 1)
   int retval = select(max_fd + 1, &rfds, NULL, NULL, &tv);
 
   if (retval == -1 && errno == EINTR) {
-    return ClientState::EXIT;
+    return ros2_ouster::ClientState::EXIT;
   } else if (retval == -1) {
     std::cerr << "select: " << std::strerror(errno) << std::endl;
-    return ClientState::ERROR;
+    return ros2_ouster::ClientState::ERROR;
   } else if (retval) {
     if (FD_ISSET(c.lidar_fd, &rfds)) {
-      return ClientState::LIDAR_DATA;
+      return ros2_ouster::ClientState::LIDAR_DATA;
     }
     if (FD_ISSET(c.imu_fd, &rfds)) {
-      return ClientState::IMU_DATA;
+      return ros2_ouster::ClientState::IMU_DATA;
     }
   }
-  return ClientState::TIMEOUT;
+  return ros2_ouster::ClientState::TIMEOUT;
 }
 
 /**
