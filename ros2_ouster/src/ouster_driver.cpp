@@ -107,7 +107,7 @@ void OusterDriver<SensorT>::onActivate()
 
   // speed of the Ouster lidars is 1280 hz
   _process_timer = this->create_wall_timer(781250ns,
-     std::bind(&OusterDriver<SensorT>::processData, this));
+      std::bind(&OusterDriver<SensorT>::processData, this));
 }
 
 template<typename SensorT>

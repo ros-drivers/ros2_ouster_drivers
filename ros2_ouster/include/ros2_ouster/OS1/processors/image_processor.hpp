@@ -22,9 +22,9 @@
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
 #include "ros2_ouster/image_os.hpp"
+#include "pcl_conversions/pcl_conversions.h"
 
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include "pcl_conversions/pcl_conversions.h"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"
@@ -121,19 +121,28 @@ public:
           _reflectivity_image->data[i] = _information_image[i].reflectivity;
         }
 
-        if (_range_image_pub->get_subscription_count() > 0) {
+        if (_range_image_pub->get_subscription_count() > 0 &&
+        _range_image_pub->is_activated())
+        {
+          std::cout << "PUBLISHING" << std::endl;
           _range_image_pub->publish(std::move(_range_image));
         }
 
-        if (_noise_image_pub->get_subscription_count() > 0) {
+        if (_noise_image_pub->get_subscription_count() > 0 &&
+        _noise_image_pub->is_activated())
+        {
           _noise_image_pub->publish(std::move(_noise_image));
         }
 
-        if (_intensity_image_pub->get_subscription_count() > 0) {
+        if (_intensity_image_pub->get_subscription_count() > 0 &&
+        _intensity_image_pub->is_activated())
+        {
           _intensity_image_pub->publish(std::move(_intensity_image));
         }
 
-        if (_reflectivity_image_pub->get_subscription_count() > 0) {
+        if (_reflectivity_image_pub->get_subscription_count() > 0 &&
+        _reflectivity_image_pub->is_activated())
+        {
           _reflectivity_image_pub->publish(std::move(_reflectivity_image));
         }
       });

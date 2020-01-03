@@ -64,10 +64,9 @@ public:
       [&](uint64_t scan_ts) mutable
       {
         if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
-          std::cout << "Publishing..." << std::endl;
-          _pub->publish(ros2_ouster::toMsg(*_cloud,
-            std::chrono::nanoseconds(scan_ts), _frame));
-          std::cout << "Published" << std::endl;
+          sensor_msgs::msg::PointCloud2 msg = ros2_ouster::toMsg(*_cloud,
+          std::chrono::nanoseconds(scan_ts), _frame);
+          _pub->publish(msg);
         }
       });
   }

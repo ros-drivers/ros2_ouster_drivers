@@ -18,12 +18,10 @@
 #include <map>
 #include <utility>
 
+#include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/OS1/processors/image_processor.hpp"
 #include "ros2_ouster/OS1/processors/imu_processor.hpp"
 #include "ros2_ouster/OS1/processors/pointcloud_processor.hpp"
-
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
-
 
 namespace ros2_ouster
 {
