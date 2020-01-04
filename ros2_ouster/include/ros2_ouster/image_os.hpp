@@ -24,6 +24,14 @@ namespace image_os
  */
 struct ImageOS
 {
+  float intensity;
+  uint16_t reflectivity;
+  uint16_t noise;
+  uint32_t range;
+  uint8_t ring;
+  uint8_t col;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   /**
    * @brief A factory to create the structure given a set of information
    * @param x position in m
@@ -42,13 +50,8 @@ struct ImageOS
     uint32_t t, uint16_t reflectivity, uint8_t ring, uint8_t col,
     uint16_t noise, uint32_t range)
   {
-    return {intensity, reflectivity, noise, range};
+    return {intensity, reflectivity, noise, range, ring, col};
   }
-
-  float intensity;
-  uint16_t reflectivity;
-  uint16_t noise;
-  uint32_t range;
 };
 
 }  // namespace image_os

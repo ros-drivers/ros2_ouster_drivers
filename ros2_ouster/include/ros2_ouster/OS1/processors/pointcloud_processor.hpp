@@ -49,8 +49,8 @@ public:
     const std::string & frame)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
-    uint32_t _height = OS1::pixels_per_column;
-    uint32_t _width = OS1::n_cols_of_lidar_mode(
+    _height = OS1::pixels_per_column;
+    _width = OS1::n_cols_of_lidar_mode(
       OS1::lidar_mode_of_string(mdata.mode));
     _xyz_lut = OS1::make_xyz_lut(_width, _height, mdata.beam_azimuth_angles,
         mdata.beam_altitude_angles);

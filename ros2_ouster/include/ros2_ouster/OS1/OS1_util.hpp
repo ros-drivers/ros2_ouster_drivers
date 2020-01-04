@@ -176,6 +176,7 @@ std::function<void(const uint8_t *, iterator_type it)> batch_to_iter(
            }
          };
 }
+
 }  // namespace OS1
 
 #endif  // ROS2_OUSTER__OS1__OS1_UTIL_HPP_
