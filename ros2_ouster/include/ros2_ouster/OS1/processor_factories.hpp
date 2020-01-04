@@ -22,6 +22,7 @@
 #include "ros2_ouster/OS1/processors/image_processor.hpp"
 #include "ros2_ouster/OS1/processors/imu_processor.hpp"
 #include "ros2_ouster/OS1/processors/pointcloud_processor.hpp"
+#include "ros2_ouster/OS1/processors/scan_processor.hpp"
 
 namespace ros2_ouster
 {
@@ -54,7 +55,7 @@ inline ros2_ouster::DataProcessorInterface * createPointcloudProcessor(
 
 /**
  * @brief Factory method to get a pointer to a processor
- * to create the IMU, image, and pointcloud interfaces
+ * to create the IMU interfaces
  * @return Raw pointer to a data processor interface to use
  */
 inline ros2_ouster::DataProcessorInterface * createIMUProcessor(
@@ -63,6 +64,19 @@ inline ros2_ouster::DataProcessorInterface * createIMUProcessor(
   const std::string & frame)
 {
   return new OS1::IMUProcessor(node, mdata, frame);
+}
+
+/**
+ * @brief Factory method to get a pointer to a processor
+ * to create the scan interfaces
+ * @return Raw pointer to a data processor interface to use
+ */
+inline ros2_ouster::DataProcessorInterface * createScanProcessor(
+  const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
+  const ros2_ouster::Metadata & mdata,
+  const std::string & frame)
+{
+  return new OS1::ScanProcessor(node, mdata, frame);
 }
 
 inline std::multimap<ClientState, DataProcessorInterface *> createProcessors(
@@ -81,6 +95,9 @@ inline std::multimap<ClientState, DataProcessorInterface *> createProcessors(
         node, mdata, laser_frame)));
   data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
       ClientState::LIDAR_DATA, createImageProcessor(
+        node, mdata, laser_frame)));
+  data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+      ClientState::LIDAR_DATA, createScanProcessor(
         node, mdata, laser_frame)));
 
   return data_processors;
