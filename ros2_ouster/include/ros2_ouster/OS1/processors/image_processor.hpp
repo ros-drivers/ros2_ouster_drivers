@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <algorithm>
 
 #include "ros2_ouster/conversions.hpp"
 
@@ -103,8 +104,6 @@ public:
       _xyz_lut, _width, _height, {}, &image_os::ImageOS::make,
       [&](uint64_t scan_ts) mutable
       {
-        //std::cout << "new image..." << std::endl;
-
         rclcpp::Time t(scan_ts);
         _range_image.header.stamp = t;
         _noise_image.header.stamp = t;
@@ -112,33 +111,22 @@ public:
         _reflectivity_image.header.stamp = t;
 
         OSImageIt it;
-        for (uint i = 0; i != _information_image.size(); i++) {
+        for (uint u = 0; u != _height; u++) {
+          for (uint v = 0; v != _width; v++) {
+            const size_t vv = (v + _px_offset[u]) % _width;
+            const size_t index = vv * _height + u;
+            image_os::ImageOS & px = _information_image[index];
 
-          // this is encoding images wrong TODO
-
-          image_os::ImageOS & px = _information_image[i];
-          const uint & u = px.ring;
-          const uint & v = px.col;
-
-          // u * _height + v is right side up, repeated in segments 64, only at top I assume
-          // v * _width + u is sideways, and only the first 64, I assume
-          // v * _height + u sideways, squished, and repeating
-          // u * _width + v is right side up, fully filled in for the second half pushed in the first half
-
-          // from ros1
-          //      const size_t vv = (v + px_offset[u]) % W;
-          //      const size_t index = vv * H + u; // index for pointcloud (?)
-          //          range_image.data[u * W + v] = 0;
-
-          const uint & idx = u * _width + v;
-          if (px.range == 0) {
-            _range_image.data[idx] = 0; 
-          } else {
-            _range_image.data[idx] = 255 - std::min(std::round(px.range * 5e-3), 255.0);
+            const uint & idx = u * _width + v;
+            if (px.range == 0) {
+              _range_image.data[idx] = 0;
+            } else {
+              _range_image.data[idx] = 255 - std::min(std::round(px.range * 5e-3), 255.0);
+            }
+            _noise_image.data[idx] = std::min(px.noise, static_cast<uint16_t>(255));
+            _intensity_image.data[idx] = std::min(px.intensity, 255.0f);
+            _reflectivity_image.data[idx] = std::min(px.reflectivity, static_cast<uint16_t>(255));
           }
-          _noise_image.data[idx] = std::min(px.noise, static_cast<uint16_t>(255));
-          _intensity_image.data[idx] = std::min(px.intensity, 255.0f);
-          _reflectivity_image.data[idx] = std::min(px.reflectivity, static_cast<uint16_t>(255));
         }
 
         if (_range_image_pub->get_subscription_count() > 0 &&
