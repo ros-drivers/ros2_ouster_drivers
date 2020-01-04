@@ -173,7 +173,7 @@ inline sensor_msgs::msg::LaserScan toMsg(
   msg.angle_min = -M_PI;
   msg.angle_max = M_PI;
   msg.range_min = 0.1;
-  msg.range_max = 100.0;
+  msg.range_max = 120.0;
 
   double resolution, rate;
   if (mdata.mode == "512x10") {
@@ -203,8 +203,8 @@ inline sensor_msgs::msg::LaserScan toMsg(
 
   for (uint i = 0; i != scans.size(); i++) {
     if (scans[i].ring == ring_to_use) {
-      msg.ranges.push_back(scans[i].range * 1000.0);
-      msg.intensities.push_back(scans[i].intensity);
+      msg.ranges.push_back(scans[i].range * 5e-3);
+      msg.intensities.push_back(std::min(scans[i].intensity, 255.0f));
     }
   }
 
