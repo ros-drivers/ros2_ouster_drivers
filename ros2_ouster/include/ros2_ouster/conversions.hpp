@@ -16,15 +16,18 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "ros2_ouster/point_os.hpp"
 #include "ros2_ouster/image_os.hpp"
+#include "ros2_ouster/scan_os.hpp"
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "sensor_msgs/msg/imu.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 #include "tf2/LinearMath/Transform.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "ouster_msgs/msg/metadata.hpp"
@@ -151,6 +154,61 @@ inline sensor_msgs::msg::PointCloud2 toMsg(
   msg.header.frame_id = frame;
   rclcpp::Time t(timestamp.count());
   msg.header.stamp = t;
+  return msg;
+}
+
+/**
+ * @brief Convert Scan to message format
+ */
+inline sensor_msgs::msg::LaserScan toMsg(
+  const std::vector<scan_os::ScanOS> & scans,
+  std::chrono::nanoseconds timestamp,
+  const std::string & frame,
+  const ros2_ouster::Metadata & mdata,
+  const uint8_t ring_to_use)
+{
+  sensor_msgs::msg::LaserScan msg;
+  rclcpp::Time t(timestamp.count());
+  msg.header.stamp = t;
+  msg.header.frame_id = frame;
+  msg.angle_min = -M_PI;
+  msg.angle_max = M_PI;
+  msg.range_min = 0.1;
+  msg.range_max = 120.0;
+
+  double resolution, rate;
+  if (mdata.mode == "512x10") {
+    resolution = 512.0;
+    rate = 10.0;
+  } else if (mdata.mode == "512x20") {
+    resolution = 512.0;
+    rate = 20.0;
+  } else if (mdata.mode == "1024x10") {
+    resolution = 1024.0;
+    rate = 10.0;
+  } else if (mdata.mode == "1024x20") {
+    resolution = 1024.0;
+    rate = 20.0;
+  } else if (mdata.mode == "2048x10") {
+    resolution = 2048.0;
+    rate = 10.0;
+  } else {
+    std::cout << "Error: Could not determine lidar mode!" << std::endl;
+    resolution = 512.0;
+    rate = 10.0;
+  }
+
+  msg.scan_time = 1.0 / rate;
+  msg.time_increment = 1.0 / rate / resolution;
+  msg.angle_increment = 2 * M_PI / resolution;
+
+  for (uint i = 0; i != scans.size(); i++) {
+    if (scans[i].ring == ring_to_use) {
+      msg.ranges.push_back(scans[i].range * 5e-3);
+      msg.intensities.push_back(std::min(scans[i].intensity, 255.0f));
+    }
+  }
+
   return msg;
 }
 
