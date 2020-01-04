@@ -37,6 +37,9 @@ namespace OS1
 class ImageProcessor : public ros2_ouster::DataProcessorInterface
 {
 public:
+  typedef std::vector<image_os::ImageOS> OSImage;
+  typedef OSImage::iterator OSImageIt;
+
   /**
    * @brief A constructor for OS1::ImageProcessor
    * @param node Node for creating interfaces
@@ -49,8 +52,8 @@ public:
     const std::string & frame)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
-    uint32_t _height = OS1::pixels_per_column;
-    uint32_t _width = OS1::n_cols_of_lidar_mode(
+    _height = OS1::pixels_per_column;
+    _width = OS1::n_cols_of_lidar_mode(
       OS1::lidar_mode_of_string(mdata.mode));
     _px_offset = OS1::get_px_offset(_width);
     _xyz_lut = OS1::make_xyz_lut(_width, _height, mdata.beam_azimuth_angles,
@@ -96,26 +99,46 @@ public:
     _information_image.resize(_width * _height);
 
     _batch_and_publish =
-      OS1::batch_to_iter<std::vector<image_os::ImageOS>::iterator>(
+      OS1::batch_to_iter<OSImageIt>(
       _xyz_lut, _width, _height, {}, &image_os::ImageOS::make,
       [&](uint64_t scan_ts) mutable
       {
+        //std::cout << "new image..." << std::endl;
+
         rclcpp::Time t(scan_ts);
         _range_image.header.stamp = t;
         _noise_image.header.stamp = t;
         _intensity_image.header.stamp = t;
         _reflectivity_image.header.stamp = t;
 
-        std::vector<image_os::ImageOS>::iterator it;
+        OSImageIt it;
         for (uint i = 0; i != _information_image.size(); i++) {
-          _range_image.data[i] =
-            255 - std::min(std::round(_information_image[i].range * 5e-3), 255.0);
-          _noise_image.data[i] =
-            std::min(_information_image[i].noise, static_cast<uint16_t>(255));
-          _intensity_image.data[i] =
-            std::min(_information_image[i].intensity, 255.0f);
-          _reflectivity_image.data[i] =
-            std::min(_information_image[i].reflectivity, static_cast<uint16_t>(255));
+
+          // this is encoding images wrong TODO
+
+          image_os::ImageOS & px = _information_image[i];
+          const uint & u = px.ring;
+          const uint & v = px.col;
+
+          // u * _height + v is right side up, repeated in segments 64, only at top I assume
+          // v * _width + u is sideways, and only the first 64, I assume
+          // v * _height + u sideways, squished, and repeating
+          // u * _width + v is right side up, fully filled in for the second half pushed in the first half
+
+          // from ros1
+          //      const size_t vv = (v + px_offset[u]) % W;
+          //      const size_t index = vv * H + u; // index for pointcloud (?)
+          //          range_image.data[u * W + v] = 0;
+
+          const uint & idx = u * _width + v;
+          if (px.range == 0) {
+            _range_image.data[idx] = 0; 
+          } else {
+            _range_image.data[idx] = 255 - std::min(std::round(px.range * 5e-3), 255.0);
+          }
+          _noise_image.data[idx] = std::min(px.noise, static_cast<uint16_t>(255));
+          _intensity_image.data[idx] = std::min(px.intensity, 255.0f);
+          _reflectivity_image.data[idx] = std::min(px.reflectivity, static_cast<uint16_t>(255));
         }
 
         if (_range_image_pub->get_subscription_count() > 0 &&
@@ -149,10 +172,10 @@ public:
    */
   ~ImageProcessor()
   {
-    _noise_image_pub.reset();
-    _intensity_image_pub.reset();
-    _range_image_pub.reset();
     _reflectivity_image_pub.reset();
+    _intensity_image_pub.reset();
+    _noise_image_pub.reset();
+    _range_image_pub.reset();
   }
 
   /**
@@ -161,7 +184,7 @@ public:
    */
   bool process(uint8_t * data) override
   {
-    std::vector<image_os::ImageOS>::iterator it = _information_image.begin();
+    OSImageIt it = _information_image.begin();
     _batch_and_publish(data, it);
     return true;
   }
@@ -171,10 +194,10 @@ public:
    */
   void onActivate() override
   {
-    _range_image_pub->on_activate();
-    _intensity_image_pub->on_activate();
-    _noise_image_pub->on_activate();
     _reflectivity_image_pub->on_activate();
+    _intensity_image_pub->on_activate();
+    _range_image_pub->on_activate();
+    _noise_image_pub->on_activate();
   }
 
   /**
@@ -182,29 +205,29 @@ public:
    */
   void onDeactivate() override
   {
-    _range_image_pub->on_deactivate();
-    _intensity_image_pub->on_deactivate();
-    _noise_image_pub->on_deactivate();
     _reflectivity_image_pub->on_deactivate();
+    _intensity_image_pub->on_deactivate();
+    _range_image_pub->on_deactivate();
+    _noise_image_pub->on_deactivate();
   }
 
 private:
-  std::vector<image_os::ImageOS> _information_image;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _reflectivity_image_pub;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_image_pub;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_image_pub;
+  std::function<void(const uint8_t *, OSImageIt)> _batch_and_publish;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
+  sensor_msgs::msg::Image _reflectivity_image;
+  sensor_msgs::msg::Image _intensity_image;
   sensor_msgs::msg::Image _range_image;
   sensor_msgs::msg::Image _noise_image;
-  sensor_msgs::msg::Image _intensity_image;
-  sensor_msgs::msg::Image _reflectivity_image;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_image_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_image_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _reflectivity_image_pub;
-  std::function<void(const uint8_t *, std::vector<image_os::ImageOS>::iterator)> _batch_and_publish;
-  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
-  uint32_t _height;
-  uint32_t _width;
   std::vector<double> _xyz_lut;
   std::vector<int> _px_offset;
+  OSImage _information_image;
   std::string _frame;
+  uint32_t _height;
+  uint32_t _width;
 };
 
 }  // namespace OS1

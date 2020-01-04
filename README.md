@@ -172,7 +172,7 @@ Now that we have a connection over the network, lets view some data. After build
 
 ```
 
-ros2 launch ros2_ouster os1.py.launch
+ros2 launch ros2_ouster os1_launch.py
 ```
 
 Make sure to update your parameters file if you don't use the default IPs (10.5.5.1, 10.5.5.87). You may also use the `.local` version of your ouster lidar. To find your IPs, see the `dnsmasq` output or check with `nmap -SP 10.5.5.*/24`. 
