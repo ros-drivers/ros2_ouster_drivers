@@ -25,19 +25,20 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 
 <center>
 
-| Topic                | Type                    |
-|----------------------|-------------------------|
-| `range_image`        | sensor_msgs/Image       |
-| `intensity_image`    | sensor_msgs/Image       |
-| `noise_image`        | sensor_msgs/Image       |
-| `reflectivity_image` | sensor_msgs/Image       |
-| `points`             | sensor_msgs/PointCloud2 |
-| `imu`                | sensor_msgs/Imu         |
+| Topic                | Type                    | Description                                      |
+|----------------------|-------------------------|--------------------------------------------------|
+| `scan`               | sensor_msgs/LaserScan   | 2D laser scan of the 0-angle ring                |
+| `range_image`        | sensor_msgs/Image       | Image of the range values from the sensor        |
+| `intensity_image`    | sensor_msgs/Image       | Image of the Intensity values from the sensor    |
+| `noise_image`        | sensor_msgs/Image       | Image of the noise values from the sensor        |
+| `reflectivity_image` | sensor_msgs/Image       | Image of the reflectivity values from the sensor |
+| `points`             | sensor_msgs/PointCloud2 | 3D Pointcloud generated from a 360 rotation      |
+| `imu`                | sensor_msgs/Imu         | IMU values at transmission rate                  |
 
-| Service           | Type                    |
-|-------------------|-------------------------|
-| `reset`           | std_srvs/Empty          |
-| `GetMetadata`     | ouster_msgs/GetMetadata |
+| Service           | Type                    | Description                       |
+|-------------------|-------------------------|-----------------------------------|
+| `reset`           | std_srvs/Empty          | Reset the sensor's connection     |
+| `GetMetadata`     | ouster_msgs/GetMetadata | Get information about the sensor  |
 
 | Parameter         | Type                    | Description                                         |
 |-------------------|-------------------------|-----------------------------------------------------|

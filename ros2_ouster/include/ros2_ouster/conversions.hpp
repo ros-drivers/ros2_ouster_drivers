@@ -16,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
@@ -208,7 +209,7 @@ inline sensor_msgs::msg::LaserScan toMsg(
     }
   }
 
-   return msg;
+  return msg;
 }
 
 }  // namespace ros2_ouster
