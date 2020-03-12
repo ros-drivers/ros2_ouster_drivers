@@ -31,6 +31,7 @@ class SensorInterface
 public:
   using SharedPtr = std::shared_ptr<SensorInterface>;
   using Ptr = std::unique_ptr<SensorInterface>;
+
   /**
    * @brief A sensor interface constructor
    */
@@ -39,7 +40,15 @@ public:
   /**
    * @brief A sensor interface destructor
    */
-  virtual ~SensorInterface() {}
+  virtual ~SensorInterface() = default;
+
+  // copy
+  SensorInterface(const SensorInterface&) = delete;
+  SensorInterface& operator=(const SensorInterface&) = delete;
+
+  // move
+  SensorInterface(SensorInterface&&) = default;
+  SensorInterface& operator=(SensorInterface&&) = default;
 
   /**
    * @brief Reset lidar sensor
