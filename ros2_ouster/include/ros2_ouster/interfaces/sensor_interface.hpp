@@ -31,6 +31,7 @@ class SensorInterface
 public:
   using SharedPtr = std::shared_ptr<SensorInterface>;
   using Ptr = std::unique_ptr<SensorInterface>;
+
   /**
    * @brief A sensor interface constructor
    */
@@ -39,38 +40,46 @@ public:
   /**
    * @brief A sensor interface destructor
    */
-  virtual ~SensorInterface() {}
+  virtual ~SensorInterface() = default;
+
+  // copy
+  SensorInterface(const SensorInterface &) = delete;
+  SensorInterface & operator=(const SensorInterface &) = delete;
+
+  // move
+  SensorInterface(SensorInterface &&) = default;
+  SensorInterface & operator=(SensorInterface &&) = default;
 
   /**
    * @brief Reset lidar sensor
    * @param configuration file to use
    */
-  virtual void reset(const ros2_ouster::Configuration & config) {}
+  virtual void reset(const ros2_ouster::Configuration & config) = 0;
 
   /**
    * @brief Configure lidar sensor
    * @param configuration file to use
    */
-  virtual void configure(const ros2_ouster::Configuration & config) {}
+  virtual void configure(const ros2_ouster::Configuration & config) = 0;
 
   /**
    * @brief Ask sensor to get its current state for data collection
    * @return the state enum value
    */
-  virtual ros2_ouster::ClientState get() {}
+  virtual ros2_ouster::ClientState get() = 0;
 
   /**
    * @brief reading the packet corresponding to the sensor state
    * @param state of the sensor
    * @return the packet of data
    */
-  virtual uint8_t * readPacket(const ros2_ouster::ClientState & state) {}
+  virtual uint8_t * readPacket(const ros2_ouster::ClientState & state) = 0;
 
   /**
    * @brief Get lidar sensor's metadata
    * @return sensor metadata struct
    */
-  virtual ros2_ouster::Metadata getMetadata() {}
+  virtual ros2_ouster::Metadata getMetadata() = 0;
 };
 
 }  // namespace ros2_ouster
