@@ -43,12 +43,12 @@ public:
   virtual ~SensorInterface() = default;
 
   // copy
-  SensorInterface(const SensorInterface&) = delete;
-  SensorInterface& operator=(const SensorInterface&) = delete;
+  SensorInterface(const SensorInterface &) = delete;
+  SensorInterface& operator=(const SensorInterface &) = delete;
 
   // move
-  SensorInterface(SensorInterface&&) = default;
-  SensorInterface& operator=(SensorInterface&&) = default;
+  SensorInterface(SensorInterface &&) = default;
+  SensorInterface& operator=(SensorInterface &&) = default;
 
   /**
    * @brief Reset lidar sensor
