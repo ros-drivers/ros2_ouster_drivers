@@ -41,7 +41,7 @@ OusterDriver<SensorT>::OusterDriver(const rclcpp::NodeOptions & options)
   this->declare_parameter("sensor_frame", std::string("laser_sensor_frame"));
   this->declare_parameter("laser_frame", std::string("laser_data_frame"));
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
-  this->declare_parameter("use_system_default_qos_for_sensor_data", false);
+  this->declare_parameter("use_system_default_qos", false);
 }
 
 template<typename SensorT>
@@ -70,8 +70,7 @@ void OusterDriver<SensorT>::onConfigure()
   _laser_sensor_frame = get_parameter("sensor_frame").as_string();
   _laser_data_frame = get_parameter("laser_frame").as_string();
   _imu_data_frame = get_parameter("imu_frame").as_string();
-  _use_default_qos_for_sensor_data =
-    get_parameter("use_system_default_qos_for_sensor_data").as_bool();
+  _use_system_default_qos = get_parameter("use_system_default_qos").as_bool();
 
   RCLCPP_INFO(this->get_logger(),
     "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());
@@ -94,7 +93,7 @@ void OusterDriver<SensorT>::onConfigure()
 
   ros2_ouster::Metadata mdata = _sensor->getMetadata();
 
-  if (_use_default_qos_for_sensor_data) {
+  if (_use_system_default_qos) {
     RCLCPP_WARN(
       this->get_logger(), "Using system defaults QoS for sensor data");
     _data_processors = ros2_ouster::createProcessors(

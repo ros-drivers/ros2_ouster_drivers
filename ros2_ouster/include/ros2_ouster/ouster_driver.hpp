@@ -137,7 +137,7 @@ private:
   std::string _laser_sensor_frame, _laser_data_frame, _imu_data_frame;
   std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
 
-  bool _use_default_qos_for_sensor_data;
+  bool _use_system_default_qos;
 };
 
 }  // namespace ros2_ouster

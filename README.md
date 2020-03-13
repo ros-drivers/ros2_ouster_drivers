@@ -1,6 +1,6 @@
 # ROS2 Ouster Drivers
 
-These are an implementation of ROS2 drivers for the Ouster OS-1 3D lidars. This includes all models of the OS-1 from 16 to 128 beams. 
+These are an implementation of ROS2 drivers for the Ouster OS-1 3D lidars. This includes all models of the OS-1 from 16 to 128 beams.
 
 You can find a few videos looking over the sensor below. They both introduce the ROS1 driver but are extremely useful references regardless:
 
@@ -9,11 +9,11 @@ OS-1 Networking Setup      |  OS-1 Data Overview
 [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/92ajXjIxDGM/0.jpg)](http://www.youtube.com/watch?v=92ajXjIxDGM) | [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/4VgGG8Xe4IA/0.jpg)](http://www.youtube.com/watch?v=4VgGG8Xe4IA)
 
 
-I also happen to run a YouTube channel, [Robots for Robots](https://www.youtube.com/channel/UCZT16dToD1ov6lnoEcPL6rw), focusing on robotics, sensors, and industry insights. If you like this work and want to hear about some other things I am working on, I'd appreciate if you watch, like, and subscribe! 
+I also happen to run a YouTube channel, [Robots for Robots](https://www.youtube.com/channel/UCZT16dToD1ov6lnoEcPL6rw), focusing on robotics, sensors, and industry insights. If you like this work and want to hear about some other things I am working on, I'd appreciate if you watch, like, and subscribe!
 
 ## Documentation
 
-Documentation can be generated using Doxygen. 
+Documentation can be generated using Doxygen.
 
 Run `doxygen` in the root of this repository. It will generate a `/doc/*` directory containing the documentation. Entrypoint in a browser is `index.html`.
 
@@ -40,16 +40,17 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `reset`           | std_srvs/Empty          | Reset the sensor's connection     |
 | `GetMetadata`     | ouster_msgs/GetMetadata | Get information about the sensor  |
 
-| Parameter         | Type                    | Description                                         |
-|-------------------|-------------------------|-----------------------------------------------------|
-| `lidar_ip`        | String                  | IP of lidar (ex. 10.5.5.87)                         |
-| `computer_ip`     | String                  | IP of computer to get data (ex. 10.5.5.1)           |
-| `lidar_mode`      | String                  | Mode of data capture, default `512x10`              |
-| `imu_port`        | int                     | Port of IMU data, default 7503                      |
-| `lidar_port`      | int                     | Port of laser data, default 7502                    |
-| `sensor_frame`    | String                  | TF frame of sensor, default `laser_sensor_frame`    |
-| `laser_frame`     | String                  | TF frame of laser data, default `laser_data_frame`  |
-| `imu_frame`       | String                  | TF frame of imu data, default `imu_data_frame`      |
+| Parameter                | Type    | Description                                                          |
+|--------------------------|---------|----------------------------------------------------------------------|
+| `lidar_ip`               | String  | IP of lidar (ex. 10.5.5.87)                                          |
+| `computer_ip`            | String  | IP of computer to get data (ex. 10.5.5.1)                            |
+| `lidar_mode`             | String  | Mode of data capture, default `512x10`                               |
+| `imu_port`               | int     | Port of IMU data, default 7503                                       |
+| `lidar_port`             | int     | Port of laser data, default 7502                                     |
+| `sensor_frame`           | String  | TF frame of sensor, default `laser_sensor_frame`                     |
+| `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                   |
+| `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                       |
+| `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False` |
 
 </center>
 
@@ -60,7 +61,7 @@ Note: TF will provide you the transformations from the sensor frame to each of t
 This package was intentionally designed for new capabilities to be added. Whether that being supporting new classes of Ouster lidars (OS1-custom, OS2, ...) or supporting new ways of processing the data packets.
 
 ### Additional Lidar Processing
-It can be imagined that if you have a stream of lidar or IMU packets, you may want to process them differently. If you're working with a high speed vehicle, you may want the packets projected into a pointcloud and published with little batching inside the driver. If you're working with pointclouds for machine learning, you may only want the pointcloud to include the `XYZ` information and not the intensity, reflectivity, and noise information to reduce dimensionality. 
+It can be imagined that if you have a stream of lidar or IMU packets, you may want to process them differently. If you're working with a high speed vehicle, you may want the packets projected into a pointcloud and published with little batching inside the driver. If you're working with pointclouds for machine learning, you may only want the pointcloud to include the `XYZ` information and not the intensity, reflectivity, and noise information to reduce dimensionality.
 
 In any case, I provide a set of logical default processing implementations on the lidar and IMU packets. These are implementations of the `ros2_ouster::DataProcessorInterface` class in the `interfaces` directory. To create your own processor to change the pointcloud type, buffering methodology, or some new cool thing, you must create an implementation of a data processor.
 
@@ -77,7 +78,7 @@ Some examples:
 ### Additional Lidar Units
 To create a new lidar for this driver, you only need to make an implementation of the `ros2_ouster::SensorInterface` class and include any required SDKs. Then, in the `driver_types.hpp` file, add your new interface as a template of the `OusterDriver` and you're good to go.
 
-You may need to add an additional `main` method for the new templated program, depending if you're using components. If it uses another underlying SDK other than `OS1` you will also need to create new processors for it as the processors are bound to a specific unit as the data formatting may be different. If they are the same, you can reuse the `OS1` processors. 
+You may need to add an additional `main` method for the new templated program, depending if you're using components. If it uses another underlying SDK other than `OS1` you will also need to create new processors for it as the processors are bound to a specific unit as the data formatting may be different. If they are the same, you can reuse the `OS1` processors.
 
 ## Lifecycle
 
@@ -113,21 +114,21 @@ The `[eth name]` is the nework interface you're connecting to. On older Linux sy
  ip addr show dev [eth name]
 ```
 
-The output you see from `show` should look something like `[eth name] ... state DOWN ...`. Its only important that you see `DOWN` and not `UP`. Next, lets setup a static IP address for your machine so you can rely on this in the future. Ouster uses the 10.5.5.* range, and I don't see a compelling reason to argue with it. 
+The output you see from `show` should look something like `[eth name] ... state DOWN ...`. Its only important that you see `DOWN` and not `UP`. Next, lets setup a static IP address for your machine so you can rely on this in the future. Ouster uses the 10.5.5.* range, and I don't see a compelling reason to argue with it.
 
 ```
 sudo ip addr add 10.5.5.1/24 dev [eth name]
 
 ```
 
-Now, lets setup the connection. At this point you may now plug in and power on your sensor. 
+Now, lets setup the connection. At this point you may now plug in and power on your sensor.
 
 ```
 sudo ip link set [eth name] up
 sudo addr show dev [eth name]
 ```
 
-The output you see from `show` should look something like `[eth name] ... state UP ...`. Its only important that you see `UP` now and not `DOWN`. At this point, you've setup the networking needed for the one time setup. 
+The output you see from `show` should look something like `[eth name] ... state UP ...`. Its only important that you see `UP` now and not `DOWN`. At this point, you've setup the networking needed for the one time setup.
 
 ### Connection
 
@@ -135,7 +136,7 @@ We can setup the network connection to the sensor now with the proper settings. 
 
 ```
 sudo dnsmasq -C /dev/null -kd -F 10.5.5.50,10.5.5.100 -i [eth name] --bind-dynamic
-``` 
+```
 
 Instantly you should see something similar to:
 
@@ -176,7 +177,7 @@ Now that we have a connection over the network, lets view some data. After build
 ros2 launch ros2_ouster os1_launch.py
 ```
 
-Make sure to update your parameters file if you don't use the default IPs (10.5.5.1, 10.5.5.87). You may also use the `.local` version of your ouster lidar. To find your IPs, see the `dnsmasq` output or check with `nmap -SP 10.5.5.*/24`. 
+Make sure to update your parameters file if you don't use the default IPs (10.5.5.1, 10.5.5.87). You may also use the `.local` version of your ouster lidar. To find your IPs, see the `dnsmasq` output or check with `nmap -SP 10.5.5.*/24`.
 
 Now that your connection is up (hopefully), you can view this information in RViz. Open an RViz session and subscribe to the points, images, and IMU topics in the laser frame.
 
