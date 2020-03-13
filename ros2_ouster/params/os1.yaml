@@ -8,3 +8,8 @@ ouster_driver:
     sensor_frame: laser_sensor_frame
     laser_frame: laser_data_frame
     imu_frame: imu_data_frame
+
+    # if False, data are published with sensor data QoS. This is preferrable
+    # for production but default QoS is needed for rosbag.
+    # See: https://github.com/ros2/rosbag2/issues/125
+    use_system_default_qos: False

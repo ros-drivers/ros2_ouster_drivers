@@ -20,6 +20,7 @@
 
 #include "ros2_ouster/conversions.hpp"
 
+#include "rclcpp/qos.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
@@ -45,11 +46,11 @@ public:
   IMUProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ros2_ouster::Metadata & mdata,
-    const std::string & frame)
+    const std::string & frame,
+    const rclcpp::QoS & qos)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
-    _pub = node->create_publisher<sensor_msgs::msg::Imu>(
-      "imu", rclcpp::SensorDataQoS());
+    _pub = node->create_publisher<sensor_msgs::msg::Imu>("imu", qos);
   }
 
   /**

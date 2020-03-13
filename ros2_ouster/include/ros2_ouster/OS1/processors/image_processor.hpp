@@ -20,6 +20,8 @@
 #include <utility>
 #include <algorithm>
 
+#include "rclcpp/qos.hpp"
+
 #include "ros2_ouster/conversions.hpp"
 
 #include "sensor_msgs/msg/image.hpp"
@@ -50,7 +52,8 @@ public:
   ImageProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ros2_ouster::Metadata & mdata,
-    const std::string & frame)
+    const std::string & frame,
+    const rclcpp::QoS & qos)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
     _height = OS1::pixels_per_column;
@@ -61,13 +64,13 @@ public:
         mdata.beam_altitude_angles);
 
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "range_image", rclcpp::SensorDataQoS());
+      "range_image", qos);
     _intensity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "intensity_image", rclcpp::SensorDataQoS());
+      "intensity_image", qos);
     _noise_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "noise_image", rclcpp::SensorDataQoS());
+      "noise_image", qos);
     _reflectivity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "reflectivity_image", rclcpp::SensorDataQoS());
+      "reflectivity_image", qos);
 
     _range_image.width = _width;
     _range_image.height = _height;

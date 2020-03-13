@@ -39,11 +39,6 @@ public:
   DataProcessorInterface() {}
 
   /**
-   * @brief Destructor of the data processor interface
-   */
-  ~DataProcessorInterface() {}
-
-  /**
    * @brief Process a packet with the lidar-specific APIs
    * @param data packet input
    */

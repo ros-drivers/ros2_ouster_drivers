@@ -18,6 +18,7 @@
 #include <map>
 #include <utility>
 
+#include "rclcpp/qos.hpp"
 #include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/OS1/processors/image_processor.hpp"
 #include "ros2_ouster/OS1/processors/imu_processor.hpp"
@@ -35,9 +36,10 @@ namespace ros2_ouster
 inline ros2_ouster::DataProcessorInterface * createImageProcessor(
   const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
   const ros2_ouster::Metadata & mdata,
-  const std::string & frame)
+  const std::string & frame,
+  const rclcpp::QoS & qos)
 {
-  return new OS1::ImageProcessor(node, mdata, frame);
+  return new OS1::ImageProcessor(node, mdata, frame, qos);
 }
 
 /**
@@ -48,9 +50,10 @@ inline ros2_ouster::DataProcessorInterface * createImageProcessor(
 inline ros2_ouster::DataProcessorInterface * createPointcloudProcessor(
   const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
   const ros2_ouster::Metadata & mdata,
-  const std::string & frame)
+  const std::string & frame,
+  const rclcpp::QoS & qos)
 {
-  return new OS1::PointcloudProcessor(node, mdata, frame);
+  return new OS1::PointcloudProcessor(node, mdata, frame, qos);
 }
 
 /**
@@ -61,9 +64,10 @@ inline ros2_ouster::DataProcessorInterface * createPointcloudProcessor(
 inline ros2_ouster::DataProcessorInterface * createIMUProcessor(
   const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
   const ros2_ouster::Metadata & mdata,
-  const std::string & frame)
+  const std::string & frame,
+  const rclcpp::QoS & qos)
 {
-  return new OS1::IMUProcessor(node, mdata, frame);
+  return new OS1::IMUProcessor(node, mdata, frame, qos);
 }
 
 /**
@@ -74,31 +78,33 @@ inline ros2_ouster::DataProcessorInterface * createIMUProcessor(
 inline ros2_ouster::DataProcessorInterface * createScanProcessor(
   const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
   const ros2_ouster::Metadata & mdata,
-  const std::string & frame)
+  const std::string & frame,
+  const rclcpp::QoS & qos)
 {
-  return new OS1::ScanProcessor(node, mdata, frame);
+  return new OS1::ScanProcessor(node, mdata, frame, qos);
 }
 
 inline std::multimap<ClientState, DataProcessorInterface *> createProcessors(
   const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
   const ros2_ouster::Metadata & mdata,
   const std::string & imu_frame,
-  const std::string & laser_frame)
+  const std::string & laser_frame,
+  const rclcpp::QoS & qos)
 {
   std::multimap<ClientState, DataProcessorInterface *> data_processors;
 
   data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
       ClientState::IMU_DATA, createIMUProcessor(
-        node, mdata, imu_frame)));
+        node, mdata, imu_frame, qos)));
   data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
       ClientState::LIDAR_DATA, createPointcloudProcessor(
-        node, mdata, laser_frame)));
+        node, mdata, laser_frame, qos)));
   data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
       ClientState::LIDAR_DATA, createImageProcessor(
-        node, mdata, laser_frame)));
+        node, mdata, laser_frame, qos)));
   data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
       ClientState::LIDAR_DATA, createScanProcessor(
-        node, mdata, laser_frame)));
+        node, mdata, laser_frame, qos)));
 
   return data_processors;
 }
