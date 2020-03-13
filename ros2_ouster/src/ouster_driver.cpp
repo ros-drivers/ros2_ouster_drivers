@@ -94,20 +94,17 @@ void OusterDriver<SensorT>::onConfigure()
 
   ros2_ouster::Metadata mdata = _sensor->getMetadata();
 
-  if (_use_default_qos_for_sensor_data)
-    {
+  if (_use_default_qos_for_sensor_data) {
       RCLCPP_WARN(
         this->get_logger(), "Using system defaults QoS for sensor data");
       _data_processors = ros2_ouster::createProcessors(
         shared_from_this(), mdata, _imu_data_frame, _laser_data_frame,
         rclcpp::SystemDefaultsQoS());
-    }
-  else
-    {
+  } else {
       _data_processors = ros2_ouster::createProcessors(
         shared_from_this(), mdata, _imu_data_frame, _laser_data_frame,
         rclcpp::SensorDataQoS());
-    }
+  }
 
   _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(
     shared_from_this());
