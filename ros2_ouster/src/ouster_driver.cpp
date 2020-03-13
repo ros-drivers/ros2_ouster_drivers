@@ -94,7 +94,7 @@ void OusterDriver<SensorT>::onConfigure()
   ros2_ouster::Metadata mdata = _sensor->getMetadata();
 
   if (_use_system_default_qos) {
-    RCLCPP_WARN(
+    RCLCPP_INFO(
       this->get_logger(), "Using system defaults QoS for sensor data");
     _data_processors = ros2_ouster::createProcessors(
       shared_from_this(), mdata, _imu_data_frame, _laser_data_frame,
