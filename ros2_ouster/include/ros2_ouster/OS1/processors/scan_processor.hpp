@@ -18,6 +18,8 @@
 #include <memory>
 #include <string>
 
+#include "rclcpp/qos.hpp"
+
 #include "ros2_ouster/conversions.hpp"
 
 #include "sensor_msgs/msg/laser_scan.hpp"
@@ -49,12 +51,12 @@ public:
   ScanProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ros2_ouster::Metadata & mdata,
-    const std::string & frame)
+    const std::string & frame,
+    const rclcpp::QoS & qos)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
     _mdata = mdata;
-    _pub = _node->create_publisher<sensor_msgs::msg::LaserScan>(
-      "scan", rclcpp::SensorDataQoS());
+    _pub = _node->create_publisher<sensor_msgs::msg::LaserScan>("scan", qos);
     _height = OS1::pixels_per_column;
     _width = OS1::n_cols_of_lidar_mode(
       OS1::lidar_mode_of_string(mdata.mode));

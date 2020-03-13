@@ -8,3 +8,4 @@ ouster_driver:
     sensor_frame: laser_sensor_frame
     laser_frame: laser_data_frame
     imu_frame: imu_data_frame
+    use_system_default_qos_for_sensor_data: False

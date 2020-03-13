@@ -18,6 +18,8 @@
 #include <memory>
 #include <string>
 
+#include "rclcpp/qos.hpp"
+
 #include "ros2_ouster/conversions.hpp"
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -46,7 +48,8 @@ public:
   PointcloudProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ros2_ouster::Metadata & mdata,
-    const std::string & frame)
+    const std::string & frame,
+    const rclcpp::QoS & qos)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
     _height = OS1::pixels_per_column;
@@ -54,9 +57,10 @@ public:
       OS1::lidar_mode_of_string(mdata.mode));
     _xyz_lut = OS1::make_xyz_lut(_width, _height, mdata.beam_azimuth_angles,
         mdata.beam_altitude_angles);
-    _cloud = std::make_shared<pcl::PointCloud<point_os::PointOS>>(_width, _height);
+    _cloud =
+      std::make_shared<pcl::PointCloud<point_os::PointOS>>(_width, _height);
     _pub = _node->create_publisher<sensor_msgs::msg::PointCloud2>(
-      "points", rclcpp::SensorDataQoS());
+      "points", qos);
 
     _batch_and_publish =
       OS1::batch_to_iter<pcl::PointCloud<point_os::PointOS>::iterator>(
