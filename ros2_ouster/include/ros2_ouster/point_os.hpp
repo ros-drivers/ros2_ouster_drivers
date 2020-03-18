@@ -62,8 +62,15 @@ struct EIGEN_ALIGN16 PointOS
 
 // clang-format off
 POINT_CLOUD_REGISTER_POINT_STRUCT(point_os::PointOS,
-  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(uint32_t, t, t)(uint16_t,
-  reflectivity, reflectivity)(uint8_t, ring, ring)(uint16_t, noise, noise)(uint32_t, range, range)
+  (float, x, x)
+  (float, y, y)
+  (float, z, z)
+  (float, intensity, intensity)
+  (std::uint32_t, t, t)
+  (std::uint16_t, reflectivity, reflectivity)
+  (std::uint8_t, ring, ring)
+  (std::uint16_t, noise, noise)
+  (std::uint32_t, range, range)
 )
 
 #endif  // ROS2_OUSTER__POINT_OS_HPP_
