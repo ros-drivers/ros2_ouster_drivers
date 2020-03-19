@@ -51,12 +51,24 @@ public:
    * @brief A constructor for ros2_ouster::OusterDriver
    * @param options Node options for lifecycle node interfaces
    */
-  explicit OusterDriver(const rclcpp::NodeOptions & options);
+  explicit OusterDriver(const rclcpp::NodeOptions & options)
+  : LifecycleInterface("OusterDriver", options)
+  {
+    this->declare_parameter("lidar_ip");
+    this->declare_parameter("computer_ip");
+    this->declare_parameter("imu_port", 7503);
+    this->declare_parameter("lidar_port", 7502);
+    this->declare_parameter("lidar_mode", std::string("512x10"));
+    this->declare_parameter("sensor_frame", std::string("laser_sensor_frame"));
+    this->declare_parameter("laser_frame", std::string("laser_data_frame"));
+    this->declare_parameter("imu_frame", std::string("imu_data_frame"));
+    this->declare_parameter("use_system_default_qos", false);
+  }
 
   /**
    * @brief A destructor for ros2_ouster::OusterDriver
    */
-  ~OusterDriver();
+  ~OusterDriver() override = default;
 
   /**
    * @brief lifecycle node's implementation of configure step
@@ -130,7 +142,7 @@ private:
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
   rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
 
-  typename SensorT::SharedPtr _sensor;
+  std::shared_ptr<SensorT> _sensor;
   std::multimap<ClientState, DataProcessorInterface *> _data_processors;
   rclcpp::TimerBase::SharedPtr _process_timer;
 

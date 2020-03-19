@@ -30,26 +30,6 @@ using std::placeholders::_3;
 using namespace std::chrono_literals;
 
 template<typename SensorT>
-OusterDriver<SensorT>::OusterDriver(const rclcpp::NodeOptions & options)
-: LifecycleInterface("OusterDriver", options)
-{
-  this->declare_parameter("lidar_ip");
-  this->declare_parameter("computer_ip");
-  this->declare_parameter("imu_port", 7503);
-  this->declare_parameter("lidar_port", 7502);
-  this->declare_parameter("lidar_mode", std::string("512x10"));
-  this->declare_parameter("sensor_frame", std::string("laser_sensor_frame"));
-  this->declare_parameter("laser_frame", std::string("laser_data_frame"));
-  this->declare_parameter("imu_frame", std::string("imu_data_frame"));
-  this->declare_parameter("use_system_default_qos", false);
-}
-
-template<typename SensorT>
-OusterDriver<SensorT>::~OusterDriver()
-{
-}
-
-template<typename SensorT>
 void OusterDriver<SensorT>::onConfigure()
 {
   ros2_ouster::Configuration lidar_config;
