@@ -26,7 +26,7 @@ namespace ros2_ouster
 {
 
 template class ros2_ouster::OusterDriver<OS1::OS1Sensor>;
-typedef ros2_ouster::OusterDriver<OS1::OS1Sensor> OS1Driver;
+using OS1Driver = ros2_ouster::OusterDriver<OS1::OS1Sensor>;
 
 }  // namespace ros2_ouster
 

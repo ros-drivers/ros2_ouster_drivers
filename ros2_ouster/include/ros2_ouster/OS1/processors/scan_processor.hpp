@@ -39,8 +39,8 @@ namespace OS1
 class ScanProcessor : public ros2_ouster::DataProcessorInterface
 {
 public:
-  typedef std::vector<scan_os::ScanOS> OSScan;
-  typedef OSScan::iterator OSScanIt;
+  using OSScan = std::vector<scan_os::ScanOS>;
+  using OSScanIt = OSScan::iterator;
 
   /**
    * @brief A constructor for OS1::ScanProcessor

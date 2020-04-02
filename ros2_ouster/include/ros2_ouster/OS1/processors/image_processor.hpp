@@ -40,8 +40,8 @@ namespace OS1
 class ImageProcessor : public ros2_ouster::DataProcessorInterface
 {
 public:
-  typedef std::vector<image_os::ImageOS> OSImage;
-  typedef OSImage::iterator OSImageIt;
+  using OSImage = std::vector<image_os::ImageOS>;
+  using OSImageIt = OSImage::iterator;
 
   /**
    * @brief A constructor for OS1::ImageProcessor
