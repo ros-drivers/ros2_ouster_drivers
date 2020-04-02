@@ -92,9 +92,9 @@ uint8_t * OS1Sensor::readPacket(const ros2_ouster::ClientState & state)
       } else {
         return nullptr;
       }
+    default:
+      return nullptr;
   }
-
-  return nullptr;
 }
 
 ros2_ouster::Metadata OS1Sensor::getMetadata()
