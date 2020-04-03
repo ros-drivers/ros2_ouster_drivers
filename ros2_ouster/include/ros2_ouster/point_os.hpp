@@ -60,7 +60,7 @@ struct EIGEN_ALIGN16 PointOS
 
 }  // namespace point_os
 
-// clang-format off
+/* *INDENT-OFF* */
 POINT_CLOUD_REGISTER_POINT_STRUCT(point_os::PointOS,
   (float, x, x)
   (float, y, y)
@@ -72,5 +72,6 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(point_os::PointOS,
   (std::uint16_t, noise, noise)
   (std::uint32_t, range, range)
 )
+/* *INDENT-ON* */
 
 #endif  // ROS2_OUSTER__POINT_OS_HPP_
