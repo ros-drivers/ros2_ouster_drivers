@@ -22,18 +22,11 @@ namespace OS1
 {
 
 OS1Sensor::OS1Sensor()
-: SensorInterface()
-{
-  _lidar_packet.resize(lidar_packet_bytes + 1);
-  _imu_packet.resize(imu_packet_bytes + 1);
-}
+: SensorInterface(),
+  _lidar_packet(lidar_packet_bytes + 1),
+  _imu_packet(imu_packet_bytes + 1) {}
 
-OS1Sensor::~OS1Sensor()
-{
-  _ouster_client.reset();
-  _lidar_packet.clear();
-  _imu_packet.clear();
-}
+OS1Sensor::~OS1Sensor() = default;
 
 void OS1Sensor::reset(const ros2_ouster::Configuration & config)
 {

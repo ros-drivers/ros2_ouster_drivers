@@ -25,8 +25,13 @@
 namespace ros2_ouster
 {
 
-template class ros2_ouster::OusterDriver<OS1::OS1Sensor>;
-using OS1Driver = ros2_ouster::OusterDriver<OS1::OS1Sensor>;
+std::unique_ptr<OusterDriver> make_os1_driver(rclcpp::NodeOptions options)
+{
+  return std::make_unique<OusterDriver>(
+    std::make_unique<OS1::OS1Sensor>(),
+    options
+  );
+}
 
 }  // namespace ros2_ouster
 

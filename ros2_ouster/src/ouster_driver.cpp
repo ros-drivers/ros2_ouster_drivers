@@ -20,6 +20,7 @@
 #include "rclcpp/qos.hpp"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/driver_types.hpp"
+#include "ros2_ouster/interfaces/lifecycle_interface.hpp"
 
 namespace ros2_ouster
 {
@@ -29,9 +30,10 @@ using std::placeholders::_2;
 using std::placeholders::_3;
 using namespace std::chrono_literals;
 
-template<typename SensorT>
-OusterDriver<SensorT>::OusterDriver(const rclcpp::NodeOptions & options)
-: LifecycleInterface("OusterDriver", options)
+OusterDriver::OusterDriver(
+  std::unique_ptr<SensorInterface> sensor,
+  const rclcpp::NodeOptions & options)
+: LifecycleInterface("OusterDriver", options), _sensor{std::move(sensor)}
 {
   this->declare_parameter("lidar_ip");
   this->declare_parameter("computer_ip");
@@ -44,13 +46,9 @@ OusterDriver<SensorT>::OusterDriver(const rclcpp::NodeOptions & options)
   this->declare_parameter("use_system_default_qos", false);
 }
 
-template<typename SensorT>
-OusterDriver<SensorT>::~OusterDriver()
-{
-}
+OusterDriver::~OusterDriver() = default;
 
-template<typename SensorT>
-void OusterDriver<SensorT>::onConfigure()
+void OusterDriver::onConfigure()
 {
   ros2_ouster::Configuration lidar_config;
   try {
@@ -82,8 +80,6 @@ void OusterDriver<SensorT>::onConfigure()
   _metadata_srv = this->create_service<ouster_msgs::srv::GetMetadata>(
     "~/get_metadata", std::bind(&OusterDriver::getMetadata, this, _1, _2, _3));
 
-  _sensor = std::make_shared<SensorT>();
-
   try {
     _sensor->configure(lidar_config);
   } catch (const OusterDriverException & e) {
@@ -110,8 +106,7 @@ void OusterDriver<SensorT>::onConfigure()
   broadcastStaticTransforms(mdata);
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::onActivate()
+void OusterDriver::onActivate()
 {
   DataProcessorMapIt it;
   for (it = _data_processors.begin(); it != _data_processors.end(); ++it) {
@@ -120,16 +115,14 @@ void OusterDriver<SensorT>::onActivate()
 
   // speed of the Ouster lidars is 1280 hz
   _process_timer = this->create_wall_timer(781250ns,
-      std::bind(&OusterDriver<SensorT>::processData, this));
+      std::bind(&OusterDriver::processData, this));
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::onError()
+void OusterDriver::onError()
 {
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::onDeactivate()
+void OusterDriver::onDeactivate()
 {
   _process_timer->cancel();
   _process_timer.reset();
@@ -140,8 +133,7 @@ void OusterDriver<SensorT>::onDeactivate()
   }
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::onCleanup()
+void OusterDriver::onCleanup()
 {
   _data_processors.clear();
   _tf_b.reset();
@@ -149,8 +141,7 @@ void OusterDriver<SensorT>::onCleanup()
   _metadata_srv.reset();
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::onShutdown()
+void OusterDriver::onShutdown()
 {
   _process_timer->cancel();
   _process_timer.reset();
@@ -163,8 +154,7 @@ void OusterDriver<SensorT>::onShutdown()
   _data_processors.clear();
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::broadcastStaticTransforms(
+void OusterDriver::broadcastStaticTransforms(
   const ros2_ouster::Metadata & mdata)
 {
   if (_tf_b) {
@@ -177,8 +167,7 @@ void OusterDriver<SensorT>::broadcastStaticTransforms(
   }
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::processData()
+void OusterDriver::processData()
 {
   try {
     ClientState state = _sensor->get();
@@ -201,8 +190,7 @@ void OusterDriver<SensorT>::processData()
   }
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::resetService(
+void OusterDriver::resetService(
   const std::shared_ptr<rmw_request_id_t>/*request_header*/,
   const std::shared_ptr<std_srvs::srv::Empty::Request> request,
   std::shared_ptr<std_srvs::srv::Empty::Response> response)
@@ -220,8 +208,7 @@ void OusterDriver<SensorT>::resetService(
   _sensor->reset(lidar_config);
 }
 
-template<typename SensorT>
-void OusterDriver<SensorT>::getMetadata(
+void OusterDriver::getMetadata(
   const std::shared_ptr<rmw_request_id_t>/*request_header*/,
   const std::shared_ptr<ouster_msgs::srv::GetMetadata::Request> request,
   std::shared_ptr<ouster_msgs::srv::GetMetadata::Response> response)

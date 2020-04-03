@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto options = rclcpp::NodeOptions();
-  auto node = std::make_shared<ros2_ouster::OS1Driver>(options);
+  auto node = ros2_ouster::make_os1_driver(options);
 
   rclcpp::spin(node->get_node_base_interface());
 
