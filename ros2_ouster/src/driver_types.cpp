@@ -19,8 +19,10 @@
 #include "rclcpp_components/register_node_macro.hpp"
 #include "ros2_ouster/OS1/OS1_sensor.hpp"
 
+namespace ros2_ouster
+{
 ros2_ouster::OS1Driver::OS1Driver(rclcpp::NodeOptions options)
-: OusterDriver{std::make_unique<OS1::OS1Sensor>(), options}
-{}
+: OusterDriver{std::make_unique<OS1::OS1Sensor>(), options} {}
+}
 
-// RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::OS1Driver)
+RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::OS1Driver)
