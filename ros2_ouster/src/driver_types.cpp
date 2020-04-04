@@ -11,21 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__DRIVER_TYPES_HPP_
-#define ROS2_OUSTER__DRIVER_TYPES_HPP_
+#include "ros2_ouster/driver_types.hpp"
 
-#include "ros2_ouster/ouster_driver.hpp"
+#include <memory>
 
-namespace ros2_ouster
-{
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
+#include "ros2_ouster/OS1/OS1_sensor.hpp"
 
-class OS1Driver : public OusterDriver
-{
-public:
-  explicit OS1Driver(rclcpp::NodeOptions options);
-};
+ros2_ouster::OS1Driver::OS1Driver(rclcpp::NodeOptions options)
+: OusterDriver{std::make_unique<OS1::OS1Sensor>(), options}
+{}
 
-}  // namespace ros2_ouster
-
-
-#endif  // ROS2_OUSTER__DRIVER_TYPES_HPP_
+// RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::OS1Driver)

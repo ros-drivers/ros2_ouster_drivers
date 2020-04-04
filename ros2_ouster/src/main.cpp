@@ -13,7 +13,6 @@
 
 #include <memory>
 
-#include "ros2_ouster/ouster_driver.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "ros2_ouster/driver_types.hpp"
 
@@ -21,7 +20,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto options = rclcpp::NodeOptions();
-  auto node = ros2_ouster::make_os1_driver(options);
+  auto node = std::make_unique<ros2_ouster::OS1Driver>(options);
 
   rclcpp::spin(node->get_node_base_interface());
 

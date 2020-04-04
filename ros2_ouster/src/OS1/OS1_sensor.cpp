@@ -24,7 +24,8 @@ namespace OS1
 OS1Sensor::OS1Sensor()
 : SensorInterface(),
   _lidar_packet(lidar_packet_bytes + 1),
-  _imu_packet(imu_packet_bytes + 1) {}
+  _imu_packet(imu_packet_bytes + 1)
+{}
 
 OS1Sensor::~OS1Sensor() = default;
 
@@ -59,12 +60,14 @@ ros2_ouster::ClientState OS1Sensor::get()
 
   if (state == ros2_ouster::ClientState::EXIT) {
     throw ros2_ouster::OusterDriverException(
-            std::string("Failed to get valid sensor data "
-            "information from lidar, returned exit!"));
+            std::string(
+              "Failed to get valid sensor data "
+              "information from lidar, returned exit!"));
   } else if (state == ros2_ouster::ClientState::ERROR) {
     throw ros2_ouster::OusterDriverException(
-            std::string("Failed to get valid sensor data "
-            "information from lidar, returned error!"));
+            std::string(
+              "Failed to get valid sensor data "
+              "information from lidar, returned error!"));
   }
 
   return state;

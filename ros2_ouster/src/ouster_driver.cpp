@@ -11,16 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "ros2_ouster/ouster_driver.hpp"
+
 #include <chrono>
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "rclcpp/qos.hpp"
 #include "ros2_ouster/exception.hpp"
-#include "ros2_ouster/driver_types.hpp"
 #include "ros2_ouster/interfaces/lifecycle_interface.hpp"
+#include "ros2_ouster/interfaces/sensor_interface.hpp"
+#include "ros2_ouster/OS1/processor_factories.hpp"
 
 namespace ros2_ouster
 {
