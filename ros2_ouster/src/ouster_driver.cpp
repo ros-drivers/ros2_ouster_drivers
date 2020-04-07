@@ -45,11 +45,6 @@ OusterDriver<SensorT>::OusterDriver(const rclcpp::NodeOptions & options)
 }
 
 template<typename SensorT>
-OusterDriver<SensorT>::~OusterDriver()
-{
-}
-
-template<typename SensorT>
 void OusterDriver<SensorT>::onConfigure()
 {
   ros2_ouster::Configuration lidar_config;

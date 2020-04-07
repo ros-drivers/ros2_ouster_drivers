@@ -36,7 +36,7 @@ public:
   /**
    * @brief Constructor of the data processor interface
    */
-  DataProcessorInterface() {}
+  DataProcessorInterface() = default;
 
   /**
    * @brief Destructor of the data processor interface

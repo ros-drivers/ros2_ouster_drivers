@@ -33,6 +33,12 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 class LifecycleInterface : public rclcpp_lifecycle::LifecycleNode
 {
 public:
+
+  /**
+   * @brief Destructor
+   */
+  virtual ~LifecycleInterface() = default;
+
   /**
    * @brief A constructor for lifecycle_interface::LifecycleInterface
    * @param name Name of node

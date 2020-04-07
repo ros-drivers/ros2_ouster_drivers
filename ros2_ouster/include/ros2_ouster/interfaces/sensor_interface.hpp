@@ -35,7 +35,7 @@ public:
   /**
    * @brief A sensor interface constructor
    */
-  SensorInterface() {}
+  SensorInterface() = default;
 
   /**
    * @brief A sensor interface destructor

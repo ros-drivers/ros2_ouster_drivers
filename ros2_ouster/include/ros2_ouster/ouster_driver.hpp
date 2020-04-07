@@ -56,7 +56,7 @@ public:
   /**
    * @brief A destructor for ros2_ouster::OusterDriver
    */
-  ~OusterDriver();
+  ~OusterDriver() = default;
 
   /**
    * @brief lifecycle node's implementation of configure step

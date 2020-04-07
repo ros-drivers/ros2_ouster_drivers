@@ -54,14 +54,6 @@ public:
   }
 
   /**
-   * @brief A destructor clearing memory allocated
-   */
-  ~IMUProcessor()
-  {
-    _pub.reset();
-  }
-
-  /**
    * @brief Process method to create imu
    * @param data the packet data
    */
@@ -90,9 +82,10 @@ public:
   }
 
 private:
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr _pub;
-  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::string _frame;
+
+  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr _pub;
 };
 
 }  // namespace OS1

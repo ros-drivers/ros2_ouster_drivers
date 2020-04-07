@@ -87,14 +87,6 @@ public:
   }
 
   /**
-   * @brief A destructor clearing memory allocated
-   */
-  ~ScanProcessor()
-  {
-    _pub.reset();
-  }
-
-  /**
    * @brief Process method to create scan
    * @param data the packet data
    */
@@ -122,10 +114,8 @@ public:
   }
 
 private:
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr _pub;
   std::function<void(const uint8_t *, OSScanIt)> _batch_and_publish;
   std::shared_ptr<pcl::PointCloud<scan_os::ScanOS>> _cloud;
-  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::vector<double> _xyz_lut;
   ros2_ouster::Metadata _mdata;
   OSScan _aggregated_scans;
@@ -133,6 +123,9 @@ private:
   uint32_t _height;
   uint32_t _width;
   uint8_t _ring;
+
+  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr _pub;
 };
 
 }  // namespace OS1

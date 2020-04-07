@@ -31,8 +31,6 @@ class OS1Sensor : public ros2_ouster::SensorInterface
 public:
   OS1Sensor();
 
-  ~OS1Sensor() override;
-
   /**
    * @brief Reset lidar sensor
    * @param configuration file to use
@@ -65,9 +63,10 @@ public:
   uint8_t * readPacket(const ros2_ouster::ClientState & state) override;
 
 private:
-  std::shared_ptr<client> _ouster_client;
   std::vector<uint8_t> _lidar_packet;
   std::vector<uint8_t> _imu_packet;
+
+  std::shared_ptr<client> _ouster_client;
 };
 
 }  // namespace OS1

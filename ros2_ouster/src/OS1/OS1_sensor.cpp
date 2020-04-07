@@ -28,13 +28,6 @@ OS1Sensor::OS1Sensor()
   _imu_packet.resize(imu_packet_bytes + 1);
 }
 
-OS1Sensor::~OS1Sensor()
-{
-  _ouster_client.reset();
-  _lidar_packet.clear();
-  _imu_packet.clear();
-}
-
 void OS1Sensor::reset(const ros2_ouster::Configuration & config)
 {
   _ouster_client.reset();

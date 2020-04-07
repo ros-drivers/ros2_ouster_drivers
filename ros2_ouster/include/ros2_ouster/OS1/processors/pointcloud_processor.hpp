@@ -76,14 +76,6 @@ public:
   }
 
   /**
-   * @brief A destructor clearing memory allocated
-   */
-  ~PointcloudProcessor()
-  {
-    _pub.reset();
-  }
-
-  /**
    * @brief Process method to create pointcloud
    * @param data the packet data
    */

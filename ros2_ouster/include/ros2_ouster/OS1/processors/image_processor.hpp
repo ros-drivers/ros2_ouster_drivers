@@ -159,17 +159,6 @@ public:
   }
 
   /**
-   * @brief A destructor clearing memory allocated
-   */
-  ~ImageProcessor()
-  {
-    _reflectivity_image_pub.reset();
-    _intensity_image_pub.reset();
-    _noise_image_pub.reset();
-    _range_image_pub.reset();
-  }
-
-  /**
    * @brief Process method to create images
    * @param data the packet data
    */
@@ -203,10 +192,6 @@ public:
   }
 
 private:
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _reflectivity_image_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_image_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_image_pub;
   std::function<void(const uint8_t *, OSImageIt)> _batch_and_publish;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   sensor_msgs::msg::Image _reflectivity_image;
@@ -219,6 +204,11 @@ private:
   std::string _frame;
   uint32_t _height;
   uint32_t _width;
+
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _reflectivity_image_pub;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_image_pub;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_image_pub;
 };
 
 }  // namespace OS1
