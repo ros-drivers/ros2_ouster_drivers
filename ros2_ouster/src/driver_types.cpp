@@ -11,12 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ros2_ouster/driver_types.hpp"
-
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_components/register_node_macro.hpp"
+#include "ros2_ouster/driver_types.hpp"
 #include "ros2_ouster/OS1/OS1_sensor.hpp"
 
 namespace ros2_ouster
