@@ -47,6 +47,11 @@ add_library(${library_name} SHARED
   src/OS1/OS1_sensor.cpp
 )
 
+target_include_directories(${library_name} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
 ament_target_dependencies(${library_name}
   ${dependencies}
 )
