@@ -13,9 +13,9 @@
 
 #include <memory>
 
-#include "ros2_ouster/ouster_driver.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "ros2_ouster/driver_types.hpp"
+#include "ros2_ouster/ouster_driver.hpp"
 
 int main(int argc, char ** argv)
 {

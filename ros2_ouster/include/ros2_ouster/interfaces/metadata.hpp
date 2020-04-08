@@ -14,8 +14,8 @@
 #ifndef ROS2_OUSTER__INTERFACES__METADATA_HPP_
 #define ROS2_OUSTER__INTERFACES__METADATA_HPP_
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace ros2_ouster
 {

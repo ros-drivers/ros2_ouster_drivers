@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-
 #include "ros2_ouster/interfaces/lifecycle_interface.hpp"
+
+#include <string>
 
 namespace lifecycle_interface
 {

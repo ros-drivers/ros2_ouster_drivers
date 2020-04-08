@@ -14,16 +14,14 @@
 #ifndef ROS2_OUSTER__OS1__PROCESSORS__IMU_PROCESSOR_HPP_
 #define ROS2_OUSTER__OS1__PROCESSORS__IMU_PROCESSOR_HPP_
 
-#include <vector>
 #include <memory>
 #include <string>
-
-#include "ros2_ouster/conversions.hpp"
+#include <vector>
 
 #include "rclcpp/qos.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/imu.hpp"
-
+#include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 
 namespace OS1

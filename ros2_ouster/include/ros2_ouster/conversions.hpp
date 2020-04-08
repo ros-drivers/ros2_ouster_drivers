@@ -14,26 +14,24 @@
 #ifndef ROS2_OUSTER__CONVERSIONS_HPP_
 #define ROS2_OUSTER__CONVERSIONS_HPP_
 
+#include <algorithm>
 #include <string>
 #include <vector>
-#include <algorithm>
-
-#include "pcl/point_types.h"
-#include "pcl/point_cloud.h"
-#include "pcl_conversions/pcl_conversions.h"
-#include "ros2_ouster/point_os.hpp"
-#include "ros2_ouster/image_os.hpp"
-#include "ros2_ouster/scan_os.hpp"
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "ouster_msgs/msg/metadata.hpp"
+#include "pcl/point_cloud.h"
+#include "pcl/point_types.h"
+#include "pcl_conversions/pcl_conversions.h"
 #include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "tf2/LinearMath/Transform.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "ouster_msgs/msg/metadata.hpp"
-
 #include "ros2_ouster/OS1/OS1.hpp"
 #include "ros2_ouster/OS1/OS1_packet.hpp"
+#include "ros2_ouster/image_os.hpp"
+#include "ros2_ouster/point_os.hpp"
+#include "ros2_ouster/scan_os.hpp"
 
 namespace ros2_ouster
 {

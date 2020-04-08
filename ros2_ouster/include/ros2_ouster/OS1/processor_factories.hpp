@@ -14,8 +14,8 @@
 #ifndef ROS2_OUSTER__OS1__PROCESSOR_FACTORIES_HPP_
 #define ROS2_OUSTER__OS1__PROCESSOR_FACTORIES_HPP_
 
-#include <string>
 #include <map>
+#include <string>
 #include <utility>
 
 #include "rclcpp/qos.hpp"

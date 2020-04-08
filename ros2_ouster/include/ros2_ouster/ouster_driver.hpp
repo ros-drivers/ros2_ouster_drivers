@@ -14,24 +14,20 @@
 #ifndef ROS2_OUSTER__OUSTER_DRIVER_HPP_
 #define ROS2_OUSTER__OUSTER_DRIVER_HPP_
 
-#include <memory>
 #include <map>
+#include <memory>
 #include <string>
 
-#include "ros2_ouster/conversions.hpp"
-
-#include "ros2_ouster/interfaces/lifecycle_interface.hpp"
-
-#include "sensor_msgs/msg/image.hpp"
-#include "sensor_msgs/msg/point_cloud2.hpp"
-#include "sensor_msgs/msg/imu.hpp"
-#include "std_srvs/srv/empty.hpp"
 #include "ouster_msgs/srv/get_metadata.hpp"
-
+#include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/imu.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+#include "std_srvs/srv/empty.hpp"
 #include "tf2_ros/static_transform_broadcaster.h"
-
+#include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/interfaces/configuration.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/interfaces/lifecycle_interface.hpp"
 
 namespace ros2_ouster
 {

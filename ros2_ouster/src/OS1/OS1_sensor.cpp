@@ -11,10 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "ros2_ouster/OS1/OS1_sensor.hpp"
+
 #include <string>
 
 #include "ros2_ouster/conversions.hpp"
-#include "ros2_ouster/OS1/OS1_sensor.hpp"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
 

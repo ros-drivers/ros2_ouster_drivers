@@ -14,9 +14,9 @@
 #ifndef ROS2_OUSTER__EXCEPTION_HPP_
 #define ROS2_OUSTER__EXCEPTION_HPP_
 
+#include <memory>
 #include <stdexcept>
 #include <string>
-#include <memory>
 
 namespace ros2_ouster
 {

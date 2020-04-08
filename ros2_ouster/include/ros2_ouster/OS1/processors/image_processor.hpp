@@ -14,18 +14,15 @@
 #ifndef ROS2_OUSTER__OS1__PROCESSORS__IMAGE_PROCESSOR_HPP_
 #define ROS2_OUSTER__OS1__PROCESSORS__IMAGE_PROCESSOR_HPP_
 
-#include <vector>
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
-#include <algorithm>
+#include <vector>
 
 #include "rclcpp/qos.hpp"
-
-#include "ros2_ouster/conversions.hpp"
-
 #include "sensor_msgs/msg/image.hpp"
-
+#include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"
 

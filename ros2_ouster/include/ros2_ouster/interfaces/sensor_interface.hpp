@@ -16,9 +16,9 @@
 
 #include <memory>
 
-#include "ros2_ouster/interfaces/metadata.hpp"
 #include "ros2_ouster/interfaces/configuration.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/interfaces/metadata.hpp"
 
 namespace ros2_ouster
 {

@@ -14,16 +14,13 @@
 #ifndef ROS2_OUSTER__OS1__PROCESSORS__POINTCLOUD_PROCESSOR_HPP_
 #define ROS2_OUSTER__OS1__PROCESSORS__POINTCLOUD_PROCESSOR_HPP_
 
-#include <vector>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "rclcpp/qos.hpp"
-
-#include "ros2_ouster/conversions.hpp"
-
 #include "sensor_msgs/msg/point_cloud2.hpp"
-
+#include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/OS1/OS1.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"

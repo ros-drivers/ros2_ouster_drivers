@@ -17,10 +17,9 @@
 #include <string>
 #include <vector>
 
-#include "ros2_ouster/ouster_driver.hpp"
-#include "ros2_ouster/OS1/OS1_sensor.hpp"
-
 #include "rclcpp_components/register_node_macro.hpp"
+#include "ros2_ouster/OS1/OS1_sensor.hpp"
+#include "ros2_ouster/ouster_driver.hpp"
 
 namespace ros2_ouster
 {

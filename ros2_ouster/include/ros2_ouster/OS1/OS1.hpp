@@ -14,32 +14,31 @@
 #ifndef ROS2_OUSTER__OS1__OS1_HPP_
 #define ROS2_OUSTER__OS1__OS1_HPP_
 
-#include <unistd.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include <cstdint>
-#include <memory>
-#include <string>
-#include <vector>
 #include <algorithm>
 #include <array>
 #include <cerrno>
 #include <chrono>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <utility>
-
-#include "arpa/inet.h"
-#include "sys/socket.h"
-#include "sys/types.h"
+#include <vector>
 
 #include "jsoncpp/json/json.h"
-#include "ros2_ouster/OS1/OS1_packet.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
+#include "ros2_ouster/OS1/OS1_packet.hpp"
 
 namespace OS1
 {
