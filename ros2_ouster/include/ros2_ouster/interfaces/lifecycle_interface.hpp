@@ -33,7 +33,6 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 class LifecycleInterface : public rclcpp_lifecycle::LifecycleNode
 {
 public:
-
   /**
    * @brief Destructor
    */
