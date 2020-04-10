@@ -9,8 +9,6 @@ OS-1 Networking Setup      |  OS-1 Data Overview
 [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/92ajXjIxDGM/0.jpg)](http://www.youtube.com/watch?v=92ajXjIxDGM) | [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/4VgGG8Xe4IA/0.jpg)](http://www.youtube.com/watch?v=4VgGG8Xe4IA)
 
 
-I also happen to run a YouTube channel, [Robots for Robots](https://www.youtube.com/channel/UCZT16dToD1ov6lnoEcPL6rw), focusing on robotics, sensors, and industry insights. If you like this work and want to hear about some other things I am working on, I'd appreciate if you watch, like, and subscribe!
-
 ## Documentation
 
 Documentation can be generated using Doxygen.
