@@ -67,6 +67,7 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
   ouster_msgs::msg::Metadata msg;
   msg.hostname = mdata.hostname;
   msg.lidar_mode = mdata.mode;
+  msg.timestamp_mode = mdata.timestamp_mode;
   msg.beam_azimuth_angles = mdata.beam_azimuth_angles;
   msg.beam_altitude_angles = mdata.beam_altitude_angles;
   msg.imu_to_sensor_transform = mdata.imu_to_sensor_transform;

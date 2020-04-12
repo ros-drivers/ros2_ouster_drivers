@@ -41,6 +41,7 @@ struct Metadata
   std::string sn;
   std::string fw_rev;
   std::string mode;
+  std::string timestamp_mode;
   std::vector<double> beam_azimuth_angles;
   std::vector<double> beam_altitude_angles;
   std::vector<double> imu_to_sensor_transform;

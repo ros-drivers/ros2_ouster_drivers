@@ -13,3 +13,12 @@ ouster_driver:
     # for production but default QoS is needed for rosbag.
     # See: https://github.com/ros2/rosbag2/issues/125
     use_system_default_qos: False
+
+    # Set the method used to timestamp measurements.
+    # Valid modes are:
+    #
+    #   TIME_FROM_INTERNAL_OSC
+    #   TIME_FROM_SYNC_PULSE_IN
+    #   TIME_FROM_PTP_1588
+    #
+    timestamp_mode: TIME_FROM_INTERNAL_OSC

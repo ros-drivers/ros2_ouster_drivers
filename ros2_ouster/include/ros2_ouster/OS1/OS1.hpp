@@ -68,6 +68,13 @@ enum lidar_mode
   MODE_2048x10
 };
 
+enum timestamp_mode
+{
+  TIME_FROM_INTERNAL_OSC = 1,
+  TIME_FROM_SYNC_PULSE_IN,
+  TIME_FROM_PTP_1588
+};
+
 struct version
 {
   int16_t major;
@@ -81,6 +88,12 @@ const std::array<std::pair<lidar_mode, std::string>, 5> lidar_mode_strings = {
     {MODE_1024x10, "1024x10"},
     {MODE_1024x20, "1024x20"},
     {MODE_2048x10, "2048x10"}}};
+
+const std::array<std::pair<timestamp_mode, std::string>, 3>
+timestamp_mode_strings = {
+  {{TIME_FROM_INTERNAL_OSC, "TIME_FROM_INTERNAL_OSC"},
+    {TIME_FROM_SYNC_PULSE_IN, "TIME_FROM_SYNC_PULSE_IN"},
+    {TIME_FROM_PTP_1588, "TIME_FROM_PTP_1588"}}};
 
 const size_t lidar_packet_bytes = 12608;
 const size_t imu_packet_bytes = 48;
@@ -125,9 +138,9 @@ inline std::string to_string(version v)
 }
 
 /**
- * Get lidar mode from string
+ * Get version from string
  * @param string
- * @return lidar mode corresponding to the string, or invalid_version on error
+ * @return version corresponding to the string, or invalid_version on error
  */
 inline version version_of_string(const std::string & s)
 {
@@ -176,6 +189,38 @@ inline lidar_mode lidar_mode_of_string(const std::string & s)
       });
 
   return res == end ? lidar_mode(0) : res->first;
+}
+
+/**
+ * Get a string representation of a timestamp_mode
+ * @param[in] mode The timestamp_mode to stringify
+ * @return A string representation of the timestamp_mode (or "UNKNOWN")
+ */
+inline std::string to_string(timestamp_mode mode)
+{
+  auto end = timestamp_mode_strings.end();
+  auto res = std::find_if(timestamp_mode_strings.begin(), end,
+      [&](const std::pair<timestamp_mode, std::string> & p) {
+        return p.first == mode;
+      });
+
+  return res == end ? "UNKNOWN" : res->second;
+}
+
+/**
+ * Get a timestamp_mode from a string
+ * @param[in] s The string to convert to a timestamp_mode
+ * @return timestamp_mode corresponding to the string, or 0 on error
+ */
+inline timestamp_mode timestamp_mode_of_string(const std::string & s)
+{
+  auto end = timestamp_mode_strings.end();
+  auto res = std::find_if(timestamp_mode_strings.begin(), end,
+      [&](const std::pair<timestamp_mode, std::string> & p) {
+        return p.second == s;
+      });
+
+  return res == end ? timestamp_mode(0) : res->first;
 }
 
 /**
@@ -377,13 +422,17 @@ inline int cfg_socket(const char * addr)
  * Connect to and configure the sensor and start listening for data
  * @param hostname hostname or ip of the sensor
  * @param udp_dest_host hostname or ip where the sensor should send data
+ * @param mode lidar_mode defining azimuth resolution and rotation rate
+ * @param ts_mode method used to timestamp lidar measurements
  * @param lidar_port port on which the sensor will send lidar data
  * @param imu_port port on which the sensor will send imu data
  * @return pointer owning the resources associated with the connection
  */
 inline std::shared_ptr<client> init_client(
   const std::string & hostname,
-  const std::string & udp_dest_host, lidar_mode mode = MODE_1024x10,
+  const std::string & udp_dest_host,
+  lidar_mode mode = MODE_1024x10,
+  timestamp_mode ts_mode = TIME_FROM_INTERNAL_OSC,
   int lidar_port = 7502,
   int imu_port = 7503)
 {
@@ -420,6 +469,10 @@ inline std::shared_ptr<client> init_client(
     sock_fd, {"set_config_param", "lidar_mode", to_string(mode)}, res);
   success &= res == "set_config_param";
 
+  success &= do_tcp_cmd(
+    sock_fd, {"set_config_param", "timestamp_mode", to_string(ts_mode)}, res);
+  success &= res == "set_config_param";
+
   success &= do_tcp_cmd(sock_fd, {"get_sensor_info"}, res);
   success &= reader->parse(res.c_str(), res.c_str() + res.size(), &cli->meta,
       &errors);
@@ -447,6 +500,7 @@ inline std::shared_ptr<client> init_client(
   // merge extra info into metadata
   cli->meta["hostname"] = hostname;
   cli->meta["lidar_mode"] = to_string(mode);
+  cli->meta["timestamp_mode"] = to_string(ts_mode);
   cli->meta["imu_port"] = imu_port;
   cli->meta["lidar_port"] = lidar_port;
 
@@ -574,13 +628,15 @@ inline ros2_ouster::Metadata parse_metadata(const std::string & meta)
     }
   }
 
-  ros2_ouster::Metadata info = {"UNKNOWN", "UNKNOWN", "UNNKOWN", "UNNKOWN",
+  ros2_ouster::Metadata info = {
+    "UNKNOWN", "UNKNOWN", "UNNKOWN", "UNNKOWN", "UNKNOWN",
     {}, {}, {}, {}, 7503, 7502};
   info.hostname = root["hostname"].asString();
   info.sn = root["prod_sn"].asString();
   info.fw_rev = root["build_rev"].asString();
 
   info.mode = root["lidar_mode"].asString();
+  info.timestamp_mode = root["timestamp_mode"].asString();
   info.lidar_port = root["lidar_port"].asInt();
   info.imu_port = root["lidar_port"].asInt();
 

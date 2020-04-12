@@ -38,6 +38,8 @@ OusterDriver<SensorT>::OusterDriver(const rclcpp::NodeOptions & options)
   this->declare_parameter("imu_port", 7503);
   this->declare_parameter("lidar_port", 7502);
   this->declare_parameter("lidar_mode", std::string("512x10"));
+  this->declare_parameter(
+    "timestamp_mode", std::string("TIME_FROM_INTERNAL_OSC"));
   this->declare_parameter("sensor_frame", std::string("laser_sensor_frame"));
   this->declare_parameter("laser_frame", std::string("laser_data_frame"));
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
@@ -66,6 +68,7 @@ void OusterDriver<SensorT>::onConfigure()
   lidar_config.imu_port = get_parameter("imu_port").as_int();
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
+  lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
 
   _laser_sensor_frame = get_parameter("sensor_frame").as_string();
   _laser_data_frame = get_parameter("laser_frame").as_string();
@@ -217,6 +220,7 @@ void OusterDriver<SensorT>::resetService(
   lidar_config.imu_port = get_parameter("imu_port").as_int();
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
+  lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
   _sensor->reset(lidar_config);
 }
 

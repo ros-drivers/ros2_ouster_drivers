@@ -1,5 +1,6 @@
 string hostname
 string lidar_mode
+string timestamp_mode
 float64[] beam_azimuth_angles
 float64[] beam_altitude_angles
 float64[] imu_to_sensor_transform
