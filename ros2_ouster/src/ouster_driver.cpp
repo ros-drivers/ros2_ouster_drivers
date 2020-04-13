@@ -71,7 +71,8 @@ void OusterDriver<SensorT>::onConfigure()
   lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
     RCLCPP_WARN(this->get_logger(),
-      "Using TIME_FROM_ROS_RECEPTION to stamp data with unmodelled latency!");
+      "Using TIME_FROM_ROS_RECEPTION to stamp data with ROS time on "
+      "reception. This has unmodelled latency!");
     _use_ros_time = true;
   } else {
     _use_ros_time = false;
