@@ -201,9 +201,11 @@ void OusterDriver<SensorT>::processData()
     if (packet_data) {
       std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
       key_its = _data_processors.equal_range(state);
+      uint64_t override_ts =
+        this->_use_ros_time ? this->now().nanoseconds() : 0;
+
       for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
-        it->second->process(packet_data,
-          this->_use_ros_time ? this->now().nanoseconds() : 0);
+        it->second->process(packet_data, override_ts);
       }
     }
   } catch (const OusterDriverException & e) {
