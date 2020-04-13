@@ -98,10 +98,10 @@ public:
    * @brief Process method to create scan
    * @param data the packet data
    */
-  bool process(uint8_t * data) override
+  bool process(uint8_t * data, uint64_t override_ts) override
   {
     OSScanIt it = _aggregated_scans.begin();
-    _batch_and_publish(data, it);
+    _batch_and_publish(data, it, override_ts);
     return true;
   }
 
@@ -123,7 +123,7 @@ public:
 
 private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr _pub;
-  std::function<void(const uint8_t *, OSScanIt)> _batch_and_publish;
+  std::function<void(const uint8_t *, OSScanIt, uint64_t)> _batch_and_publish;
   std::shared_ptr<pcl::PointCloud<scan_os::ScanOS>> _cloud;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::vector<double> _xyz_lut;

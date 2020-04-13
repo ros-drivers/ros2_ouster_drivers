@@ -69,6 +69,13 @@ void OusterDriver<SensorT>::onConfigure()
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
+  if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
+    RCLCPP_WARN(this->get_logger(),
+      "Using TIME_FROM_ROS_RECEPTION to stamp data with unmodelled latency!");
+    _use_ros_time = true;
+  } else {
+    _use_ros_time = false;
+  }
 
   _laser_sensor_frame = get_parameter("sensor_frame").as_string();
   _laser_data_frame = get_parameter("laser_frame").as_string();
@@ -195,7 +202,8 @@ void OusterDriver<SensorT>::processData()
       std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
       key_its = _data_processors.equal_range(state);
       for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
-        it->second->process(packet_data);
+        it->second->process(packet_data,
+          this->_use_ros_time ? this->now().nanoseconds() : 0);
       }
     }
   } catch (const OusterDriverException & e) {

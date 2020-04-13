@@ -72,7 +72,8 @@ enum timestamp_mode
 {
   TIME_FROM_INTERNAL_OSC = 1,
   TIME_FROM_SYNC_PULSE_IN,
-  TIME_FROM_PTP_1588
+  TIME_FROM_PTP_1588,
+  TIME_FROM_ROS_RECEPTION = 99
 };
 
 struct version
@@ -89,11 +90,12 @@ const std::array<std::pair<lidar_mode, std::string>, 5> lidar_mode_strings = {
     {MODE_1024x20, "1024x20"},
     {MODE_2048x10, "2048x10"}}};
 
-const std::array<std::pair<timestamp_mode, std::string>, 3>
+const std::array<std::pair<timestamp_mode, std::string>, 4>
 timestamp_mode_strings = {
   {{TIME_FROM_INTERNAL_OSC, "TIME_FROM_INTERNAL_OSC"},
     {TIME_FROM_SYNC_PULSE_IN, "TIME_FROM_SYNC_PULSE_IN"},
-    {TIME_FROM_PTP_1588, "TIME_FROM_PTP_1588"}}};
+    {TIME_FROM_PTP_1588, "TIME_FROM_PTP_1588"},
+    {TIME_FROM_ROS_RECEPTION, "TIME_FROM_ROS_RECEPTION"}}};
 
 const size_t lidar_packet_bytes = 12608;
 const size_t imu_packet_bytes = 48;
@@ -469,9 +471,13 @@ inline std::shared_ptr<client> init_client(
     sock_fd, {"set_config_param", "lidar_mode", to_string(mode)}, res);
   success &= res == "set_config_param";
 
-  success &= do_tcp_cmd(
-    sock_fd, {"set_config_param", "timestamp_mode", to_string(ts_mode)}, res);
-  success &= res == "set_config_param";
+  if (ts_mode != TIME_FROM_ROS_RECEPTION) {
+    success &= do_tcp_cmd(
+      sock_fd,
+      {"set_config_param", "timestamp_mode", to_string(ts_mode)},
+      res);
+    success &= res == "set_config_param";
+  }
 
   success &= do_tcp_cmd(sock_fd, {"get_sensor_info"}, res);
   success &= reader->parse(res.c_str(), res.c_str() + res.size(), &cli->meta,

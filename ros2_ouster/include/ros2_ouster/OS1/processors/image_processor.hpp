@@ -173,10 +173,10 @@ public:
    * @brief Process method to create images
    * @param data the packet data
    */
-  bool process(uint8_t * data) override
+  bool process(uint8_t * data, uint64_t override_ts) override
   {
     OSImageIt it = _information_image.begin();
-    _batch_and_publish(data, it);
+    _batch_and_publish(data, it, override_ts);
     return true;
   }
 
@@ -207,7 +207,7 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_image_pub;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_image_pub;
-  std::function<void(const uint8_t *, OSImageIt)> _batch_and_publish;
+  std::function<void(const uint8_t *, OSImageIt, uint64_t)> _batch_and_publish;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   sensor_msgs::msg::Image _reflectivity_image;
   sensor_msgs::msg::Image _intensity_image;

@@ -53,7 +53,54 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 
 </center>
 
-Note: TF will provide you the transformations from the sensor frame to each of the data frames.
+Note: TF will provide you the transformations from the sensor frame to each of
+the data frames.
+
+### Timestamp Modes
+
+Referring to the parameter table above, the `timestamp_mode` parameter has four
+allowable options (as of this writing). They are: `TIME_FROM_INTERNAL_OSC`,
+`TIME_FROM_SYNC_PULSE_IN`, `TIME_FROM_PTP_1588`, `TIME_FROM_ROS_RECEPTION`. A
+description of each now follows.
+
+#### `TIME_FROM_INTERNAL_OSC`
+
+Use the LiDAR internal clock. Measurements are time stamped with ns since
+power-on. Free running counter based on the OS1’s internal oscillator. Counts
+seconds and nanoseconds since OS1 turn on, reported at ns resolution (both a
+second and nanosecond register in every UDP packet), but min increment is on
+the order of 10 ns. Accuracy is +/- 90 ppm.
+
+#### `TIME_FROM_SYNC_PULSE_IN`
+
+A free running counter synced to the `SYNC_PULSE_IN` input counts seconds (# of
+pulses) and nanoseconds since OS1 turn on. If `multipurpose_io_mode` is set to
+`INPUT_NMEA_UART` then the seconds register jumps to time extracted from a NMEA
+`$GPRMC` message read on the `multipurpose_io` port. Reported at ns resolution
+(both a second and nanosecond register in every UDP packet), but min increment
+is on the order of 10 ns. Accuracy is +/- 1 s from a perfect `SYNC_PULSE_IN`
+source.
+
+#### `TIME_FROM_PTP_1588`
+
+Synchronize with an external PTP master. A monotonically increasing counter
+that will begin counting seconds and nanoseconds since startup. As soon as a
+1588 sync event happens, the time will be updated to seconds and nanoseconds
+since 1970. The counter must always count forward in time. If another 1588 sync
+event happens the counter will either jump forward to match the new time, or
+slow itself down. It is reported at ns resolution (there is both a second and
+nanosecond register in every UDP packet), but the minimum increment
+varies. Accuracy is +/- <50 us from the 1588 master.
+
+#### `TIME_FROM_ROS_RECEPTION`
+
+Data are stamped with the ROS time when they are received. The inherent latency
+between when the data were sampled by the LiDAR and when the data were received
+by this ROS node is not modelled. This approach may be acceptable to get up and
+running quickly or for static applications. However, for mobile robots,
+particularly those traveling at higher speeds, it is not recommended to use
+this `timestamp_mode`. When running in this mode, the on-LiDAR `timestamp_mode`
+will not be set by this driver.
 
 ## Extensions
 

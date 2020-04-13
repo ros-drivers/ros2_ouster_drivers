@@ -108,7 +108,8 @@ inline geometry_msgs::msg::TransformStamped toMsg(
  */
 inline sensor_msgs::msg::Imu toMsg(
   const uint8_t * buf,
-  const std::string & frame)
+  const std::string & frame,
+  uint64_t override_ts = 0)
 {
   const double standard_g = 9.80665;
   sensor_msgs::msg::Imu m;
@@ -117,8 +118,8 @@ inline sensor_msgs::msg::Imu toMsg(
   m.orientation.z = 0;
   m.orientation.w = 1;
 
-  rclcpp::Time t(OS1::imu_gyro_ts(buf));
-  m.header.stamp = t;
+  m.header.stamp = override_ts == 0 ?
+    rclcpp::Time(OS1::imu_gyro_ts(buf)) : rclcpp::Time(override_ts);
   m.header.frame_id = frame;
 
   m.linear_acceleration.x = OS1::imu_la_x(buf) * standard_g;

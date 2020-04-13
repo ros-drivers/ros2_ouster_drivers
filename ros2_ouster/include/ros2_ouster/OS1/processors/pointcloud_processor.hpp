@@ -87,10 +87,10 @@ public:
    * @brief Process method to create pointcloud
    * @param data the packet data
    */
-  bool process(uint8_t * data) override
+  bool process(uint8_t * data, uint64_t override_ts) override
   {
     pcl::PointCloud<point_os::PointOS>::iterator it = _cloud->begin();
-    _batch_and_publish(data, it);
+    _batch_and_publish(data, it, override_ts);
     return true;
   }
 
@@ -111,7 +111,8 @@ public:
   }
 
 private:
-  std::function<void(const uint8_t *, pcl::PointCloud<point_os::PointOS>::iterator)>
+  std::function<void(const uint8_t *,
+    pcl::PointCloud<point_os::PointOS>::iterator, uint64_t)>
   _batch_and_publish;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pub;
   std::shared_ptr<pcl::PointCloud<point_os::PointOS>> _cloud;

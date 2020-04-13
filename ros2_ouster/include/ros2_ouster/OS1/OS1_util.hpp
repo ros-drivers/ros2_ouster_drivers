@@ -115,7 +115,7 @@ inline std::vector<int> get_px_offset(int lidar_mode)
  * which data is added for every point in the scan.
  */
 template<typename iterator_type, typename F, typename C>
-std::function<void(const uint8_t *, iterator_type it)> batch_to_iter(
+std::function<void(const uint8_t *, iterator_type it, uint64_t)> batch_to_iter(
   const std::vector<double> & xyz_lut, int W, int H,
   const typename iterator_type::value_type & empty, C && c, F && f)
 {
@@ -124,7 +124,8 @@ std::function<void(const uint8_t *, iterator_type it)> batch_to_iter(
 
   int64_t scan_ts{-1L};
 
-  return [ = ](const uint8_t * packet_buf, iterator_type it) mutable {
+  return [ = ](const uint8_t * packet_buf, iterator_type it,
+           uint64_t override_ts) mutable {
            for (int icol = 0; icol < OS1::columns_per_buffer; icol++) {
              const uint8_t * col_buf = OS1::nth_col(icol, packet_buf);
              const uint16_t m_id = OS1::col_measurement_id(col_buf);
@@ -142,7 +143,7 @@ std::function<void(const uint8_t *, iterator_type it)> batch_to_iter(
                if (scan_ts != -1) {
                  // zero out remaining missing columns
                  std::fill(it + (H * next_m_id), it + (H * W), empty);
-                 f(scan_ts);
+                 f(override_ts == 0 ? scan_ts : override_ts);
                }
 
                // start new frame
