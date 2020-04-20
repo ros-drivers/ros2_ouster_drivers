@@ -46,8 +46,10 @@ public:
   /**
    * @brief Process a packet with the lidar-specific APIs
    * @param data packet input
+   * @param override_ts Timestamp in nanos to use to override the ts in the
+   *                    packet data. To use the packet data, pass as 0.
    */
-  virtual bool process(uint8_t * data) = 0;
+  virtual bool process(uint8_t * data, uint64_t override_ts = 0) = 0;
 
   /**
    * @brief Activating processor from lifecycle state transitions

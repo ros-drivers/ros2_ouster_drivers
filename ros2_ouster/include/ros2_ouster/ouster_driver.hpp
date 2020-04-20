@@ -138,6 +138,7 @@ private:
   std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
 
   bool _use_system_default_qos;
+  bool _use_ros_time;
 };
 
 }  // namespace ros2_ouster

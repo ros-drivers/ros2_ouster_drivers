@@ -28,6 +28,7 @@ struct Configuration
   int imu_port;
   int lidar_port;
   std::string lidar_mode;
+  std::string timestamp_mode;
 };
 
 }  // namespace ros2_ouster

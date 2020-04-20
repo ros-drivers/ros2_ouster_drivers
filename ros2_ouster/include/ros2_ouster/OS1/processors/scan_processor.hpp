@@ -90,10 +90,10 @@ public:
    * @brief Process method to create scan
    * @param data the packet data
    */
-  bool process(uint8_t * data) override
+  bool process(uint8_t * data, uint64_t override_ts) override
   {
     OSScanIt it = _aggregated_scans.begin();
-    _batch_and_publish(data, it);
+    _batch_and_publish(data, it, override_ts);
     return true;
   }
 

@@ -67,6 +67,7 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
   ouster_msgs::msg::Metadata msg;
   msg.hostname = mdata.hostname;
   msg.lidar_mode = mdata.mode;
+  msg.timestamp_mode = mdata.timestamp_mode;
   msg.beam_azimuth_angles = mdata.beam_azimuth_angles;
   msg.beam_altitude_angles = mdata.beam_altitude_angles;
   msg.imu_to_sensor_transform = mdata.imu_to_sensor_transform;
@@ -107,7 +108,8 @@ inline geometry_msgs::msg::TransformStamped toMsg(
  */
 inline sensor_msgs::msg::Imu toMsg(
   const uint8_t * buf,
-  const std::string & frame)
+  const std::string & frame,
+  uint64_t override_ts = 0)
 {
   const double standard_g = 9.80665;
   sensor_msgs::msg::Imu m;
@@ -116,8 +118,8 @@ inline sensor_msgs::msg::Imu toMsg(
   m.orientation.z = 0;
   m.orientation.w = 1;
 
-  rclcpp::Time t(OS1::imu_gyro_ts(buf));
-  m.header.stamp = t;
+  m.header.stamp = override_ts == 0 ?
+    rclcpp::Time(OS1::imu_gyro_ts(buf)) : rclcpp::Time(override_ts);
   m.header.frame_id = frame;
 
   m.linear_acceleration.x = OS1::imu_la_x(buf) * standard_g;
