@@ -193,7 +193,6 @@ public:
 
 private:
   std::function<void(const uint8_t *, OSImageIt, uint64_t)> _batch_and_publish;
-  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   sensor_msgs::msg::Image _reflectivity_image;
   sensor_msgs::msg::Image _intensity_image;
   sensor_msgs::msg::Image _range_image;
@@ -205,6 +204,7 @@ private:
   uint32_t _height;
   uint32_t _width;
 
+  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _reflectivity_image_pub;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_image_pub;

@@ -106,13 +106,14 @@ private:
   std::function<void(const uint8_t *,
     pcl::PointCloud<point_os::PointOS>::iterator, uint64_t)>
   _batch_and_publish;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pub;
   std::shared_ptr<pcl::PointCloud<point_os::PointOS>> _cloud;
-  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::vector<double> _xyz_lut;
   std::string _frame;
   uint32_t _height;
   uint32_t _width;
+
+  rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pub;
 };
 
 }  // namespace OS1

@@ -127,18 +127,17 @@ private:
     const std::shared_ptr<ouster_msgs::srv::GetMetadata::Request> request,
     std::shared_ptr<ouster_msgs::srv::GetMetadata::Response> response);
 
-  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
-  rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
-
-  typename SensorT::SharedPtr _sensor;
-  std::multimap<ClientState, DataProcessorInterface *> _data_processors;
-  rclcpp::TimerBase::SharedPtr _process_timer;
-
   std::string _laser_sensor_frame, _laser_data_frame, _imu_data_frame;
-  std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
 
   bool _use_system_default_qos;
   bool _use_ros_time;
+
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
+  rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
+  typename SensorT::SharedPtr _sensor;
+  std::multimap<ClientState, DataProcessorInterface *> _data_processors;
+  rclcpp::TimerBase::SharedPtr _process_timer;
+  std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
 };
 
 }  // namespace ros2_ouster
