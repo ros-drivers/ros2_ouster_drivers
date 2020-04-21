@@ -138,7 +138,18 @@ This ROS2 driver makes use of Component nodes. If you're not familiar with compo
 
 The component node allow for the driver and its processing nodes to be launched into the same process and is a new feature in ROS2. This allows the sensor and its data clients to operate without serialization or copying between nodes sharing a memory pool.
 
-There's a little work in ROS2 Eloquent to launch a component-lifecycle node using only the roslaunch API. It may be necessary to include the Ouster driver in your lifecycle manager to transition into the active state when loading the driver into a process as a component.
+There's a little work in ROS2 Eloquent to launch a component-lifecycle node using only the roslaunch API. It may be necessary to include the Ouster driver in your lifecycle manager to transition into the active state when loading the driver into a process as a component. Example using the ROS2 component manager:
+
+```
+# component manager for dynamic loading (also may be done through launch)
+ros2 run rclcpp_components component_container
+# load this component
+ros2 component load /ComponentManager ros2_ouster ros2_ouster::OS1Driver
+# transition to configuring lifecycle stage
+ros2 lifecycle set OusterDriver 1
+# transition to active lifecycle stage (will now stream data)
+ros2 lifecycle set OusterDriver 3
+```
 
 # Ouster Messages
 
