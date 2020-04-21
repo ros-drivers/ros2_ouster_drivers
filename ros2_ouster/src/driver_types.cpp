@@ -14,16 +14,14 @@
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 #include "ros2_ouster/driver_types.hpp"
+#include "ros2_ouster/OS1/OS1_sensor.hpp"
 
-int main(int argc, char ** argv)
+namespace ros2_ouster
 {
-  rclcpp::init(argc, argv);
-  auto options = rclcpp::NodeOptions();
-  auto node = std::make_shared<ros2_ouster::OS1Driver>(options);
-
-  rclcpp::spin(node->get_node_base_interface());
-
-  rclcpp::shutdown();
-  return 0;
+ros2_ouster::OS1Driver::OS1Driver(rclcpp::NodeOptions options)
+: OusterDriver{std::make_unique<OS1::OS1Sensor>(), options} {}
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::OS1Driver)

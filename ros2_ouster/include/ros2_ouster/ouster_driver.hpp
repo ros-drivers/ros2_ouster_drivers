@@ -35,12 +35,14 @@
 
 namespace ros2_ouster
 {
+
+class SensorInterface;
+
 /**
  * @class ros2_ouster::OusterDriver
  * @brief A lifecycle interface implementation of a Ouster OS-1 Lidar
  * driver in ROS2.
  */
-template<typename SensorT>
 class OusterDriver : public lifecycle_interface::LifecycleInterface
 {
 public:
@@ -51,7 +53,9 @@ public:
    * @brief A constructor for ros2_ouster::OusterDriver
    * @param options Node options for lifecycle node interfaces
    */
-  explicit OusterDriver(const rclcpp::NodeOptions & options);
+  OusterDriver(
+    std::unique_ptr<SensorInterface> sensor,
+    const rclcpp::NodeOptions & options);
 
   /**
    * @brief A destructor for ros2_ouster::OusterDriver
@@ -134,7 +138,7 @@ private:
 
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
   rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
-  typename SensorT::SharedPtr _sensor;
+  std::unique_ptr<SensorInterface> _sensor;
   std::multimap<ClientState, DataProcessorInterface *> _data_processors;
   rclcpp::TimerBase::SharedPtr _process_timer;
   std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
