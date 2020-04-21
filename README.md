@@ -145,6 +145,9 @@ There's a little work in ROS2 Eloquent to launch a component-lifecycle node usin
 ros2 run rclcpp_components component_container
 # load this component
 ros2 component load /ComponentManager ros2_ouster ros2_ouster::OS1Driver
+# Set parameters
+ros2 param set OusterDriver lidar_ip 10.5.5.86
+ros2 param set OusterDriver computer_ip 10.5.5.1
 # transition to configuring lifecycle stage
 ros2 lifecycle set OusterDriver 1
 # transition to active lifecycle stage (will now stream data)
