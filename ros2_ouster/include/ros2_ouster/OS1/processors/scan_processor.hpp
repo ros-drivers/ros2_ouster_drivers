@@ -17,6 +17,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "rclcpp/qos.hpp"
 
@@ -80,10 +81,10 @@ public:
       {
         if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
           auto msg_ptr =
-            std::make_unique<sensor_msgs::msg::LaserScan>(
-              std::move(ros2_ouster::toMsg(
-                _aggregated_scans, std::chrono::nanoseconds(scan_ts),
-                _frame, _mdata, _ring)));
+          std::make_unique<sensor_msgs::msg::LaserScan>(
+            std::move(ros2_ouster::toMsg(
+              _aggregated_scans, std::chrono::nanoseconds(scan_ts),
+              _frame, _mdata, _ring)));
           _pub->publish(std::move(msg_ptr));
         }
       });
