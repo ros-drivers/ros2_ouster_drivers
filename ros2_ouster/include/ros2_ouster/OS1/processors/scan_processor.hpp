@@ -79,9 +79,12 @@ public:
       [&](uint64_t scan_ts) mutable
       {
         if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
-          sensor_msgs::msg::LaserScan msg = ros2_ouster::toMsg(_aggregated_scans,
-          std::chrono::nanoseconds(scan_ts), _frame, _mdata, _ring);
-          _pub->publish(msg);
+          auto msg_ptr =
+            std::make_unique<sensor_msgs::msg::LaserScan>(
+              std::move(ros2_ouster::toMsg(
+                _aggregated_scans, std::chrono::nanoseconds(scan_ts),
+                _frame, _mdata, _ring)));
+          _pub->publish(std::move(msg_ptr));
         }
       });
   }
