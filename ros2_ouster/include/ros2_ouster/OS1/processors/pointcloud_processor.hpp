@@ -17,6 +17,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "rclcpp/qos.hpp"
 
@@ -68,9 +69,11 @@ public:
       [&](uint64_t scan_ts) mutable
       {
         if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
-          sensor_msgs::msg::PointCloud2 msg = ros2_ouster::toMsg(*_cloud,
-          std::chrono::nanoseconds(scan_ts), _frame);
-          _pub->publish(msg);
+          auto msg_ptr =
+          std::make_unique<sensor_msgs::msg::PointCloud2>(
+            std::move(ros2_ouster::toMsg(
+              *_cloud, std::chrono::nanoseconds(scan_ts), _frame)));
+          _pub->publish(std::move(msg_ptr));
         }
       });
   }
