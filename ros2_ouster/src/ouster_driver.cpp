@@ -38,7 +38,7 @@ OusterDriver::OusterDriver(
 : LifecycleInterface("OusterDriver", options), _sensor{std::move(sensor)}
 {
   this->declare_parameter("lidar_ip");
-  this->declare_parameter("computer_ip");
+  this->declare_parameter("computer_ip", "255.255.255.255");
   this->declare_parameter("imu_port", 7503);
   this->declare_parameter("lidar_port", 7502);
   this->declare_parameter("lidar_mode", std::string("512x10"));
@@ -57,14 +57,12 @@ void OusterDriver::onConfigure()
   ros2_ouster::Configuration lidar_config;
   try {
     lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
-    lidar_config.computer_ip = get_parameter("computer_ip").as_string();
-  } catch (...) {
+  } catch (rclcpp::ParameterTypeException &) {
     RCLCPP_FATAL(this->get_logger(),
-      "Failed to get lidar or IMU IP address or "
-      "hostname. An IP address for both are required!");
+      "Failed to get lidar IP address or hostname. This is required!");
     exit(-1);
   }
-
+  lidar_config.computer_ip = get_parameter("computer_ip").as_string();
   lidar_config.imu_port = get_parameter("imu_port").as_int();
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
@@ -86,7 +84,7 @@ void OusterDriver::onConfigure()
   RCLCPP_INFO(this->get_logger(),
     "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());
   RCLCPP_INFO(this->get_logger(),
-    "Broadcasting data from sensor to %s.", lidar_config.computer_ip.c_str());
+    "Sending data from sensor to %s.", lidar_config.computer_ip.c_str());
 
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
