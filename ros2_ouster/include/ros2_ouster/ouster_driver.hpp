@@ -143,6 +143,8 @@ private:
 
   bool _use_system_default_qos;
   bool _use_ros_time;
+
+  std::uint32_t _os1_proc_mask;
 };
 
 }  // namespace ros2_ouster

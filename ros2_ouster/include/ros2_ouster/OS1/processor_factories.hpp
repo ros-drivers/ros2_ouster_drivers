@@ -14,12 +14,14 @@
 #ifndef ROS2_OUSTER__OS1__PROCESSOR_FACTORIES_HPP_
 #define ROS2_OUSTER__OS1__PROCESSOR_FACTORIES_HPP_
 
+#include <cstdint>
 #include <string>
 #include <map>
 #include <utility>
 
 #include "rclcpp/qos.hpp"
 #include "ros2_ouster/conversions.hpp"
+#include "ros2_ouster/string_utils.hpp"
 #include "ros2_ouster/OS1/processors/image_processor.hpp"
 #include "ros2_ouster/OS1/processors/imu_processor.hpp"
 #include "ros2_ouster/OS1/processors/pointcloud_processor.hpp"
@@ -27,6 +29,49 @@
 
 namespace ros2_ouster
 {
+
+constexpr std::uint32_t OS1_PROC_IMG = (1 << 0);
+constexpr std::uint32_t OS1_PROC_PCL = (1 << 1);
+constexpr std::uint32_t OS1_PROC_IMU = (1 << 2);
+constexpr std::uint32_t OS1_PROC_SCAN = (1 << 3);
+
+constexpr std::uint32_t OS1_DEFAULT_PROC_MASK =
+  OS1_PROC_IMG | OS1_PROC_PCL | OS1_PROC_IMU | OS1_PROC_SCAN;
+
+/**
+ * Transforms a data processor mask-like-string into a mask value
+ *
+ * We define a mask-like-string to be a pipe-separated list of
+ * data processor suffixes. For example, all of the following
+ * are valid:
+ *
+ * IMG|PCL|IMU|SCAN
+ * IMG|PCL
+ * PCL
+ *
+ * @param[in] mask_str The string to convert into a mask
+ * @return The mask obtained from the parsed input string.
+ */
+inline std::uint32_t
+to_proc_mask(const std::string & mask_str)
+{
+  std::uint32_t mask = 0x0;
+  auto tokens = ros2_ouster::split(mask_str, '|');
+
+  for (auto & token : tokens) {
+    if (token == "IMG") {
+      mask |= ros2_ouster::OS1_PROC_IMG;
+    } else if (token == "PCL") {
+      mask |= ros2_ouster::OS1_PROC_PCL;
+    } else if (token == "IMU") {
+      mask |= ros2_ouster::OS1_PROC_IMU;
+    } else if (token == "SCAN") {
+      mask |= ros2_ouster::OS1_PROC_SCAN;
+    }
+  }
+
+  return mask;
+}
 
 /**
  * @brief Factory method to get a pointer to a processor
@@ -89,22 +134,34 @@ inline std::multimap<ClientState, DataProcessorInterface *> createProcessors(
   const ros2_ouster::Metadata & mdata,
   const std::string & imu_frame,
   const std::string & laser_frame,
-  const rclcpp::QoS & qos)
+  const rclcpp::QoS & qos,
+  std::uint32_t mask = ros2_ouster::OS1_DEFAULT_PROC_MASK)
 {
   std::multimap<ClientState, DataProcessorInterface *> data_processors;
 
-  data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
-      ClientState::IMU_DATA, createIMUProcessor(
-        node, mdata, imu_frame, qos)));
-  data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
-      ClientState::LIDAR_DATA, createPointcloudProcessor(
-        node, mdata, laser_frame, qos)));
-  data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
-      ClientState::LIDAR_DATA, createImageProcessor(
-        node, mdata, laser_frame, qos)));
-  data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
-      ClientState::LIDAR_DATA, createScanProcessor(
-        node, mdata, laser_frame, qos)));
+  if ((mask & ros2_ouster::OS1_PROC_IMG) == ros2_ouster::OS1_PROC_IMG) {
+    data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+        ClientState::LIDAR_DATA, createImageProcessor(
+          node, mdata, laser_frame, qos)));
+  }
+
+  if ((mask & ros2_ouster::OS1_PROC_PCL) == ros2_ouster::OS1_PROC_PCL) {
+    data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+        ClientState::LIDAR_DATA, createPointcloudProcessor(
+          node, mdata, laser_frame, qos)));
+  }
+
+  if ((mask & ros2_ouster::OS1_PROC_IMU) == ros2_ouster::OS1_PROC_IMU) {
+    data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+        ClientState::IMU_DATA, createIMUProcessor(
+          node, mdata, imu_frame, qos)));
+  }
+
+  if ((mask & ros2_ouster::OS1_PROC_SCAN) == ros2_ouster::OS1_PROC_SCAN) {
+    data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+        ClientState::LIDAR_DATA, createScanProcessor(
+          node, mdata, laser_frame, qos)));
+  }
 
   return data_processors;
 }

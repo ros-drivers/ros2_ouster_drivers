@@ -38,18 +38,19 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `reset`           | std_srvs/Empty          | Reset the sensor's connection     |
 | `GetMetadata`     | ouster_msgs/GetMetadata | Get information about the sensor  |
 
-| Parameter                | Type    | Description                                                            |
-|--------------------------|---------|------------------------------------------------------------------------|
-| `lidar_ip`               | String  | IP of lidar (ex. 10.5.5.87)                                            |
-| `computer_ip`            | String  | IP of computer to get data (ex. 10.5.5.1)                              |
-| `lidar_mode`             | String  | Mode of data capture, default `512x10`                                 |
-| `imu_port`               | int     | Port of IMU data, default 7503                                         |
-| `lidar_port`             | int     | Port of laser data, default 7502                                       |
-| `sensor_frame`           | String  | TF frame of sensor, default `laser_sensor_frame`                       |
-| `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                     |
-| `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                         |
-| `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`   |
-| `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`|
+| Parameter                | Type    | Description                                                                |
+|--------------------------|---------|----------------------------------------------------------------------------|
+| `lidar_ip`               | String  | IP of lidar (ex. 10.5.5.87)                                                |
+| `computer_ip`            | String  | IP of computer to get data (ex. 10.5.5.1)                                  |
+| `lidar_mode`             | String  | Mode of data capture, default `512x10`                                     |
+| `imu_port`               | int     | Port of IMU data, default 7503                                             |
+| `lidar_port`             | int     | Port of laser data, default 7502                                           |
+| `sensor_frame`           | String  | TF frame of sensor, default `laser_sensor_frame`                           |
+| `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                         |
+| `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                             |
+| `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`       |
+| `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`    |
+| `os1_proc_mask`          | String  | Mask encoding which data processors to activate, default `IMG|PCL|IMU|SCAN`|
 
 </center>
 
@@ -101,6 +102,32 @@ running quickly or for static applications. However, for mobile robots,
 particularly those traveling at higher speeds, it is not recommended to use
 this `timestamp_mode`. When running in this mode, the on-LiDAR `timestamp_mode`
 will not be set by this driver.
+
+### Parameterizing the Active Data Processors
+
+The `os1_proc_mask` parameter is set to a mask-like-string used to define the
+data processors that should be activated upon startup of the driver. This will
+determine the topics that are available for client applications to consume. The
+*de facto* reference for these values are defined in
+[processor_factories.hpp](ros2_ouster/include/ros2_ouster/OS1/processor_factories.hpp). Tuning
+this parameter properly can have a dramatic effect on application performance
+in terms of latency and jitter.
+
+The available data processors are:
+
+- **IMG** Provides 8-bit image topics encoding the noise, range, intensity, and
+  reflectivitiy from a scan.
+- **PCL** Provides a point cloud encoding of a LiDAR scan
+- **IMU** Provides a data stream from the LiDAR's integral IMU
+- **SCAN** Provides a synthesized 2D LaserScan from the 3D LiDAR data
+
+To construct a valid string for the `os1_proc_mask` parameter, join the tokens
+from above (in any combination) with the pipe character (`|`). For example,
+valid strings include but are not limited to: `IMG|PCL`, `IMG|PCL|IMU`, `PCL`,
+etc. The default value is `IMG|PCL|IMU|SCAN`.
+
+More details about data processors in the driver is provided in the [Additional
+Lidar Processing](#additional-lidar-processing) section below.
 
 ## Extensions
 
