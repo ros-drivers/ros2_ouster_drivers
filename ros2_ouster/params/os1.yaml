@@ -26,3 +26,27 @@ ouster_driver:
     # information).
     #
     timestamp_mode: TIME_FROM_INTERNAL_OSC
+
+    # Mask-like-string used to define the data processors that should be
+    # activated upon startup of the driver. This will determine the topics
+    # that are available for client applications to consume. The defacto
+    # reference for these values are defined in:
+    # `include/ros2_ouster/OS1/processor_factories.hpp`
+    #
+    # For convenience, the available data processors are:
+    #
+    # IMG   - Provides 8-bit image topics suitable for ML applications encoding
+    #         the noise, range, intensity, and reflectivity data from a scan
+    # PCL   - Provides a point cloud encoding of a LiDAR scan
+    # IMU   - Provides a data stream from the LiDARs integral IMU
+    # SCAN  - Provides a synthesized 2D LaserScan from the 3D LiDAR data
+    #
+    # To construct a valid string for this parameter join the tokens from above
+    # (in any combination) with the pipe character. For example, valid strings
+    # include (but are not limited to):
+    #
+    # IMG|PCL
+    # IMG|PCL|IMU|SCAN
+    # PCL
+    #
+    os1_proc_mask: IMG|PCL|IMU|SCAN
