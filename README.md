@@ -50,7 +50,7 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                                                              |
 | `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`                                        |
 | `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`                                     |
-| `os1_proc_mask`          | String  | Mask encoding which data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code> |
+| `os1_proc_mask`          | String  | Mask encoding data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code> |
 
 </center>
 
