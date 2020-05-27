@@ -38,19 +38,19 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `reset`           | std_srvs/Empty          | Reset the sensor's connection     |
 | `GetMetadata`     | ouster_msgs/GetMetadata | Get information about the sensor  |
 
-| Parameter                | Type    | Description                                                                |
-|--------------------------|---------|----------------------------------------------------------------------------|
-| `lidar_ip`               | String  | IP of lidar (ex. 10.5.5.87)                                                |
-| `computer_ip`            | String  | IP of computer to get data (ex. 10.5.5.1)                                  |
-| `lidar_mode`             | String  | Mode of data capture, default `512x10`                                     |
-| `imu_port`               | int     | Port of IMU data, default 7503                                             |
-| `lidar_port`             | int     | Port of laser data, default 7502                                           |
-| `sensor_frame`           | String  | TF frame of sensor, default `laser_sensor_frame`                           |
-| `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                         |
-| `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                             |
-| `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`       |
-| `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`    |
-| `os1_proc_mask`          | String  | Mask encoding which data processors to activate, default `IMG|PCL|IMU|SCAN`|
+| Parameter                | Type    | Description                                                                                                 |
+|--------------------------|---------|-------------------------------------------------------------------------------------------------------------|
+| `lidar_ip`               | String  | IP of lidar (ex. 10.5.5.87)                                                                                 |
+| `computer_ip`            | String  | IP of computer to get data (ex. 10.5.5.1)                                                                   |
+| `lidar_mode`             | String  | Mode of data capture, default `512x10`                                                                      |
+| `imu_port`               | int     | Port of IMU data, default 7503                                                                              |
+| `lidar_port`             | int     | Port of laser data, default 7502                                                                            |
+| `sensor_frame`           | String  | TF frame of sensor, default `laser_sensor_frame`                                                            |
+| `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                                                          |
+| `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                                                              |
+| `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`                                        |
+| `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`                                     |
+| `os1_proc_mask`          | String  | Mask encoding data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code> |
 
 </center>
 
