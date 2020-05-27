@@ -85,7 +85,7 @@ void OusterDriver::onConfigure()
   _use_system_default_qos = get_parameter("use_system_default_qos").as_bool();
 
   _os1_proc_mask =
-    ros2_ouster::to_proc_mask(get_parameter("os1_proc_mask").as_string());
+    ros2_ouster::toProcMask(get_parameter("os1_proc_mask").as_string());
 
   RCLCPP_INFO(this->get_logger(),
     "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());

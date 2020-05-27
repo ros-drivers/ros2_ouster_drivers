@@ -109,9 +109,8 @@ The `os1_proc_mask` parameter is set to a mask-like-string used to define the
 data processors that should be activated upon startup of the driver. This will
 determine the topics that are available for client applications to consume. The
 *de facto* reference for these values are defined in
-[processor_factories.hpp](ros2_ouster/include/ros2_ouster/OS1/processor_factories.hpp). Tuning
-this parameter properly can have a dramatic effect on application performance
-in terms of latency and jitter.
+[processor_factories.hpp](ros2_ouster/include/ros2_ouster/OS1/processor_factories.hpp). It
+is recommended to only use the processors that you require for your application.
 
 The available data processors are:
 
@@ -119,7 +118,7 @@ The available data processors are:
   reflectivitiy from a scan.
 - **PCL** Provides a point cloud encoding of a LiDAR scan
 - **IMU** Provides a data stream from the LiDAR's integral IMU
-- **SCAN** Provides a synthesized 2D LaserScan from the 3D LiDAR data
+- **SCAN** Provides a 2D LaserScan from the closest to 0-degree azimuth ring
 
 To construct a valid string for the `os1_proc_mask` parameter, join the tokens
 from above (in any combination) with the pipe character (`|`). For example,

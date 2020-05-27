@@ -53,7 +53,7 @@ constexpr std::uint32_t OS1_DEFAULT_PROC_MASK =
  * @return The mask obtained from the parsed input string.
  */
 inline std::uint32_t
-to_proc_mask(const std::string & mask_str)
+toProcMask(const std::string & mask_str)
 {
   std::uint32_t mask = 0x0;
   auto tokens = ros2_ouster::split(mask_str, '|');
