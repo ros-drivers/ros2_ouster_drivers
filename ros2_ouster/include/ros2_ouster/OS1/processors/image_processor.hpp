@@ -60,8 +60,8 @@ public:
     _width = OS1::n_cols_of_lidar_mode(
       OS1::lidar_mode_of_string(mdata.mode));
     _px_offset = OS1::get_px_offset(_width);
-    _xyz_lut = OS1::make_xyz_lut(_width, _height, mdata.beam_azimuth_angles,
-        mdata.beam_altitude_angles);
+    _xyz_lut = OS1::make_xyz_lut(
+      _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);
 
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", qos);

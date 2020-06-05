@@ -74,8 +74,8 @@ inline uint16_t col_frame_id(const uint8_t * col_buf)
 inline uint32_t col_valid(const uint8_t * col_buf)
 {
   uint32_t res;
-  memcpy(&res, col_buf + (16 + pixels_per_column * pixel_bytes),
-    sizeof(uint32_t));
+  memcpy(
+    &res, col_buf + (16 + pixels_per_column * pixel_bytes), sizeof(uint32_t));
   return res;
 }
 

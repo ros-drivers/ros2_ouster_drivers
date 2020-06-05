@@ -61,8 +61,8 @@ public:
     _height = OS1::pixels_per_column;
     _width = OS1::n_cols_of_lidar_mode(
       OS1::lidar_mode_of_string(mdata.mode));
-    _xyz_lut = OS1::make_xyz_lut(_width, _height, mdata.beam_azimuth_angles,
-        mdata.beam_altitude_angles);
+    _xyz_lut = OS1::make_xyz_lut(
+      _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);
     _aggregated_scans.resize(_width * _height);
 
     double zero_angle = 9999.0;
@@ -82,9 +82,10 @@ public:
         if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
           auto msg_ptr =
           std::make_unique<sensor_msgs::msg::LaserScan>(
-            std::move(ros2_ouster::toMsg(
-              _aggregated_scans, std::chrono::nanoseconds(scan_ts),
-              _frame, _mdata, _ring)));
+            std::move(
+              ros2_ouster::toMsg(
+                _aggregated_scans, std::chrono::nanoseconds(scan_ts),
+                _frame, _mdata, _ring)));
           _pub->publish(std::move(msg_ptr));
         }
       });

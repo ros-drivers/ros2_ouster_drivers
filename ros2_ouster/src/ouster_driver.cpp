@@ -60,7 +60,8 @@ void OusterDriver::onConfigure()
     lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
     lidar_config.computer_ip = get_parameter("computer_ip").as_string();
   } catch (...) {
-    RCLCPP_FATAL(this->get_logger(),
+    RCLCPP_FATAL(
+      this->get_logger(),
       "Failed to get lidar or IMU IP address or "
       "hostname. An IP address for both are required!");
     exit(-1);
@@ -71,7 +72,8 @@ void OusterDriver::onConfigure()
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
-    RCLCPP_WARN(this->get_logger(),
+    RCLCPP_WARN(
+      this->get_logger(),
       "Using TIME_FROM_ROS_RECEPTION to stamp data with ROS time on "
       "reception. This has unmodelled latency!");
     _use_ros_time = true;
@@ -87,9 +89,11 @@ void OusterDriver::onConfigure()
   _os1_proc_mask =
     ros2_ouster::toProcMask(get_parameter("os1_proc_mask").as_string());
 
-  RCLCPP_INFO(this->get_logger(),
+  RCLCPP_INFO(
+    this->get_logger(),
     "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());
-  RCLCPP_INFO(this->get_logger(),
+  RCLCPP_INFO(
+    this->get_logger(),
     "Broadcasting data from sensor to %s.", lidar_config.computer_ip.c_str());
 
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
@@ -131,8 +135,8 @@ void OusterDriver::onActivate()
   }
 
   // speed of the Ouster lidars is 1280 hz
-  _process_timer = this->create_wall_timer(781250ns,
-      std::bind(&OusterDriver::processData, this));
+  _process_timer = this->create_wall_timer(
+    781250ns, std::bind(&OusterDriver::processData, this));
 }
 
 void OusterDriver::onError()
@@ -176,10 +180,14 @@ void OusterDriver::broadcastStaticTransforms(
 {
   if (_tf_b) {
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
-    transforms.push_back(toMsg(mdata.imu_to_sensor_transform,
-      _laser_sensor_frame, _imu_data_frame, this->now()));
-    transforms.push_back(toMsg(mdata.lidar_to_sensor_transform,
-      _laser_sensor_frame, _laser_data_frame, this->now()));
+    transforms.push_back(
+      toMsg(
+        mdata.imu_to_sensor_transform,
+        _laser_sensor_frame, _imu_data_frame, this->now()));
+    transforms.push_back(
+      toMsg(
+        mdata.lidar_to_sensor_transform,
+        _laser_sensor_frame, _laser_data_frame, this->now()));
     _tf_b->sendTransform(transforms);
   }
 }
@@ -188,7 +196,8 @@ void OusterDriver::processData()
 {
   try {
     ClientState state = _sensor->get();
-    RCLCPP_DEBUG(this->get_logger(),
+    RCLCPP_DEBUG(
+      this->get_logger(),
       "Packet with state: %s",
       ros2_ouster::toString(state).c_str());
 
@@ -205,7 +214,8 @@ void OusterDriver::processData()
       }
     }
   } catch (const OusterDriverException & e) {
-    RCLCPP_WARN(this->get_logger(),
+    RCLCPP_WARN(
+      this->get_logger(),
       "Failed to process packet with exception %s.", e.what());
   }
 }
