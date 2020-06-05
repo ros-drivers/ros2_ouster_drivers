@@ -56,8 +56,8 @@ public:
     _height = OS1::pixels_per_column;
     _width = OS1::n_cols_of_lidar_mode(
       OS1::lidar_mode_of_string(mdata.mode));
-    _xyz_lut = OS1::make_xyz_lut(_width, _height, mdata.beam_azimuth_angles,
-        mdata.beam_altitude_angles);
+    _xyz_lut = OS1::make_xyz_lut(
+      _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);
     _cloud =
       std::make_shared<pcl::PointCloud<point_os::PointOS>>(_width, _height);
     _pub = _node->create_publisher<sensor_msgs::msg::PointCloud2>(
@@ -71,8 +71,9 @@ public:
         if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
           auto msg_ptr =
           std::make_unique<sensor_msgs::msg::PointCloud2>(
-            std::move(ros2_ouster::toMsg(
-              *_cloud, std::chrono::nanoseconds(scan_ts), _frame)));
+            std::move(
+              ros2_ouster::toMsg(
+                *_cloud, std::chrono::nanoseconds(scan_ts), _frame)));
           _pub->publish(std::move(msg_ptr));
         }
       });

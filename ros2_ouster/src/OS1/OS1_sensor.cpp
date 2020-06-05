@@ -74,12 +74,14 @@ ros2_ouster::ClientState OS1Sensor::get()
 
   if (state == ros2_ouster::ClientState::EXIT) {
     throw ros2_ouster::OusterDriverException(
-            std::string("Failed to get valid sensor data "
-            "information from lidar, returned exit!"));
+            std::string(
+              "Failed to get valid sensor data "
+              "information from lidar, returned exit!"));
   } else if (state == ros2_ouster::ClientState::ERROR) {
     throw ros2_ouster::OusterDriverException(
-            std::string("Failed to get valid sensor data "
-            "information from lidar, returned error!"));
+            std::string(
+              "Failed to get valid sensor data "
+              "information from lidar, returned error!"));
   }
 
   return state;

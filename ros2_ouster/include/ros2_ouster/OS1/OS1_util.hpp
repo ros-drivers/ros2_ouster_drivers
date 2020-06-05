@@ -166,13 +166,15 @@ std::function<void(const uint8_t *, iterator_type it, uint64_t)> batch_to_iter(
                uint32_t r = OS1::px_range(px_buf);
                int ind = 3 * (idx + ipx);
 
-               // x, y, z(m), intensity, ts, reflectivity, ring, column, noise, range (mm)
-               it[idx + ipx] = c(r * 0.001f * xyz_lut[ind + 0],
-                   r * 0.001f * xyz_lut[ind + 1],
-                   r * 0.001f * xyz_lut[ind + 2],
-                   OS1::px_signal_photons(px_buf), ts - scan_ts,
-                   OS1::px_reflectivity(px_buf), ipx, m_id,
-                   OS1::px_noise_photons(px_buf), r);
+               // x, y, z(m), intensity, ts, reflectivity, ring, column,
+               // noise, range (mm)
+               it[idx + ipx] = c(
+                 r * 0.001f * xyz_lut[ind + 0],
+                 r * 0.001f * xyz_lut[ind + 1],
+                 r * 0.001f * xyz_lut[ind + 2],
+                 OS1::px_signal_photons(px_buf), ts - scan_ts,
+                 OS1::px_reflectivity(px_buf), ipx, m_id,
+                 OS1::px_noise_photons(px_buf), r);
              }
            }
          };

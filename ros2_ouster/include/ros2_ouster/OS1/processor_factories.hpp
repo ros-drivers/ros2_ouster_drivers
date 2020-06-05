@@ -140,25 +140,29 @@ inline std::multimap<ClientState, DataProcessorInterface *> createProcessors(
   std::multimap<ClientState, DataProcessorInterface *> data_processors;
 
   if ((mask & ros2_ouster::OS1_PROC_IMG) == ros2_ouster::OS1_PROC_IMG) {
-    data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+    data_processors.insert(
+      std::pair<ClientState, DataProcessorInterface *>(
         ClientState::LIDAR_DATA, createImageProcessor(
           node, mdata, laser_frame, qos)));
   }
 
   if ((mask & ros2_ouster::OS1_PROC_PCL) == ros2_ouster::OS1_PROC_PCL) {
-    data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+    data_processors.insert(
+      std::pair<ClientState, DataProcessorInterface *>(
         ClientState::LIDAR_DATA, createPointcloudProcessor(
           node, mdata, laser_frame, qos)));
   }
 
   if ((mask & ros2_ouster::OS1_PROC_IMU) == ros2_ouster::OS1_PROC_IMU) {
-    data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+    data_processors.insert(
+      std::pair<ClientState, DataProcessorInterface *>(
         ClientState::IMU_DATA, createIMUProcessor(
           node, mdata, imu_frame, qos)));
   }
 
   if ((mask & ros2_ouster::OS1_PROC_SCAN) == ros2_ouster::OS1_PROC_SCAN) {
-    data_processors.insert(std::pair<ClientState, DataProcessorInterface *>(
+    data_processors.insert(
+      std::pair<ClientState, DataProcessorInterface *>(
         ClientState::LIDAR_DATA, createScanProcessor(
           node, mdata, laser_frame, qos)));
   }

@@ -169,10 +169,11 @@ inline version version_of_string(const std::string & s)
 inline std::string to_string(lidar_mode mode)
 {
   auto end = lidar_mode_strings.end();
-  auto res = std::find_if(lidar_mode_strings.begin(), end,
-      [&](const std::pair<lidar_mode, std::string> & p) {
-        return p.first == mode;
-      });
+  auto res = std::find_if(
+    lidar_mode_strings.begin(), end,
+    [&](const std::pair<lidar_mode, std::string> & p) {
+      return p.first == mode;
+    });
 
   return res == end ? "UNKNOWN" : res->second;
 }
@@ -185,10 +186,11 @@ inline std::string to_string(lidar_mode mode)
 inline lidar_mode lidar_mode_of_string(const std::string & s)
 {
   auto end = lidar_mode_strings.end();
-  auto res = std::find_if(lidar_mode_strings.begin(), end,
-      [&](const std::pair<lidar_mode, std::string> & p) {
-        return p.second == s;
-      });
+  auto res = std::find_if(
+    lidar_mode_strings.begin(), end,
+    [&](const std::pair<lidar_mode, std::string> & p) {
+      return p.second == s;
+    });
 
   return res == end ? lidar_mode(0) : res->first;
 }
@@ -201,10 +203,11 @@ inline lidar_mode lidar_mode_of_string(const std::string & s)
 inline std::string to_string(timestamp_mode mode)
 {
   auto end = timestamp_mode_strings.end();
-  auto res = std::find_if(timestamp_mode_strings.begin(), end,
-      [&](const std::pair<timestamp_mode, std::string> & p) {
-        return p.first == mode;
-      });
+  auto res = std::find_if(
+    timestamp_mode_strings.begin(), end,
+    [&](const std::pair<timestamp_mode, std::string> & p) {
+      return p.first == mode;
+    });
 
   return res == end ? "UNKNOWN" : res->second;
 }
@@ -217,10 +220,11 @@ inline std::string to_string(timestamp_mode mode)
 inline timestamp_mode timestamp_mode_of_string(const std::string & s)
 {
   auto end = timestamp_mode_strings.end();
-  auto res = std::find_if(timestamp_mode_strings.begin(), end,
-      [&](const std::pair<timestamp_mode, std::string> & p) {
-        return p.second == s;
-      });
+  auto res = std::find_if(
+    timestamp_mode_strings.begin(), end,
+    [&](const std::pair<timestamp_mode, std::string> & p) {
+      return p.second == s;
+    });
 
   return res == end ? timestamp_mode(0) : res->first;
 }
@@ -458,8 +462,9 @@ inline std::shared_ptr<client> init_client(
     do_tcp_cmd(sock_fd, {"set_config_param", "udp_ip", udp_dest_host}, res);
   success &= res == "set_config_param";
 
-  success &= do_tcp_cmd(sock_fd, {"set_config_param", "udp_port_lidar",
-        std::to_string(lidar_port)}, res);
+  success &= do_tcp_cmd(
+    sock_fd, {"set_config_param", "udp_port_lidar",
+      std::to_string(lidar_port)}, res);
   success &= res == "set_config_param";
 
   success &= do_tcp_cmd(
@@ -480,8 +485,8 @@ inline std::shared_ptr<client> init_client(
   }
 
   success &= do_tcp_cmd(sock_fd, {"get_sensor_info"}, res);
-  success &= reader->parse(res.c_str(), res.c_str() + res.size(), &cli->meta,
-      &errors);
+  success &= reader->parse(
+    res.c_str(), res.c_str() + res.size(), &cli->meta, &errors);
 
   success &= do_tcp_cmd(sock_fd, {"get_beam_intrinsics"}, res);
   success &=

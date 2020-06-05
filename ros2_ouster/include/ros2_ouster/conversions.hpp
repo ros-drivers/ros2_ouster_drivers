@@ -91,8 +91,8 @@ inline geometry_msgs::msg::TransformStamped toMsg(
   tf2::Transform tf;
 
   tf.setOrigin({mat[3] / 1e3, mat[7] / 1e3, mat[11] / 1e3});
-  tf.setBasis({mat[0], mat[1], mat[2], mat[4], mat[5],
-      mat[6], mat[8], mat[9], mat[10]});
+  tf.setBasis(
+    {mat[0], mat[1], mat[2], mat[4], mat[5], mat[6], mat[8], mat[9], mat[10]});
 
   geometry_msgs::msg::TransformStamped msg;
   msg.header.stamp = time;
