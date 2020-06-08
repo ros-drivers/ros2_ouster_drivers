@@ -42,12 +42,12 @@ def generate_launch_description():
                                            description='FPath to the ROS2 parameters file to use.')
 
     driver_node = LifecycleNode(package='ros2_ouster',
-                                node_executable='ouster_driver',
-                                node_name=node_name,
+                                executable='ouster_driver',
+                                name=node_name,
                                 output='screen',
                                 emulate_tty=True,
                                 parameters=[parameter_file],
-                                node_namespace='/',
+                                namespace='/',
                                 )
 
     configure_event = EmitEvent(
