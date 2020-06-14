@@ -14,6 +14,7 @@
 #ifndef ROS2_OUSTER__CONVERSIONS_HPP_
 #define ROS2_OUSTER__CONVERSIONS_HPP_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -37,6 +38,20 @@
 
 namespace ros2_ouster
 {
+
+/**
+ * @brief Run-time big endian check
+ *
+ * Run-time initialize a constant determining if the underlying machine is big
+ * endian. This is needed to properly stamp the `PointCloud2` ROS message
+ * (below).
+ */
+static const bool IS_BIGENDIAN = []()
+  {
+    std::uint16_t dummy = 0x1;
+    std::uint8_t * dummy_ptr = reinterpret_cast<std::uint8_t *>(&dummy);
+    return dummy_ptr[0] == 0x1 ? false : true;
+  } ();
 
 /**
  * @brief Convert ClientState to string
@@ -144,15 +159,63 @@ inline sensor_msgs::msg::Imu toMsg(
 }
 
 /**
- * @brief Convert Pointcloud to message format
+ * @brief Convert Pointcloud to ROS message format
+ *
+ * This function assumes the input `cloud` has its data in column major order
+ * but shaped improperly according to the LiDAR resulting in tiled columns
+ * across the rows of the in-memory data buffer. This data format is described
+ * more closely here:
+ * https://github.com/SteveMacenski/ros2_ouster_drivers/issues/52
+ *
+ * This function converts the PCL type to a ROS type and the resulting ROS type
+ * will reorder the data in memory to be in row-major order consistent to the
+ * rows x cols shape of the LiDAR receiver array.
+ *
+ * @param[in] cloud A PCL PointCloud containing Ouster point data as described
+ *                  above.
+ * @param[in] timestamp The timestamp to put on the ROS message header
+ * @param[in] frame The TF coordinate frame identifier to put on the ROS
+ *                  message header.
+ *
+ * @return A ROS `PointCloud2` message of LiDAR data whose memory buffer is
+ *         row-major ordered consistent to the shape of the LiDAR array.
  */
 inline sensor_msgs::msg::PointCloud2 toMsg(
   const pcl::PointCloud<point_os::PointOS> & cloud,
   std::chrono::nanoseconds timestamp,
   const std::string & frame)
 {
+  pcl::PCLPointCloud2 cloud2;
+  cloud2.height = cloud.height;
+  cloud2.width = cloud.width;
+
+  int n_pts = cloud.points.size();
+  std::size_t pt_size = sizeof(point_os::PointOS);
+  std::size_t data_size = pt_size * n_pts;
+  cloud2.data.resize(data_size);
+  if (data_size) {
+    // column-major to row-major conversion
+    for (int i = 0; i < cloud.width; ++i) {
+      for (int j = 0; j < cloud.height; ++j) {
+        std::memcpy(
+          &cloud2.data[(j * cloud.width + i) * pt_size],
+          &cloud.points[i * cloud.height + j],
+          pt_size);
+      }
+    }
+  }
+
+  cloud2.fields.clear();
+  pcl::for_each_type<typename pcl::traits::fieldList<point_os::PointOS>::type>(
+    pcl::detail::FieldAdder<point_os::PointOS>(cloud2.fields));
+  cloud2.header = cloud.header;
+  cloud2.point_step = pt_size;
+  cloud2.row_step = static_cast<std::uint32_t>(pt_size * cloud2.width);
+  cloud2.is_dense = cloud.is_dense;
+  cloud2.is_bigendian = ros2_ouster::IS_BIGENDIAN;
+
   sensor_msgs::msg::PointCloud2 msg;
-  pcl::toROSMsg(cloud, msg);
+  pcl_conversions::moveFromPCL(cloud2, msg);
   msg.header.frame_id = frame;
   rclcpp::Time t(timestamp.count());
   msg.header.stamp = t;
