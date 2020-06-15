@@ -185,13 +185,21 @@ inline sensor_msgs::msg::PointCloud2 toMsg(
   std::chrono::nanoseconds timestamp,
   const std::string & frame)
 {
+  std::size_t pt_size = sizeof(point_os::PointOS);
+  std::size_t data_size = pt_size * cloud.points.size();
+
   pcl::PCLPointCloud2 cloud2;
   cloud2.height = cloud.height;
   cloud2.width = cloud.width;
+  cloud2.fields.clear();
+  pcl::for_each_type<typename pcl::traits::fieldList<point_os::PointOS>::type>(
+    pcl::detail::FieldAdder<point_os::PointOS>(cloud2.fields));
+  cloud2.header = cloud.header;
+  cloud2.point_step = pt_size;
+  cloud2.row_step = static_cast<std::uint32_t>(pt_size * cloud2.width);
+  cloud2.is_dense = cloud.is_dense;
+  cloud2.is_bigendian = ros2_ouster::IS_BIGENDIAN;
 
-  int n_pts = cloud.points.size();
-  std::size_t pt_size = sizeof(point_os::PointOS);
-  std::size_t data_size = pt_size * n_pts;
   cloud2.data.resize(data_size);
   if (data_size) {
     // column-major to row-major conversion
@@ -204,15 +212,6 @@ inline sensor_msgs::msg::PointCloud2 toMsg(
       }
     }
   }
-
-  cloud2.fields.clear();
-  pcl::for_each_type<typename pcl::traits::fieldList<point_os::PointOS>::type>(
-    pcl::detail::FieldAdder<point_os::PointOS>(cloud2.fields));
-  cloud2.header = cloud.header;
-  cloud2.point_step = pt_size;
-  cloud2.row_step = static_cast<std::uint32_t>(pt_size * cloud2.width);
-  cloud2.is_dense = cloud.is_dense;
-  cloud2.is_bigendian = ros2_ouster::IS_BIGENDIAN;
 
   sensor_msgs::msg::PointCloud2 msg;
   pcl_conversions::moveFromPCL(cloud2, msg);
