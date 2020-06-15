@@ -40,8 +40,8 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 
 | Parameter                | Type    | Description                                                                                                 |
 |--------------------------|---------|-------------------------------------------------------------------------------------------------------------|
-| `lidar_ip`               | String  | IP of lidar (ex. 10.5.5.87)                                                                                 |
-| `computer_ip`            | String  | IP of computer to get data (ex. 10.5.5.1)                                                                   |
+| `lidar_ip`               | String  | IP or hostname of lidar (ex. 10.5.5.87, os1-serialno.local)                                                 |
+| `computer_ip`            | String  | IP or hostname of computer to get data (ex. 10.5.5.1) or broadcast (ex. 255.255.255.255)                    |
 | `lidar_mode`             | String  | Mode of data capture, default `512x10`                                                                      |
 | `imu_port`               | int     | Port of IMU data, default 7503                                                                              |
 | `lidar_port`             | int     | Port of laser data, default 7502                                                                            |
