@@ -94,7 +94,7 @@ void OusterDriver::onConfigure()
     "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());
   RCLCPP_INFO(
     this->get_logger(),
-    "Broadcasting data from sensor to %s.", lidar_config.computer_ip.c_str());
+    "Sending data from sensor to %s.", lidar_config.computer_ip.c_str());
 
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
