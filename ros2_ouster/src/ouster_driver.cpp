@@ -134,9 +134,11 @@ void OusterDriver::onActivate()
     it->second->onActivate();
   }
 
-  // speed of the Ouster lidars is 1280 hz
+  // Speed of the lidar is 1280 hz. We fire our timer event at 2x that rate to
+  // ensure we can process all of the incoming data in a timely manner.
+  // See: https://github.com/SteveMacenski/ros2_ouster_drivers/issues/55
   _process_timer = this->create_wall_timer(
-    781250ns, std::bind(&OusterDriver::processData, this));
+    390625ns, std::bind(&OusterDriver::processData, this));
 }
 
 void OusterDriver::onError()
