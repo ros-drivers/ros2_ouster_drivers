@@ -37,7 +37,7 @@
 #include "sys/socket.h"
 #include "sys/types.h"
 
-#include "jsoncpp/json/json.h"
+#include "json/json.h"
 #include "ros2_ouster/OS1/OS1_packet.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
 
