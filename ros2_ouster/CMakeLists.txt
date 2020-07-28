@@ -53,7 +53,7 @@ ament_target_dependencies(${library_name}
 )
 
 target_link_libraries(${library_name}
-  jsoncpp
+  jsoncpp_lib
   ${PCL_LIBRARIES}
 )
 
