@@ -256,10 +256,9 @@ and we're good to go!
 
 ### ROS Connection
 
-Now that we have a connection over the network, lets view some data. After building your catkin workspace with this package, source the install space. Run
+Now that we have a connection over the network, lets view some data. After building your colcon workspace with this package, source the install space. Run
 
 ```
-
 ros2 launch ros2_ouster os1_launch.py
 ```
 
