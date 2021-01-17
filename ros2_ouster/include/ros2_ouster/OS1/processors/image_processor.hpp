@@ -28,6 +28,7 @@
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"
+#include "ros2_ouster/client/client.h"
 
 namespace OS1
 {
@@ -51,14 +52,13 @@ public:
    */
   ImageProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
-    const ros2_ouster::Metadata & mdata,
+    const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
     const rclcpp::QoS & qos)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
-    _height = OS1::pixels_per_column;
-    _width = OS1::n_cols_of_lidar_mode(
-      OS1::lidar_mode_of_string(mdata.mode));
+    _height = mdata.format.pixels_per_column;
+    _width = ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
     _px_offset = OS1::get_px_offset(_width);
     _xyz_lut = OS1::make_xyz_lut(
       _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);

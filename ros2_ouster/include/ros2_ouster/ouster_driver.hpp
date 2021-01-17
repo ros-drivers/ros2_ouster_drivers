@@ -46,7 +46,7 @@ class SensorInterface;
 class OusterDriver : public lifecycle_interface::LifecycleInterface
 {
 public:
-  using DataProcessorMap = std::multimap<ClientState, DataProcessorInterface *>;
+  using DataProcessorMap = std::multimap<ouster::sensor::client_state, DataProcessorInterface *>;
   using DataProcessorMapIt = DataProcessorMap::iterator;
 
   /**
@@ -107,7 +107,7 @@ private:
   /**
    * @brief Create TF2 frames for the lidar sensor
    */
-  void broadcastStaticTransforms(const ros2_ouster::Metadata & mdata);
+  void broadcastStaticTransforms(const ouster::sensor::sensor_info & mdata);
 
   /**
   * @brief service callback to reset the lidar
@@ -135,7 +135,7 @@ private:
   rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
 
   std::unique_ptr<SensorInterface> _sensor;
-  std::multimap<ClientState, DataProcessorInterface *> _data_processors;
+  std::multimap<ouster::sensor::client_state, DataProcessorInterface *> _data_processors;
   rclcpp::TimerBase::SharedPtr _process_timer;
 
   std::string _laser_sensor_frame, _laser_data_frame, _imu_data_frame;

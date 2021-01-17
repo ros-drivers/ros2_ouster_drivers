@@ -26,7 +26,6 @@
 #include "sensor_msgs/msg/laser_scan.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
-#include "ros2_ouster/OS1/OS1.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"
 
 namespace OS1
@@ -51,16 +50,15 @@ public:
    */
   ScanProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
-    const ros2_ouster::Metadata & mdata,
+    const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
     const rclcpp::QoS & qos)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
     _mdata = mdata;
     _pub = _node->create_publisher<sensor_msgs::msg::LaserScan>("scan", qos);
-    _height = OS1::pixels_per_column;
-    _width = OS1::n_cols_of_lidar_mode(
-      OS1::lidar_mode_of_string(mdata.mode));
+    _height = mdata.format.pixels_per_column;
+    _width = ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
     _xyz_lut = OS1::make_xyz_lut(
       _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);
     _aggregated_scans.resize(_width * _height);
@@ -132,7 +130,7 @@ private:
   std::shared_ptr<pcl::PointCloud<scan_os::ScanOS>> _cloud;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::vector<double> _xyz_lut;
-  ros2_ouster::Metadata _mdata;
+  ouster::sensor::sensor_info _mdata;
   OSScan _aggregated_scans;
   std::string _frame;
   uint32_t _height;

@@ -25,6 +25,7 @@
 #include "sensor_msgs/msg/imu.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/client/client.h"
 
 namespace OS1
 {
@@ -45,7 +46,7 @@ public:
    */
   IMUProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
-    const ros2_ouster::Metadata & mdata,
+    const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
     const rclcpp::QoS & qos)
   : DataProcessorInterface(), _node(node), _frame(frame)

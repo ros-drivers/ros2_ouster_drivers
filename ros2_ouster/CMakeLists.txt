@@ -46,6 +46,9 @@ add_library(${library_name} SHARED
   src/ouster_driver.cpp
   src/lifecycle_interface.cpp
   src/OS1/OS1_sensor.cpp
+  src/client/client.cpp
+  src/client/netcompat.cpp
+  src/client/types.cpp
 )
 
 ament_target_dependencies(${library_name}

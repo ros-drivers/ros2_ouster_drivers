@@ -108,7 +108,7 @@ void OusterDriver::onConfigure()
     exit(-1);
   }
 
-  ros2_ouster::Metadata mdata = _sensor->getMetadata();
+  ouster::sensor::sensor_info mdata = _sensor->getMetadata();
 
   if (_use_system_default_qos) {
     RCLCPP_INFO(
@@ -178,7 +178,7 @@ void OusterDriver::onShutdown()
 }
 
 void OusterDriver::broadcastStaticTransforms(
-  const ros2_ouster::Metadata & mdata)
+  const ouster::sensor::sensor_info & mdata)
 {
   if (_tf_b) {
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
@@ -197,7 +197,7 @@ void OusterDriver::broadcastStaticTransforms(
 void OusterDriver::processData()
 {
   try {
-    ClientState state = _sensor->get();
+    ouster::sensor::client_state state = _sensor->get();
     RCLCPP_DEBUG(
       this->get_logger(),
       "Packet with state: %s",
@@ -209,7 +209,7 @@ void OusterDriver::processData()
       std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
       key_its = _data_processors.equal_range(state);
       uint64_t override_ts =
-        this->_use_ros_time ? this->now().nanoseconds() : 0;
+              this->_use_ros_time ? this->now().nanoseconds() : 0;
 
       for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
         it->second->process(packet_data, override_ts);

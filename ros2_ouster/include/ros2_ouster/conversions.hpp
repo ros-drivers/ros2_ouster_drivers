@@ -33,8 +33,8 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "ouster_msgs/msg/metadata.hpp"
 
-#include "ros2_ouster/OS1/OS1.hpp"
 #include "ros2_ouster/OS1/OS1_packet.hpp"
+#include "ros2_ouster/client/client.h"
 
 namespace ros2_ouster
 {
@@ -56,41 +56,49 @@ static const bool IS_BIGENDIAN = []()
 /**
  * @brief Convert ClientState to string
  */
-inline std::string toString(const ClientState & state)
+inline std::string toString(const ouster::sensor::client_state & state)
 {
-  switch (state) {
-    case TIMEOUT:
-      return std::string("timeout");
-    case ERROR:
-      return std::string("error");
-    case EXIT:
-      return std::string("exit");
-    case IMU_DATA:
-      return std::string("lidar data");
-    case LIDAR_DATA:
-      return std::string("imu data");
-    default:
-      return std::string("unknown");
+  std::ostringstream output;
+
+  if (state & ouster::sensor::client_state::TIMEOUT) {
+    output << "timeout ";
   }
+  if (state & ouster::sensor::client_state::CLIENT_ERROR) {
+    output << "error ";
+  }
+  if (state & ouster::sensor::client_state::EXIT) {
+    output << "exit ";
+  }
+  if (state & ouster::sensor::client_state::IMU_DATA) {
+    output << "imu data ";
+  }
+  if (state & ouster::sensor::client_state::LIDAR_DATA) {
+    output << "lidar data ";
+  }
+  if (output.str() == "") {
+    output << "unknown ";
+  }
+
+  return output.str();
 }
 
 /**
  * @brief Convert metadata to message format
  */
-inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
+inline ouster_msgs::msg::Metadata toMsg(const ouster::sensor::sensor_info & mdata)
 {
   ouster_msgs::msg::Metadata msg;
-  msg.hostname = mdata.hostname;
+  msg.hostname = mdata.name;
   msg.lidar_mode = mdata.mode;
-  msg.timestamp_mode = mdata.timestamp_mode;
+//  msg.timestamp_mode = mdata.timestamp_mode; //todo: Find how to get timestamp_mode
   msg.beam_azimuth_angles = mdata.beam_azimuth_angles;
   msg.beam_altitude_angles = mdata.beam_altitude_angles;
-  msg.imu_to_sensor_transform = mdata.imu_to_sensor_transform;
-  msg.lidar_to_sensor_transform = mdata.lidar_to_sensor_transform;
+  msg.imu_to_sensor_transform = std::vector<double>(mdata.imu_to_sensor_transform.data(), mdata.imu_to_sensor_transform.data() + mdata.imu_to_sensor_transform.rows() * mdata.imu_to_sensor_transform.cols());
+  msg.lidar_to_sensor_transform = std::vector<double>(mdata.lidar_to_sensor_transform.data(), mdata.lidar_to_sensor_transform.data() + mdata.lidar_to_sensor_transform.rows() * mdata.lidar_to_sensor_transform.cols());
   msg.serial_no = mdata.sn;
   msg.firmware_rev = mdata.fw_rev;
-  msg.imu_port = mdata.imu_port;
-  msg.lidar_port = mdata.lidar_port;
+//  msg.imu_port = mdata.imu_port; //todo: Find how to get
+//  msg.lidar_port = mdata.lidar_port; //todo: Find how to get
   return msg;
 }
 
@@ -98,16 +106,18 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
  * @brief Convert transformation to message format
  */
 inline geometry_msgs::msg::TransformStamped toMsg(
-  const std::vector<double> & mat, const std::string & frame,
+  const Eigen::Matrix<double, 4, 4, Eigen::DontAlign> & mat, const std::string & frame,
   const std::string & child_frame, const rclcpp::Time & time)
 {
   assert(mat.size() == 16);
 
   tf2::Transform tf;
 
-  tf.setOrigin({mat[3] / 1e3, mat[7] / 1e3, mat[11] / 1e3});
-  tf.setBasis(
-    {mat[0], mat[1], mat[2], mat[4], mat[5], mat[6], mat[8], mat[9], mat[10]});
+  tf.setOrigin({*(mat.data()+3) / 1e3, *(mat.data()+7) / 1e3, *(mat.data()+11) / 1e3});
+  tf.setBasis({
+    *(mat.data()+0), *(mat.data()+1), *(mat.data()+2), *(mat.data()+4), *(mat.data()+5),
+    *(mat.data()+6), *(mat.data()+8), *(mat.data()+9), *(mat.data()+10)
+  });
 
   geometry_msgs::msg::TransformStamped msg;
   msg.header.stamp = time;
@@ -228,7 +238,7 @@ inline sensor_msgs::msg::LaserScan toMsg(
   const std::vector<scan_os::ScanOS> & scans,
   std::chrono::nanoseconds timestamp,
   const std::string & frame,
-  const ros2_ouster::Metadata & mdata,
+  const ouster::sensor::sensor_info & mdata,
   const uint8_t ring_to_use)
 {
   sensor_msgs::msg::LaserScan msg;
@@ -241,23 +251,22 @@ inline sensor_msgs::msg::LaserScan toMsg(
   msg.range_max = 120.0;
 
   double resolution, rate;
-  if (mdata.mode == "512x10") {
+  if (mdata.mode == ouster::sensor::lidar_mode::MODE_512x10) {
     resolution = 512.0;
     rate = 10.0;
-  } else if (mdata.mode == "512x20") {
+  } else if (mdata.mode == ouster::sensor::lidar_mode::MODE_512x20) {
     resolution = 512.0;
     rate = 20.0;
-  } else if (mdata.mode == "1024x10") {
+  } else if (mdata.mode == ouster::sensor::lidar_mode::MODE_1024x10) {
     resolution = 1024.0;
     rate = 10.0;
-  } else if (mdata.mode == "1024x20") {
+  } else if (mdata.mode == ouster::sensor::lidar_mode::MODE_1024x20) {
     resolution = 1024.0;
     rate = 20.0;
-  } else if (mdata.mode == "2048x10") {
+  } else if (mdata.mode == ouster::sensor::lidar_mode::MODE_2048x10) {
     resolution = 2048.0;
     rate = 10.0;
   } else {
-    std::cout << "Error: Could not determine lidar mode!" << std::endl;
     resolution = 512.0;
     rate = 10.0;
   }

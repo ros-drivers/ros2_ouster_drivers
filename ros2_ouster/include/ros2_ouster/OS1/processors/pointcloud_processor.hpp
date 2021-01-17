@@ -26,8 +26,8 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
-#include "ros2_ouster/OS1/OS1.hpp"
 #include "ros2_ouster/OS1/OS1_util.hpp"
+#include "ros2_ouster/client/client.h"
 
 namespace OS1
 {
@@ -48,14 +48,13 @@ public:
    */
   PointcloudProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
-    const ros2_ouster::Metadata & mdata,
+    const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
     const rclcpp::QoS & qos)
   : DataProcessorInterface(), _node(node), _frame(frame)
   {
-    _height = OS1::pixels_per_column;
-    _width = OS1::n_cols_of_lidar_mode(
-      OS1::lidar_mode_of_string(mdata.mode));
+    _height = mdata.format.pixels_per_column;
+    _width = ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
     _xyz_lut = OS1::make_xyz_lut(
       _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);
     _cloud =
@@ -63,11 +62,13 @@ public:
     _pub = _node->create_publisher<sensor_msgs::msg::PointCloud2>(
       "points", qos);
 
-    _batch_and_publish =
-      OS1::batch_to_iter<pcl::PointCloud<point_os::PointOS>::iterator>(
-      _xyz_lut, _width, _height, {}, &point_os::PointOS::make,
-      [&](uint64_t scan_ts) mutable
-      {
+    _batch_and_publish = OS1::batch_to_iter<pcl::PointCloud<point_os::PointOS>::iterator>(
+      _xyz_lut,
+      _width,
+      _height,
+      {},
+      &point_os::PointOS::make,
+      [&](uint64_t scan_ts) mutable {
         if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
           auto msg_ptr =
           std::make_unique<sensor_msgs::msg::PointCloud2>(
@@ -115,9 +116,7 @@ public:
   }
 
 private:
-  std::function<void(const uint8_t *,
-    pcl::PointCloud<point_os::PointOS>::iterator, uint64_t)>
-  _batch_and_publish;
+  std::function<void(const uint8_t *,pcl::PointCloud<point_os::PointOS>::iterator, uint64_t)> _batch_and_publish;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pub;
   std::shared_ptr<pcl::PointCloud<point_os::PointOS>> _cloud;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;

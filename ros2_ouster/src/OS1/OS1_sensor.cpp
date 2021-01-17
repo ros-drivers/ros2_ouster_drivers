@@ -17,16 +17,13 @@
 #include "ros2_ouster/OS1/OS1_sensor.hpp"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
+#include "ros2_ouster/client/client.h"
 
 namespace OS1
 {
 
 OS1Sensor::OS1Sensor()
-: SensorInterface()
-{
-  _lidar_packet.resize(lidar_packet_bytes + 1);
-  _imu_packet.resize(imu_packet_bytes + 1);
-}
+: SensorInterface() {}
 
 OS1Sensor::~OS1Sensor()
 {
@@ -43,41 +40,47 @@ void OS1Sensor::reset(const ros2_ouster::Configuration & config)
 
 void OS1Sensor::configure(const ros2_ouster::Configuration & config)
 {
-  if (!OS1::lidar_mode_of_string(config.lidar_mode)) {
+  if (!ouster::sensor::lidar_mode_of_string(config.lidar_mode)) {
     throw ros2_ouster::OusterDriverException(
             std::string("Invalid lidar mode %s!", config.lidar_mode.c_str()));
     exit(-1);
   }
 
-  if (!OS1::timestamp_mode_of_string(config.timestamp_mode)) {
+  if (!ouster::sensor::timestamp_mode_of_string(config.timestamp_mode)) {
     throw ros2_ouster::OusterDriverException(
             std::string(
               "Invalid timestamp mode %s!", config.timestamp_mode.c_str()));
     exit(-1);
   }
 
-  _ouster_client = OS1::init_client(
-    config.lidar_ip, config.computer_ip,
-    OS1::lidar_mode_of_string(config.lidar_mode),
-    OS1::timestamp_mode_of_string(config.timestamp_mode),
-    config.lidar_port, config.imu_port);
+  _ouster_client = ouster::sensor::init_client(
+    config.lidar_ip,
+    config.computer_ip,
+    ouster::sensor::lidar_mode_of_string(config.lidar_mode),
+    ouster::sensor::timestamp_mode_of_string(config.timestamp_mode),
+    config.lidar_port,
+    config.imu_port);
 
   if (!_ouster_client) {
     throw ros2_ouster::OusterDriverException(
             std::string("Failed to create connection to lidar."));
   }
+
+  _pf = &ouster::sensor::get_format(getMetadata());
+  _lidar_packet.resize(_pf->lidar_packet_size + 1);
+  _imu_packet.resize(_pf->imu_packet_size + 1);
 }
 
-ros2_ouster::ClientState OS1Sensor::get()
+ouster::sensor::client_state OS1Sensor::get()
 {
-  const ros2_ouster::ClientState state = OS1::poll_client(*_ouster_client);
+  const ouster::sensor::client_state state = ouster::sensor::poll_client(*_ouster_client);
 
-  if (state == ros2_ouster::ClientState::EXIT) {
+  if (state & ouster::sensor::client_state::EXIT) {
     throw ros2_ouster::OusterDriverException(
             std::string(
               "Failed to get valid sensor data "
               "information from lidar, returned exit!"));
-  } else if (state == ros2_ouster::ClientState::ERROR) {
+  } else if (state & ouster::sensor::client_state::CLIENT_ERROR) {
     throw ros2_ouster::OusterDriverException(
             std::string(
               "Failed to get valid sensor data "
@@ -87,34 +90,29 @@ ros2_ouster::ClientState OS1Sensor::get()
   return state;
 }
 
-uint8_t * OS1Sensor::readPacket(const ros2_ouster::ClientState & state)
+uint8_t * OS1Sensor::readPacket(const ouster::sensor::client_state & state)
 {
-  switch (state) {
-    case ros2_ouster::ClientState::LIDAR_DATA:
-      if (read_lidar_packet(*_ouster_client, _lidar_packet.data())) {
-        return _lidar_packet.data();
-      } else {
-        return nullptr;
-      }
-    case ros2_ouster::ClientState::IMU_DATA:
-      if (read_imu_packet(*_ouster_client, _imu_packet.data())) {
-        return _imu_packet.data();
-      } else {
-        return nullptr;
-      }
-    default:
-      return nullptr;
+  // todo : Manage case when we receive lidar + imu data
+  if (state & ouster::sensor::client_state::LIDAR_DATA) {
+    if (ouster::sensor::read_lidar_packet(*_ouster_client, _lidar_packet.data(), *_pf)) {
+      return _lidar_packet.data();
+    }
+  } else if (state & ouster::sensor::client_state::IMU_DATA) {
+    if (read_imu_packet(*_ouster_client, _imu_packet.data(), *_pf)) {
+      return _imu_packet.data();
+    }
   }
+  return nullptr;
 }
 
-ros2_ouster::Metadata OS1Sensor::getMetadata()
+ouster::sensor::sensor_info OS1Sensor::getMetadata()
 {
-  if (_ouster_client) {
-    return OS1::parse_metadata(OS1::get_metadata(*_ouster_client));
-  } else {
-    return {"UNKNOWN", "UNKNOWN", "UNNKOWN", "UNNKOWN", "UNKNOWN",
-      {}, {}, {}, {}, 7503, 7502};
-  }
+//  if (_ouster_client) {
+    return ouster::sensor::parse_metadata(ouster::sensor::get_metadata(*_ouster_client));
+//  } else {
+//    return {"UNKNOWN", "UNKNOWN", "UNNKOWN", "UNNKOWN", "UNKNOWN",
+//      {}, {}, {}, {}, 7503, 7502};
+//  }
 }
 
 }  // namespace OS1

@@ -21,7 +21,7 @@
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
-#include "ros2_ouster/OS1/OS1.hpp"
+#include "ros2_ouster/client/client.h"
 
 namespace OS1
 {
@@ -49,25 +49,26 @@ public:
    * @brief Get lidar sensor's metadata
    * @return sensor metadata struct
    */
-  ros2_ouster::Metadata getMetadata() override;
+  ouster::sensor::sensor_info getMetadata() override;
 
   /**
    * @brief Ask sensor to get its current state for data collection
    * @return the state enum value
    */
-  ros2_ouster::ClientState get() override;
+  ouster::sensor::client_state get() override;
 
   /**
    * @brief reading the packet corresponding to the sensor state
    * @param state of the sensor
    * @return the packet of data
    */
-  uint8_t * readPacket(const ros2_ouster::ClientState & state) override;
+  uint8_t * readPacket(const ouster::sensor::client_state & state) override;
 
 private:
-  std::shared_ptr<client> _ouster_client;
+  std::shared_ptr<ouster::sensor::client> _ouster_client;
   std::vector<uint8_t> _lidar_packet;
   std::vector<uint8_t> _imu_packet;
+  const ouster::sensor::packet_format* _pf;
 };
 
 }  // namespace OS1
