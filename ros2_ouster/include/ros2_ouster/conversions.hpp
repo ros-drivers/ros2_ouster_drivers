@@ -25,6 +25,7 @@
 #include "ros2_ouster/point_os.hpp"
 #include "ros2_ouster/image_os.hpp"
 #include "ros2_ouster/scan_os.hpp"
+#include "ros2_ouster/interfaces/metadata.hpp"
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "sensor_msgs/msg/imu.hpp"
@@ -85,20 +86,20 @@ inline std::string toString(const ouster::sensor::client_state & state)
 /**
  * @brief Convert metadata to message format
  */
-inline ouster_msgs::msg::Metadata toMsg(const ouster::sensor::sensor_info & mdata)
+inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
 {
   ouster_msgs::msg::Metadata msg;
   msg.hostname = mdata.name;
   msg.lidar_mode = mdata.mode;
-//  msg.timestamp_mode = mdata.timestamp_mode; //todo: Find how to get timestamp_mode
+  msg.timestamp_mode = mdata.timestamp_mode;
   msg.beam_azimuth_angles = mdata.beam_azimuth_angles;
   msg.beam_altitude_angles = mdata.beam_altitude_angles;
   msg.imu_to_sensor_transform = std::vector<double>(mdata.imu_to_sensor_transform.data(), mdata.imu_to_sensor_transform.data() + mdata.imu_to_sensor_transform.rows() * mdata.imu_to_sensor_transform.cols());
   msg.lidar_to_sensor_transform = std::vector<double>(mdata.lidar_to_sensor_transform.data(), mdata.lidar_to_sensor_transform.data() + mdata.lidar_to_sensor_transform.rows() * mdata.lidar_to_sensor_transform.cols());
   msg.serial_no = mdata.sn;
   msg.firmware_rev = mdata.fw_rev;
-//  msg.imu_port = mdata.imu_port; //todo: Find how to get
-//  msg.lidar_port = mdata.lidar_port; //todo: Find how to get
+  msg.imu_port = mdata.imu_port;
+  msg.lidar_port = mdata.lidar_port;
   return msg;
 }
 

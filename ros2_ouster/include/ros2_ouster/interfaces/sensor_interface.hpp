@@ -80,7 +80,7 @@ public:
    * @brief Get lidar sensor's metadata
    * @return sensor metadata struct
    */
-  virtual ouster::sensor::sensor_info getMetadata() = 0;
+  virtual ros2_ouster::Metadata getMetadata() = 0;
 };
 
 }  // namespace ros2_ouster

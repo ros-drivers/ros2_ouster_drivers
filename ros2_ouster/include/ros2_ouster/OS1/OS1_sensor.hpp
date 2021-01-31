@@ -49,7 +49,7 @@ public:
    * @brief Get lidar sensor's metadata
    * @return sensor metadata struct
    */
-  ouster::sensor::sensor_info getMetadata() override;
+  ros2_ouster::Metadata getMetadata() override;
 
   /**
    * @brief Ask sensor to get its current state for data collection
@@ -64,11 +64,21 @@ public:
    */
   uint8_t * readPacket(const ouster::sensor::client_state & state) override;
 
-private:
+  /**
+   * @brief Sets the metadata class variable
+   * @param lidar_port
+   * @param imu_port
+   */
+  void setMetadata(int lidar_port, int imu_port,
+                   const std::string& timestamp_mode);
+
+ private:
   std::shared_ptr<ouster::sensor::client> _ouster_client;
   std::vector<uint8_t> _lidar_packet;
   std::vector<uint8_t> _imu_packet;
   const ouster::sensor::packet_format* _pf;
+  ros2_ouster::Metadata metadata{};
+
 };
 
 }  // namespace OS1

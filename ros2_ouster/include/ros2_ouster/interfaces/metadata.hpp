@@ -16,36 +16,50 @@
 
 #include <vector>
 #include <string>
+#include "ros2_ouster/client/types.h"
 
 namespace ros2_ouster
 {
-
 /**
- * @brief client response on current state
+ * @brief metadata about Ouster lidar sensor, inherited from client sensor_info.
  */
-enum ClientState
-{
-  TIMEOUT = 0,
-  ERROR = 1,
-  LIDAR_DATA = 2,
-  IMU_DATA = 4,
-  EXIT = 8
-};
-
-/**
- * @brief metadata about Ouster lidar sensor
- */
-struct Metadata
-{
-  std::string hostname;
-  std::string sn;
-  std::string fw_rev;
-  std::string mode;
+struct Metadata : ouster::sensor::sensor_info {
+  Metadata() {
+    name = "UNKNOWN";
+    sn = "UNKNOWN";
+    fw_rev = "UNKNOWN";
+    mode = ouster::sensor::lidar_mode::MODE_UNSPEC;
+    prod_line = "UNKNOWN";
+    format = {};
+    beam_azimuth_angles = {};
+    beam_altitude_angles = {};
+    lidar_origin_to_beam_origin_mm = 0.;
+    imu_to_sensor_transform = {};
+    lidar_to_sensor_transform = {};
+    extrinsic = {};
+    timestamp_mode = "UNKNOWN";
+    imu_port = 0;
+    lidar_port = 0;
+  }
+  Metadata(const ouster::sensor::sensor_info& info, int _imu_port,
+           int _lidar_port, const std::string& _timestamp_mode)
+      : imu_port(_imu_port),
+        lidar_port(_lidar_port),
+        timestamp_mode(_timestamp_mode) {
+    name = info.name;
+    sn = info.sn;
+    fw_rev = info.fw_rev;
+    mode = info.mode;
+    prod_line = info.prod_line;
+    format = info.format;
+    beam_azimuth_angles = info.beam_azimuth_angles;
+    beam_altitude_angles = info.beam_altitude_angles;
+    lidar_origin_to_beam_origin_mm = info.lidar_origin_to_beam_origin_mm;
+    imu_to_sensor_transform = info.imu_to_sensor_transform;
+    lidar_to_sensor_transform = info.lidar_to_sensor_transform;
+    extrinsic = info.extrinsic;
+  }
   std::string timestamp_mode;
-  std::vector<double> beam_azimuth_angles;
-  std::vector<double> beam_altitude_angles;
-  std::vector<double> imu_to_sensor_transform;
-  std::vector<double> lidar_to_sensor_transform;
   int imu_port;
   int lidar_port;
 };

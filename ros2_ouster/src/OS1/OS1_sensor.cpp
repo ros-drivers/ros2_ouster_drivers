@@ -66,6 +66,7 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
             std::string("Failed to create connection to lidar."));
   }
 
+  setMetadata(config.lidar_port, config.imu_port, config.timestamp_mode);
   _pf = &ouster::sensor::get_format(getMetadata());
   _lidar_packet.resize(_pf->lidar_packet_size + 1);
   _imu_packet.resize(_pf->imu_packet_size + 1);
@@ -105,14 +106,19 @@ uint8_t * OS1Sensor::readPacket(const ouster::sensor::client_state & state)
   return nullptr;
 }
 
-ouster::sensor::sensor_info OS1Sensor::getMetadata()
+void OS1Sensor::setMetadata(int lidar_port, int imu_port,
+                            const std::string& timestamp_mode) {
+  if (_ouster_client) {
+    metadata = ros2_ouster::Metadata(
+        ouster::sensor::parse_metadata(
+            ouster::sensor::get_metadata(*_ouster_client)),
+        imu_port, lidar_port, timestamp_mode);
+  }
+}
+
+ros2_ouster::Metadata OS1Sensor::getMetadata()
 {
-//  if (_ouster_client) {
-    return ouster::sensor::parse_metadata(ouster::sensor::get_metadata(*_ouster_client));
-//  } else {
-//    return {"UNKNOWN", "UNKNOWN", "UNNKOWN", "UNNKOWN", "UNKNOWN",
-//      {}, {}, {}, {}, 7503, 7502};
-//  }
+  return metadata;
 }
 
 }  // namespace OS1
