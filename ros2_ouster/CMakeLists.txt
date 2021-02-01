@@ -47,6 +47,7 @@ add_library(${library_name} SHARED
   src/lifecycle_interface.cpp
   src/OS1/OS1_sensor.cpp
   src/client/client.cpp
+  src/client/lidar_scan.cpp
   src/client/netcompat.cpp
   src/client/types.cpp
 )

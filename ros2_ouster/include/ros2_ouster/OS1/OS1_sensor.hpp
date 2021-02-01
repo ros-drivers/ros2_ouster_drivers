@@ -72,13 +72,18 @@ public:
   void setMetadata(int lidar_port, int imu_port,
                    const std::string& timestamp_mode);
 
+  /**
+   * @brief Get lidar sensor's packet format
+   * @return packet format struct
+   */
+  const ouster::sensor::packet_format* getPacketFormat();
+
  private:
   std::shared_ptr<ouster::sensor::client> _ouster_client;
   std::vector<uint8_t> _lidar_packet;
   std::vector<uint8_t> _imu_packet;
   const ouster::sensor::packet_format* _pf;
   ros2_ouster::Metadata metadata{};
-
 };
 
 }  // namespace OS1

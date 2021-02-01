@@ -50,8 +50,9 @@ public:
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
-    const rclcpp::QoS & qos)
-  : DataProcessorInterface(), _node(node), _frame(frame)
+    const rclcpp::QoS & qos,
+    const ouster::sensor::packet_format& pf)
+  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _height = mdata.format.pixels_per_column;
     _width = ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
@@ -124,6 +125,7 @@ private:
   std::string _frame;
   uint32_t _height;
   uint32_t _width;
+  const ouster::sensor::packet_format& _pf;
 };
 
 }  // namespace OS1

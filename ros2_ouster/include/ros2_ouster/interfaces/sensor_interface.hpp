@@ -81,6 +81,12 @@ public:
    * @return sensor metadata struct
    */
   virtual ros2_ouster::Metadata getMetadata() = 0;
+
+  /**
+   * @brief Get lidar sensor's packet format
+   * @return packet format struct
+   */
+  virtual const ouster::sensor::packet_format* getPacketFormat() = 0;
 };
 
 }  // namespace ros2_ouster

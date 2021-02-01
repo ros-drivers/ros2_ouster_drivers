@@ -121,4 +121,9 @@ ros2_ouster::Metadata OS1Sensor::getMetadata()
   return metadata;
 }
 
+const ouster::sensor::packet_format* OS1Sensor::getPacketFormat()
+{
+  return _pf;
+}
+
 }  // namespace OS1
