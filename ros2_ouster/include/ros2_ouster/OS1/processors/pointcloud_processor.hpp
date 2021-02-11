@@ -26,8 +26,11 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
-#include "ros2_ouster/OS1/OS1_util.hpp"
+#include "ros2_ouster/client/lidar_scan.h"
 #include "ros2_ouster/client/client.h"
+#include "ros2_ouster/client/ouster_ros/point.h"
+
+using Cloud = pcl::PointCloud<ouster_ros::Point>;
 
 namespace OS1
 {
@@ -55,31 +58,67 @@ public:
   : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _height = mdata.format.pixels_per_column;
-    _width = ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
-    _xyz_lut = OS1::make_xyz_lut(
-      _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);
-    _cloud =
-      std::make_shared<pcl::PointCloud<point_os::PointOS>>(_width, _height);
+    _width = mdata.format.columns_per_frame;
+    _batch = new ouster::ScanBatcher(_width, _pf);
+    _xyz_lut = ouster::make_xyz_lut(mdata);
+    _ls = ouster::LidarScan{_width, _height};
+    _cloud = new Cloud{_width, _height};
     _pub = _node->create_publisher<sensor_msgs::msg::PointCloud2>(
       "points", qos);
-
-    _batch_and_publish = OS1::batch_to_iter<pcl::PointCloud<point_os::PointOS>::iterator>(
-      _xyz_lut,
-      _width,
-      _height,
-      {},
-      &point_os::PointOS::make,
-      [&](uint64_t scan_ts) mutable {
-        if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
-          auto msg_ptr =
-          std::make_unique<sensor_msgs::msg::PointCloud2>(
-            std::move(
-              ros2_ouster::toMsg(
-                *_cloud, std::chrono::nanoseconds(scan_ts), _frame)));
-          _pub->publish(std::move(msg_ptr));
-        }
-      });
   }
+
+  /**
+   * Populate a PCL point cloud from a LidarScan
+   * @param xyz_lut lookup table from sensor beam angles (see lidar_scan.h)
+   * @param scan_ts scan start used to caluclate relative timestamps for points
+   * @param ls input lidar data
+   * @param cloud output pcl pointcloud to populate
+   */
+  static void scan_to_cloud(const ouster::XYZLut& xyz_lut,
+                     ouster::LidarScan::ts_t scan_ts,
+                     const ouster::LidarScan& ls, Cloud& cloud) {
+    cloud.resize(ls.w * ls.h);
+    auto points = ouster::cartesian(ls, xyz_lut);
+
+    for (auto u = 0; u < ls.h; u++) {
+      for (auto v = 0; v < ls.w; v++) {
+        const auto xyz = points.row(u * ls.w + v);
+        const auto pix = ls.data.row(u * ls.w + v);
+        const auto ts = (ls.header(v).timestamp - scan_ts).count();
+        cloud(v, u) = ouster_ros::Point{
+            {{static_cast<float>(xyz(0)), static_cast<float>(xyz(1)),
+              static_cast<float>(xyz(2)), 1.0f}},
+            static_cast<float>(pix(ouster::LidarScan::INTENSITY)),
+            static_cast<uint32_t>(ts),
+            static_cast<uint16_t>(pix(ouster::LidarScan::REFLECTIVITY)),
+            static_cast<uint8_t>(u),
+            static_cast<uint16_t>(pix(ouster::LidarScan::AMBIENT)),
+            static_cast<uint32_t>(pix(ouster::LidarScan::REFLECTIVITY))};
+      }
+    }
+  }
+
+  void lidar_handler(const uint8_t* data) {
+    if (!_batch->operator()(data, _ls)) {
+      return;
+    }
+
+    auto h =
+        std::find_if(_ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
+          return h.timestamp != std::chrono::nanoseconds{0};
+        });
+
+    if (h == _ls.headers.end()) {
+      return;
+    }
+
+    scan_to_cloud(_xyz_lut, h->timestamp, _ls, *_cloud);
+
+    auto msg_ptr = std::make_unique<sensor_msgs::msg::PointCloud2>(
+        std::move(ros2_ouster::toMsg(*_cloud, h->timestamp, _frame)));
+
+    _pub->publish(std::move(msg_ptr));
+  };
 
   /**
    * @brief A destructor clearing memory allocated
@@ -87,6 +126,8 @@ public:
   ~PointcloudProcessor()
   {
     _pub.reset();
+    delete(_batch);
+    delete(_cloud);
   }
 
   /**
@@ -95,8 +136,7 @@ public:
    */
   bool process(uint8_t * data, uint64_t override_ts) override
   {
-    pcl::PointCloud<point_os::PointOS>::iterator it = _cloud->begin();
-    _batch_and_publish(data, it, override_ts);
+    lidar_handler(data);
     return true;
   }
 
@@ -117,11 +157,12 @@ public:
   }
 
 private:
-  std::function<void(const uint8_t *,pcl::PointCloud<point_os::PointOS>::iterator, uint64_t)> _batch_and_publish;
+  ouster::ScanBatcher* _batch;
+  ouster::LidarScan _ls;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pub;
-  std::shared_ptr<pcl::PointCloud<point_os::PointOS>> _cloud;
+  Cloud* _cloud;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
-  std::vector<double> _xyz_lut;
+  ouster::XYZLut _xyz_lut;
   std::string _frame;
   uint32_t _height;
   uint32_t _width;

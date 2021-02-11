@@ -22,7 +22,7 @@
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
 #include "pcl_conversions/pcl_conversions.h"
-#include "ros2_ouster/point_os.hpp"
+#include "ros2_ouster/client/ouster_ros/point.h"
 #include "ros2_ouster/image_os.hpp"
 #include "ros2_ouster/scan_os.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
@@ -192,19 +192,19 @@ inline sensor_msgs::msg::Imu toMsg(
  *         row-major ordered consistent to the shape of the LiDAR array.
  */
 inline sensor_msgs::msg::PointCloud2 toMsg(
-  const pcl::PointCloud<point_os::PointOS> & cloud,
+  const pcl::PointCloud<ouster_ros::Point> & cloud,
   std::chrono::nanoseconds timestamp,
   const std::string & frame)
 {
-  std::size_t pt_size = sizeof(point_os::PointOS);
+  std::size_t pt_size = sizeof(ouster_ros::Point);
   std::size_t data_size = pt_size * cloud.points.size();
 
   pcl::PCLPointCloud2 cloud2;
   cloud2.height = cloud.height;
   cloud2.width = cloud.width;
   cloud2.fields.clear();
-  pcl::for_each_type<typename pcl::traits::fieldList<point_os::PointOS>::type>(
-    pcl::detail::FieldAdder<point_os::PointOS>(cloud2.fields));
+  pcl::for_each_type<typename pcl::traits::fieldList<ouster_ros::Point>::type>(
+    pcl::detail::FieldAdder<ouster_ros::Point>(cloud2.fields));
   cloud2.header = cloud.header;
   cloud2.point_step = pt_size;
   cloud2.row_step = static_cast<std::uint32_t>(pt_size * cloud2.width);
