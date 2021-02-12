@@ -42,14 +42,13 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
 {
   if (!ouster::sensor::lidar_mode_of_string(config.lidar_mode)) {
     throw ros2_ouster::OusterDriverException(
-            std::string("Invalid lidar mode %s!", config.lidar_mode.c_str()));
+            "Invalid lidar mode: " + config.lidar_mode);
     exit(-1);
   }
 
   if (!ouster::sensor::timestamp_mode_of_string(config.timestamp_mode)) {
     throw ros2_ouster::OusterDriverException(
-            std::string(
-              "Invalid timestamp mode %s!", config.timestamp_mode.c_str()));
+              "Invalid timestamp mode: " + config.timestamp_mode);
     exit(-1);
   }
 
