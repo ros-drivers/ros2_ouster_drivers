@@ -17,6 +17,8 @@
 #include <vector>
 #include <string>
 #include "ros2_ouster/client/types.h"
+#include "ros2_ouster/client/version.h"
+#include "ros2_ouster/client/client.h"
 
 namespace ros2_ouster
 {
@@ -63,6 +65,37 @@ struct Metadata : ouster::sensor::sensor_info {
   int imu_port;
   int lidar_port;
 };
+
+
+/**
+ * @todo log correctly in this function
+ * @brief fill in values that could not be parsed from metadata.
+ */
+inline void populate_metadata_defaults(ouster::sensor::sensor_info& info) {
+  if (info.name.empty()) info.name = "UNKNOWN";
+
+  if (info.sn.empty()) info.sn = "UNKNOWN";
+
+  ouster::util::version v = ouster::util::version_of_string(info.fw_rev);
+  if (v == ouster::util::invalid_version)
+    std::cout << "Unknown sensor firmware version; output may not be reliable" << std::endl;
+  else if (v < ouster::sensor::min_version)
+    std::cout << "Firmware < %s not supported; output may not be reliable " +
+                 to_string(ouster::sensor::min_version) << std::endl;
+
+  if (!info.mode) {
+    std::cout << "Lidar mode not found in metadata; output may not be reliable" << std::endl;
+    info.mode = ouster::sensor::MODE_UNSPEC;
+  }
+
+  if (info.prod_line.empty()) info.prod_line = "UNKNOWN";
+
+  if (info.beam_azimuth_angles.empty() || info.beam_altitude_angles.empty()) {
+    std::cout << "Beam angles not found in metadata; using design values" << std::endl;
+    info.beam_azimuth_angles = ouster::sensor::gen1_azimuth_angles;
+    info.beam_altitude_angles = ouster::sensor::gen1_altitude_angles;
+  }
+}
 
 }  // namespace ros2_ouster
 

@@ -13,7 +13,6 @@
 
 #include <string>
 
-#include "ros2_ouster/conversions.hpp"
 #include "ros2_ouster/OS1/OS1_sensor.hpp"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
@@ -66,9 +65,8 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
   }
 
   setMetadata(config.lidar_port, config.imu_port, config.timestamp_mode);
-  _pf = &ouster::sensor::get_format(getMetadata());
-  _lidar_packet.resize(_pf->lidar_packet_size + 1);
-  _imu_packet.resize(_pf->imu_packet_size + 1);
+  _lidar_packet.resize(this->getPacketFormat().lidar_packet_size + 1);
+  _imu_packet.resize(this->getPacketFormat().imu_packet_size + 1);
 }
 
 ouster::sensor::client_state OS1Sensor::get()
@@ -94,11 +92,11 @@ uint8_t * OS1Sensor::readPacket(const ouster::sensor::client_state & state)
 {
   // todo : Manage case when we receive lidar + imu data
   if (state & ouster::sensor::client_state::LIDAR_DATA) {
-    if (ouster::sensor::read_lidar_packet(*_ouster_client, _lidar_packet.data(), *_pf)) {
+    if (ouster::sensor::read_lidar_packet(*_ouster_client, _lidar_packet.data(), this->getPacketFormat())) {
       return _lidar_packet.data();
     }
   } else if (state & ouster::sensor::client_state::IMU_DATA) {
-    if (read_imu_packet(*_ouster_client, _imu_packet.data(), *_pf)) {
+    if (read_imu_packet(*_ouster_client, _imu_packet.data(), this->getPacketFormat())) {
       return _imu_packet.data();
     }
   }
@@ -108,21 +106,22 @@ uint8_t * OS1Sensor::readPacket(const ouster::sensor::client_state & state)
 void OS1Sensor::setMetadata(int lidar_port, int imu_port,
                             const std::string& timestamp_mode) {
   if (_ouster_client) {
-    metadata = ros2_ouster::Metadata(
+    _metadata = ros2_ouster::Metadata(
         ouster::sensor::parse_metadata(
             ouster::sensor::get_metadata(*_ouster_client)),
         imu_port, lidar_port, timestamp_mode);
   }
+  ros2_ouster::populate_metadata_defaults(_metadata);
 }
 
 ros2_ouster::Metadata OS1Sensor::getMetadata()
 {
-  return metadata;
+  return _metadata;
 }
 
-const ouster::sensor::packet_format* OS1Sensor::getPacketFormat()
+ouster::sensor::packet_format OS1Sensor::getPacketFormat()
 {
-  return _pf;
+  return ouster::sensor::get_format(getMetadata());
 }
 
 }  // namespace OS1

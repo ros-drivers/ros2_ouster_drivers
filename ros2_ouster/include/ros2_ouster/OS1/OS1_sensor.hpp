@@ -76,14 +76,13 @@ public:
    * @brief Get lidar sensor's packet format
    * @return packet format struct
    */
-  const ouster::sensor::packet_format* getPacketFormat();
+  ouster::sensor::packet_format getPacketFormat() override;
 
  private:
   std::shared_ptr<ouster::sensor::client> _ouster_client;
   std::vector<uint8_t> _lidar_packet;
   std::vector<uint8_t> _imu_packet;
-  const ouster::sensor::packet_format* _pf;
-  ros2_ouster::Metadata metadata{};
+  ros2_ouster::Metadata _metadata{};
 };
 
 }  // namespace OS1

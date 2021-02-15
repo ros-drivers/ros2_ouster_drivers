@@ -145,6 +145,8 @@ private:
   bool _use_ros_time;
 
   std::uint32_t _os1_proc_mask;
+
+  uint8_t * packet_data;
 };
 
 }  // namespace ros2_ouster

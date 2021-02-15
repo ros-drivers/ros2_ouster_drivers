@@ -113,11 +113,11 @@ void OusterDriver::onConfigure()
       this->get_logger(), "Using system defaults QoS for sensor data");
     _data_processors = ros2_ouster::createProcessors(
       shared_from_this(), _sensor->getMetadata(), _imu_data_frame, _laser_data_frame,
-      rclcpp::SystemDefaultsQoS(), *(_sensor->getPacketFormat()), _os1_proc_mask);
+      rclcpp::SystemDefaultsQoS(), _sensor->getPacketFormat(), _os1_proc_mask);
   } else {
     _data_processors = ros2_ouster::createProcessors(
       shared_from_this(), _sensor->getMetadata(), _imu_data_frame, _laser_data_frame,
-      rclcpp::SensorDataQoS(), *(_sensor->getPacketFormat()), _os1_proc_mask);
+      rclcpp::SensorDataQoS(), _sensor->getPacketFormat(), _os1_proc_mask);
   }
 
   _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(
@@ -201,7 +201,7 @@ void OusterDriver::processData()
       "Packet with state: %s",
       ros2_ouster::toString(state).c_str());
 
-    uint8_t * packet_data = _sensor->readPacket(state);
+    packet_data = _sensor->readPacket(state);
 
     if (packet_data) {
       std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
