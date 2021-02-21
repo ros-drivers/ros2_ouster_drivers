@@ -73,7 +73,7 @@ ouster::sensor::client_state OS1Sensor::get()
 {
   const ouster::sensor::client_state state = ouster::sensor::poll_client(*_ouster_client);
 
-  if (state & ouster::sensor::client_state::EXIT) {
+  if (state == ouster::sensor::client_state::EXIT) {
     throw ros2_ouster::OusterDriverException(
             std::string(
               "Failed to get valid sensor data "

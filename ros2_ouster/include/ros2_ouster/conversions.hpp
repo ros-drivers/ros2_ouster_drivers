@@ -196,36 +196,8 @@ inline sensor_msgs::msg::PointCloud2 toMsg(
   std::chrono::nanoseconds timestamp,
   const std::string & frame)
 {
-  std::size_t pt_size = sizeof(ouster_ros::Point);
-  std::size_t data_size = pt_size * cloud.points.size();
-
-  pcl::PCLPointCloud2 cloud2;
-  cloud2.height = cloud.height;
-  cloud2.width = cloud.width;
-  cloud2.fields.clear();
-  pcl::for_each_type<typename pcl::traits::fieldList<ouster_ros::Point>::type>(
-    pcl::detail::FieldAdder<ouster_ros::Point>(cloud2.fields));
-  cloud2.header = cloud.header;
-  cloud2.point_step = pt_size;
-  cloud2.row_step = static_cast<std::uint32_t>(pt_size * cloud2.width);
-  cloud2.is_dense = cloud.is_dense;
-  cloud2.is_bigendian = ros2_ouster::IS_BIGENDIAN;
-
-  cloud2.data.resize(data_size);
-  if (data_size) {
-    // column-major to row-major conversion
-    for (int i = 0; i < cloud.width; ++i) {
-      for (int j = 0; j < cloud.height; ++j) {
-        std::memcpy(
-          &cloud2.data[(j * cloud.width + i) * pt_size],
-          &cloud.points[i * cloud.height + j],
-          pt_size);
-      }
-    }
-  }
-
-  sensor_msgs::msg::PointCloud2 msg;
-  pcl_conversions::moveFromPCL(cloud2, msg);
+  sensor_msgs::msg::PointCloud2 msg{};
+  pcl::toROSMsg(cloud, msg);
   msg.header.frame_id = frame;
   rclcpp::Time t(timestamp.count());
   msg.header.stamp = t;

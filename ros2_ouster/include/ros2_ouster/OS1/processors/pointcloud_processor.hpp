@@ -99,25 +99,16 @@ public:
   }
 
   void lidar_handler(const uint8_t* data) {
-    if (!_batch->operator()(data, _ls)) {
-      return;
+    if (_batch->operator()(data, _ls)) {
+      auto h = std::find_if(
+          _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
+            return h.timestamp != std::chrono::nanoseconds{0};
+          });
+      if (h != _ls.headers.end()) {
+        scan_to_cloud(_xyz_lut, h->timestamp, _ls, *_cloud);
+        _pub->publish(ros2_ouster::toMsg(*_cloud, h->timestamp, _frame));
+      }
     }
-
-    auto h =
-        std::find_if(_ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
-          return h.timestamp != std::chrono::nanoseconds{0};
-        });
-
-    if (h == _ls.headers.end()) {
-      return;
-    }
-
-    scan_to_cloud(_xyz_lut, h->timestamp, _ls, *_cloud);
-
-    auto msg_ptr = std::make_unique<sensor_msgs::msg::PointCloud2>(
-        std::move(ros2_ouster::toMsg(*_cloud, h->timestamp, _frame)));
-
-    _pub->publish(std::move(msg_ptr));
   };
 
   /**
