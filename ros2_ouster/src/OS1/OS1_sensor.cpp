@@ -88,17 +88,20 @@ ouster::sensor::client_state OS1Sensor::get()
   return state;
 }
 
-uint8_t * OS1Sensor::readPacket(const ouster::sensor::client_state & state)
-{
-  // todo : Manage case when we receive lidar + imu data
-  if (state & ouster::sensor::client_state::LIDAR_DATA) {
-    if (ouster::sensor::read_lidar_packet(*_ouster_client, _lidar_packet.data(), this->getPacketFormat())) {
-      return _lidar_packet.data();
-    }
-  } else if (state & ouster::sensor::client_state::IMU_DATA) {
-    if (read_imu_packet(*_ouster_client, _imu_packet.data(), this->getPacketFormat())) {
-      return _imu_packet.data();
-    }
+uint8_t* OS1Sensor::readLidarPacket(const ouster::sensor::client_state& state) {
+  if (state & ouster::sensor::client_state::LIDAR_DATA &&
+      ouster::sensor::read_lidar_packet(*_ouster_client, _lidar_packet.data(),
+                                        this->getPacketFormat())) {
+    return _lidar_packet.data();
+  }
+  return nullptr;
+}
+
+uint8_t* OS1Sensor::readImuPacket(const ouster::sensor::client_state& state) {
+  if (state & ouster::sensor::client_state::IMU_DATA &&
+      ouster::sensor::read_imu_packet(*_ouster_client, _imu_packet.data(),
+                                      this->getPacketFormat())) {
+    return _imu_packet.data();
   }
   return nullptr;
 }

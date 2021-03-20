@@ -58,11 +58,18 @@ public:
   ouster::sensor::client_state get() override;
 
   /**
-   * @brief reading the packet corresponding to the sensor state
+   * @brief reading a lidar packet
    * @param state of the sensor
    * @return the packet of data
    */
-  uint8_t * readPacket(const ouster::sensor::client_state & state) override;
+  uint8_t * readLidarPacket(const ouster::sensor::client_state & state) override;
+
+  /**
+   * @brief reading an imu packet
+   * @param state of the sensor
+   * @return the packet of data
+   */
+  uint8_t * readImuPacket(const ouster::sensor::client_state & state) override;
 
   /**
    * @brief Sets the metadata class variable

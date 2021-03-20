@@ -70,11 +70,18 @@ public:
   virtual ouster::sensor::client_state get() = 0;
 
   /**
-   * @brief reading the packet corresponding to the sensor state
+   * @brief reading a lidar packet
    * @param state of the sensor
    * @return the packet of data
    */
-  virtual uint8_t * readPacket(const ouster::sensor::client_state & state) = 0;
+  virtual uint8_t * readLidarPacket(const ouster::sensor::client_state & state) = 0;
+
+  /**
+   * @brief reading an imu packet
+   * @param state of the sensor
+   * @return the packet of data
+   */
+  virtual uint8_t * readImuPacket(const ouster::sensor::client_state & state) = 0;
 
   /**
    * @brief Get lidar sensor's metadata

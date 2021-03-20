@@ -146,7 +146,8 @@ private:
 
   std::uint32_t _os1_proc_mask;
 
-  uint8_t * packet_data;
+  uint8_t *_lidar_packet_data;
+  uint8_t *_imu_packet_data;
 };
 
 }  // namespace ros2_ouster

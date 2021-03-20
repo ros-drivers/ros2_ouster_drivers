@@ -201,18 +201,31 @@ void OusterDriver::processData()
       "Packet with state: %s",
       ros2_ouster::toString(state).c_str());
 
-    packet_data = _sensor->readPacket(state);
+    _lidar_packet_data = _sensor->readLidarPacket(state);
+    _imu_packet_data = _sensor->readImuPacket(state);
 
-    if (packet_data) {
-      std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
-      key_its = _data_processors.equal_range(state);
+    std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
+
+    if (_lidar_packet_data) {
+      key_its = _data_processors.equal_range(ouster::sensor::client_state::LIDAR_DATA);
       uint64_t override_ts =
-              this->_use_ros_time ? this->now().nanoseconds() : 0;
+          this->_use_ros_time ? this->now().nanoseconds() : 0;
 
       for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
-        it->second->process(packet_data, override_ts);
+        it->second->process(_lidar_packet_data, override_ts);
       }
     }
+
+    if (_imu_packet_data) {
+        key_its = _data_processors.equal_range(ouster::sensor::client_state::IMU_DATA);
+        uint64_t override_ts =
+            this->_use_ros_time ? this->now().nanoseconds() : 0;
+
+        for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
+          it->second->process(_imu_packet_data, override_ts);
+        }
+    }
+
   } catch (const OusterDriverException & e) {
     RCLCPP_WARN(
       this->get_logger(),
