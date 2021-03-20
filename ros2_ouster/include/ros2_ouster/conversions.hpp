@@ -130,7 +130,10 @@ inline geometry_msgs::msg::TransformStamped toMsg(
 }
 
 /**
- * @brief Convert IMU to message format
+ * @brief Parse an imu packet message into a ROS imu message
+ * @param pm packet message populated by read_imu_packet
+ * @param frame the frame to set in the resulting ROS message
+ * @return ROS sensor message with fields populated from the packet
  */
 inline sensor_msgs::msg::Imu toMsg(
   const uint8_t * buf,

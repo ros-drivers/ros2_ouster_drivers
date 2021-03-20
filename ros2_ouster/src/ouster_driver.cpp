@@ -206,10 +206,11 @@ void OusterDriver::processData()
 
     std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
 
+    uint64_t override_ts =
+        this->_use_ros_time ? this->now().nanoseconds() : 0;
+
     if (_lidar_packet_data) {
       key_its = _data_processors.equal_range(ouster::sensor::client_state::LIDAR_DATA);
-      uint64_t override_ts =
-          this->_use_ros_time ? this->now().nanoseconds() : 0;
 
       for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
         it->second->process(_lidar_packet_data, override_ts);
@@ -218,8 +219,6 @@ void OusterDriver::processData()
 
     if (_imu_packet_data) {
         key_its = _data_processors.equal_range(ouster::sensor::client_state::IMU_DATA);
-        uint64_t override_ts =
-            this->_use_ros_time ? this->now().nanoseconds() : 0;
 
         for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
           it->second->process(_imu_packet_data, override_ts);
