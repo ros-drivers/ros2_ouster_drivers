@@ -23,8 +23,6 @@
 #include "pcl/point_cloud.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "ros2_ouster/client/ouster_ros/point.h"
-#include "ros2_ouster/image_os.hpp"
-#include "ros2_ouster/scan_os.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -34,7 +32,6 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "ouster_msgs/msg/metadata.hpp"
 
-#include "ros2_ouster/OS1/OS1_packet.hpp"
 #include "ros2_ouster/client/client.h"
 
 namespace ros2_ouster
@@ -138,6 +135,7 @@ inline geometry_msgs::msg::TransformStamped toMsg(
 inline sensor_msgs::msg::Imu toMsg(
   const uint8_t * buf,
   const std::string & frame,
+  const ouster::sensor::packet_format pf,
   uint64_t override_ts = 0)
 {
   const double standard_g = 9.80665;
@@ -148,16 +146,16 @@ inline sensor_msgs::msg::Imu toMsg(
   m.orientation.w = 1;
 
   m.header.stamp = override_ts == 0 ?
-    rclcpp::Time(OS1::imu_gyro_ts(buf)) : rclcpp::Time(override_ts);
+    rclcpp::Time(pf.imu_gyro_ts(buf)) : rclcpp::Time(override_ts);
   m.header.frame_id = frame;
 
-  m.linear_acceleration.x = OS1::imu_la_x(buf) * standard_g;
-  m.linear_acceleration.y = OS1::imu_la_y(buf) * standard_g;
-  m.linear_acceleration.z = OS1::imu_la_z(buf) * standard_g;
+  m.linear_acceleration.x = pf.imu_la_x(buf) * standard_g;
+  m.linear_acceleration.y = pf.imu_la_y(buf) * standard_g;
+  m.linear_acceleration.z = pf.imu_la_z(buf) * standard_g;
 
-  m.angular_velocity.x = OS1::imu_av_x(buf) * M_PI / 180.0;
-  m.angular_velocity.y = OS1::imu_av_y(buf) * M_PI / 180.0;
-  m.angular_velocity.z = OS1::imu_av_z(buf) * M_PI / 180.0;
+  m.angular_velocity.x = pf.imu_av_x(buf) * M_PI / 180.0;
+  m.angular_velocity.y = pf.imu_av_y(buf) * M_PI / 180.0;
+  m.angular_velocity.z = pf.imu_av_z(buf) * M_PI / 180.0;
 
   for (int i = 0; i < 9; i++) {
     m.orientation_covariance[i] = -1;
@@ -208,10 +206,10 @@ inline sensor_msgs::msg::PointCloud2 toMsg(
 }
 
 /**
- * @brief Convert Scan to message format
+ * @brief Convert cloud to scan message format
  */
 inline sensor_msgs::msg::LaserScan toMsg(
-  const std::vector<scan_os::ScanOS> & scans,
+  ouster::LidarScan ls,
   std::chrono::nanoseconds timestamp,
   const std::string & frame,
   const ouster::sensor::sensor_info & mdata,
@@ -226,36 +224,19 @@ inline sensor_msgs::msg::LaserScan toMsg(
   msg.range_min = 0.1;
   msg.range_max = 120.0;
 
-  double resolution, rate;
-  if (mdata.mode == ouster::sensor::lidar_mode::MODE_512x10) {
-    resolution = 512.0;
-    rate = 10.0;
-  } else if (mdata.mode == ouster::sensor::lidar_mode::MODE_512x20) {
-    resolution = 512.0;
-    rate = 20.0;
-  } else if (mdata.mode == ouster::sensor::lidar_mode::MODE_1024x10) {
-    resolution = 1024.0;
-    rate = 10.0;
-  } else if (mdata.mode == ouster::sensor::lidar_mode::MODE_1024x20) {
-    resolution = 1024.0;
-    rate = 20.0;
-  } else if (mdata.mode == ouster::sensor::lidar_mode::MODE_2048x10) {
-    resolution = 2048.0;
-    rate = 10.0;
-  } else {
-    resolution = 512.0;
-    rate = 10.0;
-  }
+  msg.scan_time = 1.0 / ouster::sensor::frequency_of_lidar_mode(mdata.mode);
+  msg.time_increment = 1.0 / ouster::sensor::frequency_of_lidar_mode(mdata.mode) / ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
+  msg.angle_increment = -2 * M_PI / ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
 
-  msg.scan_time = 1.0 / rate;
-  msg.time_increment = 1.0 / rate / resolution;
-  msg.angle_increment = 2 * M_PI / resolution;
+  for (size_t i = ls.w * ring_to_use; i < (ls.w * ring_to_use) + ls.w; i++) {
 
-  for (uint i = 0; i != scans.size(); i++) {
-    if (scans[i].ring == ring_to_use) {
-      msg.ranges.push_back(scans[i].range * 5e-3);
-      msg.intensities.push_back(std::min(scans[i].intensity, 255.0f));
-    }
+    msg.ranges.push_back(
+        static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i) * ouster::sensor::range_unit))
+                         );
+
+    msg.intensities.push_back(
+        static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i)))
+        );
   }
 
   return msg;
@@ -264,7 +245,7 @@ inline sensor_msgs::msg::LaserScan toMsg(
 /**
 * Populate a PCL point cloud from a LidarScan
 * @param xyz_lut lookup table from sensor beam angles (see lidar_scan.h)
-* @param scan_ts scan start used to calculate relative timestamps for points
+* @param scan_ts scan start used to caluclate relative timestamps for points
 * @param ls input lidar data
 * @param cloud output pcl pointcloud to populate
 */
@@ -280,7 +261,8 @@ static void toCloud(const ouster::XYZLut& xyz_lut,
       const auto pix = ls.data.row(u * ls.w + v);
       const auto ts = (ls.header(v).timestamp - scan_ts).count();
       cloud(v, u) = ouster_ros::Point{
-          {{static_cast<float>(xyz(0)), static_cast<float>(xyz(1)),
+          {{static_cast<float>(xyz(0)),
+            static_cast<float>(xyz(1)),
             static_cast<float>(xyz(2)), 1.0f}},
           static_cast<float>(pix(ouster::LidarScan::INTENSITY)),
           static_cast<uint32_t>(ts),

@@ -48,8 +48,9 @@ public:
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
-    const rclcpp::QoS & qos)
-  : DataProcessorInterface(), _node(node), _frame(frame)
+    const rclcpp::QoS & qos,
+    const ouster::sensor::packet_format& pf)
+  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _pub = node->create_publisher<sensor_msgs::msg::Imu>("imu", qos);
   }
@@ -69,7 +70,7 @@ public:
   bool process(uint8_t * data, uint64_t override_ts) override
   {
     if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
-      _pub->publish(ros2_ouster::toMsg(data, _frame, override_ts));
+      _pub->publish(ros2_ouster::toMsg(data, _frame, _pf, override_ts));
     }
     return true;
   }
@@ -94,6 +95,7 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr _pub;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::string _frame;
+  const ouster::sensor::packet_format& _pf;
 };
 
 }  // namespace OS1

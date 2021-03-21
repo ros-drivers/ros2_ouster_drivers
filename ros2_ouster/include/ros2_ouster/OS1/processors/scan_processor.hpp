@@ -26,7 +26,8 @@
 #include "sensor_msgs/msg/laser_scan.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
-#include "ros2_ouster/OS1/OS1_util.hpp"
+
+using Cloud = pcl::PointCloud<ouster_ros::Point>;
 
 namespace OS1
 {
@@ -39,8 +40,6 @@ namespace OS1
 class ScanProcessor : public ros2_ouster::DataProcessorInterface
 {
 public:
-  using OSScan = std::vector<scan_os::ScanOS>;
-  using OSScanIt = OSScan::iterator;
 
   /**
    * @brief A constructor for OS1::ScanProcessor
@@ -52,16 +51,19 @@ public:
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
-    const rclcpp::QoS & qos)
-  : DataProcessorInterface(), _node(node), _frame(frame)
+    const rclcpp::QoS & qos,
+    const ouster::sensor::packet_format& pf)
+  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _mdata = mdata;
     _pub = _node->create_publisher<sensor_msgs::msg::LaserScan>("scan", qos);
     _height = mdata.format.pixels_per_column;
-    _width = ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
-    _xyz_lut = OS1::make_xyz_lut(
-      _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);
-    _aggregated_scans.resize(_width * _height);
+    _width = mdata.format.columns_per_frame;
+    _xyz_lut = ouster::make_xyz_lut(mdata);
+    _batch = new ouster::ScanBatcher(_width, _pf);
+    _cloud = new Cloud{_width, _height};
+    _ls = ouster::LidarScan{_width, _height};
+
 
     double zero_angle = 9999.0;
     _ring = 0;
@@ -71,22 +73,6 @@ public:
         zero_angle = fabs(_mdata.beam_altitude_angles[i]);
       }
     }
-
-    _batch_and_publish =
-      OS1::batch_to_iter<OSScanIt>(
-      _xyz_lut, _width, _height, {}, &scan_os::ScanOS::make,
-      [&](uint64_t scan_ts) mutable
-      {
-        if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
-          auto msg_ptr =
-          std::make_unique<sensor_msgs::msg::LaserScan>(
-            std::move(
-              ros2_ouster::toMsg(
-                _aggregated_scans, std::chrono::nanoseconds(scan_ts),
-                _frame, _mdata, _ring)));
-          _pub->publish(std::move(msg_ptr));
-        }
-      });
   }
 
   /**
@@ -95,6 +81,26 @@ public:
   ~ScanProcessor()
   {
     _pub.reset();
+    delete(_batch);
+    delete(_cloud);
+  }
+
+  /**
+   * @brief Handles the packets to create scan
+   * @param data
+   */
+  void handler(const uint8_t* data) {
+    if (_batch->operator()(data, _ls)) {
+      auto h = std::find_if(
+          _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
+            return h.timestamp != std::chrono::nanoseconds{0};
+          });
+      if (h != _ls.headers.end()) {
+        ros2_ouster::toCloud(_xyz_lut, h->timestamp, _ls, *_cloud);
+        _pub->publish(ros2_ouster::toMsg(_ls, h->timestamp,
+                                         _frame, _mdata, _ring));
+      }
+    }
   }
 
   /**
@@ -103,8 +109,7 @@ public:
    */
   bool process(uint8_t * data, uint64_t override_ts) override
   {
-    OSScanIt it = _aggregated_scans.begin();
-    _batch_and_publish(data, it, override_ts);
+    handler(data);
     return true;
   }
 
@@ -126,16 +131,17 @@ public:
 
 private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr _pub;
-  std::function<void(const uint8_t *, OSScanIt, uint64_t)> _batch_and_publish;
-  std::shared_ptr<pcl::PointCloud<scan_os::ScanOS>> _cloud;
+  Cloud* _cloud;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
-  std::vector<double> _xyz_lut;
+  ouster::XYZLut _xyz_lut;
   ouster::sensor::sensor_info _mdata;
-  OSScan _aggregated_scans;
   std::string _frame;
   uint32_t _height;
   uint32_t _width;
   uint8_t _ring;
+  const ouster::sensor::packet_format& _pf;
+  ouster::ScanBatcher* _batch;
+  ouster::LidarScan _ls;
 };
 
 }  // namespace OS1
