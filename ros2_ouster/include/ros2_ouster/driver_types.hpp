@@ -19,10 +19,10 @@
 namespace ros2_ouster
 {
 
-class OS1Driver : public OusterDriver
+class Driver : public OusterDriver
 {
 public:
-  explicit OS1Driver(rclcpp::NodeOptions options);
+  explicit Driver(rclcpp::NodeOptions options);
 };
 
 }  // namespace ros2_ouster

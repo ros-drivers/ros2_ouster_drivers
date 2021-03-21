@@ -11,27 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__OS1__OS1_SENSOR_HPP_
-#define ROS2_OUSTER__OS1__OS1_SENSOR_HPP_
+#ifndef ROS2_OUSTER__SENSOR_HPP_
+#define ROS2_OUSTER__SENSOR_HPP_
 
 #include <memory>
 #include <vector>
 
-#include "ros2_ouster/OS1/processor_factories.hpp"
+#include "ros2_ouster/processors/processor_factories.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/client/client.h"
 
-namespace OS1
-{
+namespace sensor {
 
-class OS1Sensor : public ros2_ouster::SensorInterface
+class Sensor : public ros2_ouster::SensorInterface
 {
 public:
-  OS1Sensor();
+ Sensor();
 
-  ~OS1Sensor() override;
+  ~Sensor() override;
 
   /**
    * @brief Reset lidar sensor
@@ -92,6 +91,6 @@ public:
   ros2_ouster::Metadata _metadata{};
 };
 
-}  // namespace OS1
+}  // namespace sensor
 
-#endif  // ROS2_OUSTER__OS1__OS1_SENSOR_HPP_
+#endif  // ROS2_OUSTER__SENSOR_HPP_

@@ -18,11 +18,11 @@
 #include <vector>
 
 #include "rclcpp/qos.hpp"
-#include "ros2_ouster/ouster_driver.hpp"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/interfaces/lifecycle_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
-#include "ros2_ouster/OS1/processor_factories.hpp"
+#include "ros2_ouster/ouster_driver.hpp"
+#include "ros2_ouster/processors/processor_factories.hpp"
 
 namespace ros2_ouster
 {
@@ -48,7 +48,7 @@ OusterDriver::OusterDriver(
   this->declare_parameter("laser_frame", std::string("laser_data_frame"));
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
   this->declare_parameter("use_system_default_qos", false);
-  this->declare_parameter("os1_proc_mask", std::string("IMG|PCL|IMU|SCAN"));
+  this->declare_parameter("proc_mask", std::string("IMG|PCL|IMU|SCAN"));
 }
 
 OusterDriver::~OusterDriver() = default;
@@ -86,8 +86,8 @@ void OusterDriver::onConfigure()
   _imu_data_frame = get_parameter("imu_frame").as_string();
   _use_system_default_qos = get_parameter("use_system_default_qos").as_bool();
 
-  _os1_proc_mask =
-    ros2_ouster::toProcMask(get_parameter("os1_proc_mask").as_string());
+  _proc_mask =
+    ros2_ouster::toProcMask(get_parameter("proc_mask").as_string());
 
   RCLCPP_INFO(
     this->get_logger(),
@@ -113,11 +113,11 @@ void OusterDriver::onConfigure()
       this->get_logger(), "Using system defaults QoS for sensor data");
     _data_processors = ros2_ouster::createProcessors(
       shared_from_this(), _sensor->getMetadata(), _imu_data_frame, _laser_data_frame,
-      rclcpp::SystemDefaultsQoS(), _sensor->getPacketFormat(), _os1_proc_mask);
+      rclcpp::SystemDefaultsQoS(), _sensor->getPacketFormat(), _proc_mask);
   } else {
     _data_processors = ros2_ouster::createProcessors(
       shared_from_this(), _sensor->getMetadata(), _imu_data_frame, _laser_data_frame,
-      rclcpp::SensorDataQoS(), _sensor->getPacketFormat(), _os1_proc_mask);
+      rclcpp::SensorDataQoS(), _sensor->getPacketFormat(), _proc_mask);
   }
 
   _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(

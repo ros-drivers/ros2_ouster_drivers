@@ -13,31 +13,30 @@
 
 #include <string>
 
-#include "ros2_ouster/OS1/OS1_sensor.hpp"
+#include "ros2_ouster/client/client.h"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
-#include "ros2_ouster/client/client.h"
+#include "ros2_ouster/sensor.hpp"
 
-namespace OS1
-{
+namespace sensor {
 
-OS1Sensor::OS1Sensor()
+Sensor::Sensor()
 : SensorInterface() {}
 
-OS1Sensor::~OS1Sensor()
+Sensor::~Sensor()
 {
   _ouster_client.reset();
   _lidar_packet.clear();
   _imu_packet.clear();
 }
 
-void OS1Sensor::reset(const ros2_ouster::Configuration & config)
+void Sensor::reset(const ros2_ouster::Configuration & config)
 {
   _ouster_client.reset();
   configure(config);
 }
 
-void OS1Sensor::configure(const ros2_ouster::Configuration & config)
+void Sensor::configure(const ros2_ouster::Configuration & config)
 {
   if (!ouster::sensor::lidar_mode_of_string(config.lidar_mode)) {
     throw ros2_ouster::OusterDriverException(
@@ -69,7 +68,7 @@ void OS1Sensor::configure(const ros2_ouster::Configuration & config)
   _imu_packet.resize(this->getPacketFormat().imu_packet_size + 1);
 }
 
-ouster::sensor::client_state OS1Sensor::get()
+ouster::sensor::client_state Sensor::get()
 {
   const ouster::sensor::client_state state = ouster::sensor::poll_client(*_ouster_client);
 
@@ -88,7 +87,7 @@ ouster::sensor::client_state OS1Sensor::get()
   return state;
 }
 
-uint8_t* OS1Sensor::readLidarPacket(const ouster::sensor::client_state& state) {
+uint8_t* Sensor::readLidarPacket(const ouster::sensor::client_state& state) {
   if (state & ouster::sensor::client_state::LIDAR_DATA &&
       ouster::sensor::read_lidar_packet(*_ouster_client, _lidar_packet.data(),
                                         this->getPacketFormat())) {
@@ -97,7 +96,7 @@ uint8_t* OS1Sensor::readLidarPacket(const ouster::sensor::client_state& state) {
   return nullptr;
 }
 
-uint8_t* OS1Sensor::readImuPacket(const ouster::sensor::client_state& state) {
+uint8_t* Sensor::readImuPacket(const ouster::sensor::client_state& state) {
   if (state & ouster::sensor::client_state::IMU_DATA &&
       ouster::sensor::read_imu_packet(*_ouster_client, _imu_packet.data(),
                                       this->getPacketFormat())) {
@@ -106,7 +105,7 @@ uint8_t* OS1Sensor::readImuPacket(const ouster::sensor::client_state& state) {
   return nullptr;
 }
 
-void OS1Sensor::setMetadata(int lidar_port, int imu_port,
+void Sensor::setMetadata(int lidar_port, int imu_port,
                             const std::string& timestamp_mode) {
   if (_ouster_client) {
     _metadata = ros2_ouster::Metadata(
@@ -117,14 +116,14 @@ void OS1Sensor::setMetadata(int lidar_port, int imu_port,
   ros2_ouster::populate_metadata_defaults(_metadata);
 }
 
-ros2_ouster::Metadata OS1Sensor::getMetadata()
+ros2_ouster::Metadata Sensor::getMetadata()
 {
   return _metadata;
 }
 
-ouster::sensor::packet_format OS1Sensor::getPacketFormat()
+ouster::sensor::packet_format Sensor::getPacketFormat()
 {
   return ouster::sensor::get_format(getMetadata());
 }
 
-}  // namespace OS1
+}  // namespace sensor

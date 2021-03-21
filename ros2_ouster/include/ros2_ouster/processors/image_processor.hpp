@@ -11,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__OS1__PROCESSORS__IMAGE_PROCESSOR_HPP_
-#define ROS2_OUSTER__OS1__PROCESSORS__IMAGE_PROCESSOR_HPP_
+#ifndef ROS2_OUSTER__PROCESSORS__IMAGE_PROCESSOR_HPP_
+#define ROS2_OUSTER__PROCESSORS__IMAGE_PROCESSOR_HPP_
 
 #include <vector>
 #include <memory>
@@ -34,10 +34,9 @@
 using Cloud = pcl::PointCloud<ouster_ros::Point>;
 namespace viz = ouster::viz;
 
-namespace OS1
-{
+namespace sensor {
 /**
- * @class OS1::ImageProcessor
+ * @class sensor::ImageProcessor
  * @brief A data processor interface implementation of a processor
  * for creating range, intensity, and noise images in the
  * driver in ROS2.
@@ -47,7 +46,7 @@ class ImageProcessor : public ros2_ouster::DataProcessorInterface
 public:
 
   /**
-   * @brief A constructor for OS1::ImageProcessor
+   * @brief A constructor for sensor::ImageProcessor
    * @param node Node for creating interfaces
    * @param mdata metadata about the sensor
    * @param frame frame_id to use for messages
@@ -231,6 +230,6 @@ private:
   ouster::XYZLut _xyz_lut;
 };
 
-}  // namespace OS1
+}  // namespace sensor
 
-#endif  // ROS2_OUSTER__OS1__PROCESSORS__IMAGE_PROCESSOR_HPP_
+#endif  // ROS2_OUSTER__PROCESSORS__IMAGE_PROCESSOR_HPP_

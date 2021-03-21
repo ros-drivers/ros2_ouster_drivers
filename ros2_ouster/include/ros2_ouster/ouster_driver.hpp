@@ -144,7 +144,7 @@ private:
   bool _use_system_default_qos;
   bool _use_ros_time;
 
-  std::uint32_t _os1_proc_mask;
+  std::uint32_t _proc_mask;
 
   uint8_t *_lidar_packet_data;
   uint8_t *_imu_packet_data;

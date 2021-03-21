@@ -11,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__OS1__PROCESSORS__SCAN_PROCESSOR_HPP_
-#define ROS2_OUSTER__OS1__PROCESSORS__SCAN_PROCESSOR_HPP_
+#ifndef ROS2_OUSTER__PROCESSORS__SCAN_PROCESSOR_HPP_
+#define ROS2_OUSTER__PROCESSORS__SCAN_PROCESSOR_HPP_
 
 #include <vector>
 #include <memory>
@@ -29,10 +29,9 @@
 
 using Cloud = pcl::PointCloud<ouster_ros::Point>;
 
-namespace OS1
-{
+namespace sensor {
 /**
- * @class OS1::ScanProcessor
+ * @class sensor::ScanProcessor
  * @brief A data processor interface implementation of a processor
  * for creating Scans in the
  * driver in ROS2.
@@ -42,7 +41,7 @@ class ScanProcessor : public ros2_ouster::DataProcessorInterface
 public:
 
   /**
-   * @brief A constructor for OS1::ScanProcessor
+   * @brief A constructor for sensor::ScanProcessor
    * @param node Node for creating interfaces
    * @param mdata metadata about the sensor
    * @param frame frame_id to use for messages
@@ -144,6 +143,6 @@ private:
   ouster::LidarScan _ls;
 };
 
-}  // namespace OS1
+}  // namespace sensor
 
-#endif  // ROS2_OUSTER__OS1__PROCESSORS__SCAN_PROCESSOR_HPP_
+#endif  // ROS2_OUSTER__PROCESSORS__SCAN_PROCESSOR_HPP_
