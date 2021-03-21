@@ -68,44 +68,17 @@ public:
   }
 
   /**
-   * Populate a PCL point cloud from a LidarScan
-   * @param xyz_lut lookup table from sensor beam angles (see lidar_scan.h)
-   * @param scan_ts scan start used to caluclate relative timestamps for points
-   * @param ls input lidar data
-   * @param cloud output pcl pointcloud to populate
+   * @brief Handles the packets to create pointcloud
+   * @param data
    */
-  static void scan_to_cloud(const ouster::XYZLut& xyz_lut,
-                     ouster::LidarScan::ts_t scan_ts,
-                     const ouster::LidarScan& ls, Cloud& cloud) {
-    cloud.resize(ls.w * ls.h);
-    auto points = ouster::cartesian(ls, xyz_lut);
-
-    for (auto u = 0; u < ls.h; u++) {
-      for (auto v = 0; v < ls.w; v++) {
-        const auto xyz = points.row(u * ls.w + v);
-        const auto pix = ls.data.row(u * ls.w + v);
-        const auto ts = (ls.header(v).timestamp - scan_ts).count();
-        cloud(v, u) = ouster_ros::Point{
-            {{static_cast<float>(xyz(0)), static_cast<float>(xyz(1)),
-              static_cast<float>(xyz(2)), 1.0f}},
-            static_cast<float>(pix(ouster::LidarScan::INTENSITY)),
-            static_cast<uint32_t>(ts),
-            static_cast<uint16_t>(pix(ouster::LidarScan::REFLECTIVITY)),
-            static_cast<uint8_t>(u),
-            static_cast<uint16_t>(pix(ouster::LidarScan::AMBIENT)),
-            static_cast<uint32_t>(pix(ouster::LidarScan::REFLECTIVITY))};
-      }
-    }
-  }
-
-  void lidar_handler(const uint8_t* data) {
+  void handler(const uint8_t* data) {
     if (_batch->operator()(data, _ls)) {
       auto h = std::find_if(
           _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
             return h.timestamp != std::chrono::nanoseconds{0};
           });
       if (h != _ls.headers.end()) {
-        scan_to_cloud(_xyz_lut, h->timestamp, _ls, *_cloud);
+        ros2_ouster::toCloud(_xyz_lut, h->timestamp, _ls, *_cloud);
         _pub->publish(ros2_ouster::toMsg(*_cloud, h->timestamp, _frame));
       }
     }
@@ -127,7 +100,7 @@ public:
    */
   bool process(uint8_t * data, uint64_t override_ts) override
   {
-    lidar_handler(data);
+    handler(data);
     return true;
   }
 

@@ -27,8 +27,12 @@
 #include "sensor_msgs/msg/image.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
-#include "ros2_ouster/OS1/OS1_util.hpp"
 #include "ros2_ouster/client/client.h"
+#include "ros2_ouster/client/viz/autoexposure.h"
+#include "ros2_ouster/client/viz/beam_uniformity.h"
+
+using Cloud = pcl::PointCloud<ouster_ros::Point>;
+namespace viz = ouster::viz;
 
 namespace OS1
 {
@@ -41,8 +45,6 @@ namespace OS1
 class ImageProcessor : public ros2_ouster::DataProcessorInterface
 {
 public:
-  using OSImage = std::vector<image_os::ImageOS>;
-  using OSImageIt = OSImage::iterator;
 
   /**
    * @brief A constructor for OS1::ImageProcessor
@@ -54,24 +56,39 @@ public:
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
-    const rclcpp::QoS & qos)
-  : DataProcessorInterface(), _node(node), _frame(frame)
+    const rclcpp::QoS & qos,
+    const ouster::sensor::packet_format& pf)
+  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _height = mdata.format.pixels_per_column;
-    _width = ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
-    _px_offset = OS1::get_px_offset(_width);
-    _xyz_lut = OS1::make_xyz_lut(
-      _width, _height, mdata.beam_azimuth_angles, mdata.beam_altitude_angles);
+    _width = mdata.format.columns_per_frame;
+    _px_offset = mdata.format.pixel_shift_by_row;
+    _ls = ouster::LidarScan{_width, _height};
+    _batch = new ouster::ScanBatcher(_width, _pf);
+    _cloud = new Cloud{_width, _height};
+    _xyz_lut = ouster::make_xyz_lut(mdata);
 
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", qos);
     _intensity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "intensity_image", qos);
-    _noise_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "noise_image", qos);
-    _reflectivity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "reflectivity_image", qos);
+    _ambient_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
+      "ambient_image", qos);
+  }
 
+  /**
+  * @brief A destructor clearing memory allocated
+  */
+  ~ImageProcessor()
+  {
+    _range_image_pub.reset();
+    _ambient_image_pub.reset();
+    _intensity_image_pub.reset();
+    delete(_batch);
+    delete(_cloud);
+  }
+
+  void generate_images(std::chrono::nanoseconds timestamp) {
     _range_image.width = _width;
     _range_image.height = _height;
     _range_image.step = _width;
@@ -79,94 +96,90 @@ public:
     _range_image.header.frame_id = _frame;
     _range_image.data.resize(_width * _height);
 
+    _range_image.width = _width;
+    _range_image.height = _height;
+    _range_image.step = _width;
+    _range_image.encoding = "mono8";
+    _range_image.data.resize(_width * _height * _bit_depth /
+                             (8 * sizeof(*_range_image.data.data())));
+    _range_image.header.stamp = rclcpp::Time(timestamp.count());
+
+    _ambient_image.width = _width;
+    _ambient_image.height = _height;
+    _ambient_image.step = _width;
+    _ambient_image.encoding = "mono8";
+    _ambient_image.data.resize(_width * _height * _bit_depth /
+                              (8 * sizeof(*_ambient_image.data.data())));
+    _ambient_image.header.stamp = rclcpp::Time(timestamp.count());
+
     _intensity_image.width = _width;
     _intensity_image.height = _height;
     _intensity_image.step = _width;
     _intensity_image.encoding = "mono8";
-    _intensity_image.header.frame_id = _frame;
-    _intensity_image.data.resize(_width * _height);
+    _intensity_image.data.resize(_width * _height * _bit_depth /
+                                (8 * sizeof(*_intensity_image.data.data())));
+    _intensity_image.header.stamp = rclcpp::Time(timestamp.count());
 
-    _noise_image.width = _width;
-    _noise_image.height = _height;
-    _noise_image.step = _width;
-    _noise_image.encoding = "mono8";
-    _noise_image.header.frame_id = _frame;
-    _noise_image.data.resize(_width * _height);
+    using im_t = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic,
+            Eigen::RowMajor>;
+    im_t ambient_image_eigen(_height, _width);
+    im_t intensity_image_eigen(_height, _width);
 
-    _reflectivity_image.width = _width;
-    _reflectivity_image.height = _height;
-    _reflectivity_image.step = _width;
-    _reflectivity_image.encoding = "mono8";
-    _reflectivity_image.header.frame_id = _frame;
-    _reflectivity_image.data.resize(_width * _height);
+    for (size_t u = 0; u < _height; u++) {
+      for (size_t v = 0; v < _width; v++) {
 
-    _information_image.resize(_width * _height);
+        const size_t vv = (v + _width - _px_offset[u]) % _width;
+        const size_t index = u * _width + vv;
+        const auto& pt = _cloud->operator[](index);
 
-    _batch_and_publish =
-      OS1::batch_to_iter<OSImageIt>(
-      _xyz_lut, _width, _height, {}, &image_os::ImageOS::make,
-      [&](uint64_t scan_ts) mutable
-      {
-        rclcpp::Time t(scan_ts);
-        _range_image.header.stamp = t;
-        _noise_image.header.stamp = t;
-        _intensity_image.header.stamp = t;
-        _reflectivity_image.header.stamp = t;
-
-        OSImageIt it;
-        for (uint u = 0; u != _height; u++) {
-          for (uint v = 0; v != _width; v++) {
-            const size_t vv = (v + _px_offset[u]) % _width;
-            const size_t index = vv * _height + u;
-            image_os::ImageOS & px = _information_image[index];
-
-            const uint & idx = u * _width + v;
-            if (px.range == 0) {
-              _range_image.data[idx] = 0;
-            } else {
-              _range_image.data[idx] = 255 - std::min(std::round(px.range * 5e-3), 255.0);
-            }
-            _noise_image.data[idx] = std::min(px.noise, static_cast<uint16_t>(255));
-            _intensity_image.data[idx] = std::min(px.intensity, 255.0f);
-            _reflectivity_image.data[idx] = std::min(px.reflectivity, static_cast<uint16_t>(255));
-          }
+        if (pt.range == 0) {
+          reinterpret_cast<uint8_t*>(
+                  _range_image.data.data())[u * _width + v] = 0;
+        } else {
+          reinterpret_cast<uint8_t*>(
+                  _range_image.data.data())[u * _width + v] =
+                  _pixel_value_max -
+                  std::min(std::round(pt.range * _range_multiplier),
+                           static_cast<double>(_pixel_value_max));
         }
+        ambient_image_eigen(u, v) = pt.ambient;
+        intensity_image_eigen(u, v) = pt.intensity;
+      }
+    }
 
-        if (_range_image_pub->get_subscription_count() > 0 &&
-        _range_image_pub->is_activated())
-        {
-          _range_image_pub->publish(_range_image);
-        }
-
-        if (_noise_image_pub->get_subscription_count() > 0 &&
-        _noise_image_pub->is_activated())
-        {
-          _noise_image_pub->publish(_noise_image);
-        }
-
-        if (_intensity_image_pub->get_subscription_count() > 0 &&
-        _intensity_image_pub->is_activated())
-        {
-          _intensity_image_pub->publish(_intensity_image);
-        }
-
-        if (_reflectivity_image_pub->get_subscription_count() > 0 &&
-        _reflectivity_image_pub->is_activated())
-        {
-          _reflectivity_image_pub->publish(_reflectivity_image);
-        }
-      });
+    _ambient_buc.correct(ambient_image_eigen);
+    _ambient_ae(
+            Eigen::Map<Eigen::ArrayXd>(ambient_image_eigen.data(), _width * _height));
+    _intensity_ae(
+            Eigen::Map<Eigen::ArrayXd>(intensity_image_eigen.data(), _width * _height));
+    ambient_image_eigen = ambient_image_eigen.sqrt();
+    intensity_image_eigen = intensity_image_eigen.sqrt();
+    for (size_t u = 0; u < _height; u++) {
+      for (size_t v = 0; v < _width; v++) {
+        reinterpret_cast<uint8_t*>(
+                _ambient_image.data.data())[u * _width + v] =
+                ambient_image_eigen(u, v) * _pixel_value_max;
+        reinterpret_cast<uint8_t*>(
+                _intensity_image.data.data())[u * _width + v] =
+                intensity_image_eigen(u, v) * _pixel_value_max;
+      }
+    }
+    _range_image_pub->publish(_range_image);
+    _ambient_image_pub->publish(_ambient_image);
+    _intensity_image_pub->publish(_intensity_image);
   }
 
-  /**
-   * @brief A destructor clearing memory allocated
-   */
-  ~ImageProcessor()
-  {
-    _reflectivity_image_pub.reset();
-    _intensity_image_pub.reset();
-    _noise_image_pub.reset();
-    _range_image_pub.reset();
+  void handler(const uint8_t* data) {
+    if (_batch->operator()(data, _ls)) {
+      auto h = std::find_if(
+              _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
+                  return h.timestamp != std::chrono::nanoseconds{0};
+              });
+      if (h != _ls.headers.end()) {
+        ros2_ouster::toCloud(_xyz_lut, h->timestamp, _ls, *_cloud);
+        generate_images(h->timestamp);
+      }
+    }
   }
 
   /**
@@ -175,8 +188,7 @@ public:
    */
   bool process(uint8_t * data, uint64_t override_ts) override
   {
-    OSImageIt it = _information_image.begin();
-    _batch_and_publish(data, it, override_ts);
+    handler(data);
     return true;
   }
 
@@ -185,10 +197,9 @@ public:
    */
   void onActivate() override
   {
-    _reflectivity_image_pub->on_activate();
     _intensity_image_pub->on_activate();
+    _ambient_image_pub->on_activate();
     _range_image_pub->on_activate();
-    _noise_image_pub->on_activate();
   }
 
   /**
@@ -196,29 +207,33 @@ public:
    */
   void onDeactivate() override
   {
-    _reflectivity_image_pub->on_deactivate();
     _intensity_image_pub->on_deactivate();
+    _ambient_image_pub->on_deactivate();
     _range_image_pub->on_deactivate();
-    _noise_image_pub->on_deactivate();
   }
 
 private:
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _reflectivity_image_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _range_image_pub;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _noise_image_pub;
-  std::function<void(const uint8_t *, OSImageIt, uint64_t)> _batch_and_publish;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _ambient_image_pub;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr _intensity_image_pub;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
-  sensor_msgs::msg::Image _reflectivity_image;
-  sensor_msgs::msg::Image _intensity_image;
   sensor_msgs::msg::Image _range_image;
-  sensor_msgs::msg::Image _noise_image;
-  std::vector<double> _xyz_lut;
+  sensor_msgs::msg::Image _ambient_image;
+  sensor_msgs::msg::Image _intensity_image;
   std::vector<int> _px_offset;
-  OSImage _information_image;
   std::string _frame;
   uint32_t _height;
   uint32_t _width;
+  size_t _bit_depth = 8 * sizeof(uint8_t);
+  const ouster::sensor::packet_format& _pf;
+  const size_t _pixel_value_max = std::numeric_limits<uint8_t>::max();
+  double _range_multiplier = 1.0 / 200.0;  // assuming 200 m range typical
+  viz::AutoExposure _ambient_ae, _intensity_ae;
+  viz::BeamUniformityCorrector _ambient_buc;
+  ouster::ScanBatcher* _batch;
+  ouster::LidarScan _ls;
+  Cloud* _cloud;
+  ouster::XYZLut _xyz_lut;
 };
 
 }  // namespace OS1
