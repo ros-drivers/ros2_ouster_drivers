@@ -113,7 +113,7 @@ void Sensor::setMetadata(int lidar_port, int imu_port,
             ouster::sensor::get_metadata(*_ouster_client)),
         imu_port, lidar_port, timestamp_mode);
   }
-  ros2_ouster::populate_metadata_defaults(_metadata);
+  ros2_ouster::populate_missing_metadata_defaults(_metadata);
 }
 
 ros2_ouster::Metadata Sensor::getMetadata()
