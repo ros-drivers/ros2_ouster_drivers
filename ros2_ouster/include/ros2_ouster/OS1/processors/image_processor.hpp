@@ -65,7 +65,6 @@ public:
     _px_offset = mdata.format.pixel_shift_by_row;
     _ls = ouster::LidarScan{_width, _height};
     _batch = new ouster::ScanBatcher(_width, _pf);
-    _cloud = new Cloud{_width, _height};
     _xyz_lut = ouster::make_xyz_lut(mdata);
 
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
@@ -85,7 +84,6 @@ public:
     _ambient_image_pub.reset();
     _intensity_image_pub.reset();
     delete(_batch);
-    delete(_cloud);
   }
 
   void generate_images(std::chrono::nanoseconds timestamp) {
@@ -130,20 +128,19 @@ public:
 
         const size_t vv = (v + _width - _px_offset[u]) % _width;
         const size_t index = u * _width + vv;
-        const auto& pt = _cloud->operator[](index);
 
-        if (pt.range == 0) {
+        if (_ls.field(ouster::LidarScan::RANGE)(index) == 0) {
           reinterpret_cast<uint8_t*>(
                   _range_image.data.data())[u * _width + v] = 0;
         } else {
           reinterpret_cast<uint8_t*>(
                   _range_image.data.data())[u * _width + v] =
                   _pixel_value_max -
-                  std::min(std::round(pt.range * _range_multiplier),
+                  std::min(std::round(_ls.field(ouster::LidarScan::RANGE)(index) * _range_multiplier),
                            static_cast<double>(_pixel_value_max));
         }
-        ambient_image_eigen(u, v) = pt.ambient;
-        intensity_image_eigen(u, v) = pt.intensity;
+        ambient_image_eigen(u, v) = _ls.field(ouster::LidarScan::AMBIENT)(index);
+        intensity_image_eigen(u, v) = _ls.field(ouster::LidarScan::INTENSITY)(index);
       }
     }
 
@@ -176,7 +173,6 @@ public:
                   return h.timestamp != std::chrono::nanoseconds{0};
               });
       if (h != _ls.headers.end()) {
-        ros2_ouster::toCloud(_xyz_lut, h->timestamp, _ls, *_cloud);
         generate_images(h->timestamp);
       }
     }
@@ -227,12 +223,11 @@ private:
   size_t _bit_depth = 8 * sizeof(uint8_t);
   const ouster::sensor::packet_format& _pf;
   const size_t _pixel_value_max = std::numeric_limits<uint8_t>::max();
-  double _range_multiplier = 1.0 / 200.0;  // assuming 200 m range typical
+  double _range_multiplier = ouster::sensor::range_unit * (1.0 / 200.0);  // assuming 200 m range typical
   viz::AutoExposure _ambient_ae, _intensity_ae;
   viz::BeamUniformityCorrector _ambient_buc;
   ouster::ScanBatcher* _batch;
   ouster::LidarScan _ls;
-  Cloud* _cloud;
   ouster::XYZLut _xyz_lut;
 };
 
