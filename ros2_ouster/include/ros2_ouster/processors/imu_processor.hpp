@@ -94,7 +94,7 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr _pub;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::string _frame;
-  const ouster::sensor::packet_format& _pf;
+  ouster::sensor::packet_format _pf;
 };
 
 }  // namespace sensor

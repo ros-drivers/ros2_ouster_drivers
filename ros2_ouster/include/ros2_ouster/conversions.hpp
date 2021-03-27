@@ -142,7 +142,7 @@ inline geometry_msgs::msg::TransformStamped toMsg(
 inline sensor_msgs::msg::Imu toMsg(
   const uint8_t * buf,
   const std::string & frame,
-  const ouster::sensor::packet_format pf,
+  const ouster::sensor::packet_format& pf,
   uint64_t override_ts = 0)
 {
   const double standard_g = 9.80665;

@@ -129,7 +129,7 @@ private:
   std::string _frame;
   uint32_t _height;
   uint32_t _width;
-  const ouster::sensor::packet_format& _pf;
+  ouster::sensor::packet_format _pf;
 };
 
 }  // namespace sensor

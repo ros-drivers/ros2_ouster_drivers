@@ -138,7 +138,7 @@ private:
   uint32_t _height;
   uint32_t _width;
   uint8_t _ring;
-  const ouster::sensor::packet_format& _pf;
+  ouster::sensor::packet_format _pf;
   ouster::ScanBatcher* _batch;
   ouster::LidarScan _ls;
 };
