@@ -63,7 +63,7 @@ public:
     _width = mdata.format.columns_per_frame;
     _px_offset = mdata.format.pixel_shift_by_row;
     _ls = ouster::LidarScan{_width, _height};
-    _batch = new ouster::ScanBatcher(_width, _pf);
+    _batch = std::make_unique<ouster::ScanBatcher>(_width, _pf);
 
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", qos);
@@ -81,7 +81,6 @@ public:
     _range_image_pub.reset();
     _ambient_image_pub.reset();
     _intensity_image_pub.reset();
-    delete(_batch);
   }
 
   void generate_images(const std::chrono::nanoseconds timestamp, const uint64_t override_ts) {
@@ -224,7 +223,7 @@ private:
   double _range_multiplier = ouster::sensor::range_unit * (1.0 / 200.0);  // assuming 200 m range typical
   viz::AutoExposure _ambient_ae, _intensity_ae;
   viz::BeamUniformityCorrector _ambient_buc;
-  ouster::ScanBatcher* _batch;
+  std::unique_ptr<ouster::ScanBatcher> _batch;
   ouster::LidarScan _ls;
 };
 

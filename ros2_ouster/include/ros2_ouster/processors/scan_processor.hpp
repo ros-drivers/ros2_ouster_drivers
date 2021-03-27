@@ -59,8 +59,8 @@ public:
     _height = mdata.format.pixels_per_column;
     _width = mdata.format.columns_per_frame;
     _xyz_lut = ouster::make_xyz_lut(mdata);
-    _batch = new ouster::ScanBatcher(_width, _pf);
-    _cloud = new Cloud{_width, _height};
+    _batch = std::make_unique<ouster::ScanBatcher>(_width, _pf);
+    _cloud = std::make_unique<Cloud>(_width, _height);
     _ls = ouster::LidarScan{_width, _height};
 
 
@@ -80,8 +80,6 @@ public:
   ~ScanProcessor()
   {
     _pub.reset();
-    delete(_batch);
-    delete(_cloud);
   }
 
   /**
@@ -130,7 +128,6 @@ public:
 
 private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr _pub;
-  Cloud* _cloud;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   ouster::XYZLut _xyz_lut;
   ouster::sensor::sensor_info _mdata;
@@ -139,7 +136,8 @@ private:
   uint32_t _width;
   uint8_t _ring;
   ouster::sensor::packet_format _pf;
-  ouster::ScanBatcher* _batch;
+  std::unique_ptr<ouster::ScanBatcher> _batch;
+  std::unique_ptr<Cloud> _cloud;
   ouster::LidarScan _ls;
 };
 
