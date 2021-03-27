@@ -27,7 +27,8 @@
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/client/client.h"
 
-namespace sensor {
+namespace sensor
+{
 
 /**
  * @class sensor::IMUProcessor
@@ -48,7 +49,7 @@ public:
     const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
     const rclcpp::QoS & qos,
-    const ouster::sensor::packet_format& pf)
+    const ouster::sensor::packet_format & pf)
   : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _pub = node->create_publisher<sensor_msgs::msg::Imu>("imu", qos);

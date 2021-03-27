@@ -37,7 +37,7 @@ constexpr std::uint32_t PROC_IMU = (1 << 2);
 constexpr std::uint32_t PROC_SCAN = (1 << 3);
 
 constexpr std::uint32_t DEFAULT_PROC_MASK =
-    PROC_IMG | PROC_PCL | PROC_IMU | PROC_SCAN;
+  PROC_IMG | PROC_PCL | PROC_IMU | PROC_SCAN;
 
 /**
  * Transforms a data processor mask-like-string into a mask value
@@ -84,9 +84,9 @@ inline std::unique_ptr<ros2_ouster::DataProcessorInterface> createImageProcessor
   const ouster::sensor::sensor_info & mdata,
   const std::string & frame,
   const rclcpp::QoS & qos,
-  const ouster::sensor::packet_format& pf)
+  const ouster::sensor::packet_format & pf)
 {
-  return std::make_unique<sensor::ImageProcessor>(node, mdata, frame, qos, pf);;
+  return std::make_unique<sensor::ImageProcessor>(node, mdata, frame, qos, pf);
 //  return new sensor::ImageProcessor(node, mdata, frame, qos, pf);
 }
 
@@ -100,7 +100,7 @@ inline std::unique_ptr<ros2_ouster::DataProcessorInterface> createPointcloudProc
   const ouster::sensor::sensor_info & mdata,
   const std::string & frame,
   const rclcpp::QoS & qos,
-  const ouster::sensor::packet_format& pf)
+  const ouster::sensor::packet_format & pf)
 {
   return std::make_unique<sensor::PointcloudProcessor>(node, mdata, frame, qos, pf);
 }
@@ -115,7 +115,7 @@ inline std::unique_ptr<ros2_ouster::DataProcessorInterface> createIMUProcessor(
   const ouster::sensor::sensor_info & mdata,
   const std::string & frame,
   const rclcpp::QoS & qos,
-  const ouster::sensor::packet_format& pf)
+  const ouster::sensor::packet_format & pf)
 {
   return std::make_unique<sensor::IMUProcessor>(node, mdata, frame, qos, pf);
 }
@@ -130,47 +130,49 @@ inline std::unique_ptr<ros2_ouster::DataProcessorInterface> createScanProcessor(
   const ouster::sensor::sensor_info & mdata,
   const std::string & frame,
   const rclcpp::QoS & qos,
-  const ouster::sensor::packet_format& pf)
+  const ouster::sensor::packet_format & pf)
 {
   return std::make_unique<sensor::ScanProcessor>(node, mdata, frame, qos, pf);
 }
 
-inline std::multimap<ouster::sensor::client_state, std::unique_ptr<ros2_ouster::DataProcessorInterface>> createProcessors(
+inline std::multimap<ouster::sensor::client_state,
+  std::unique_ptr<ros2_ouster::DataProcessorInterface>> createProcessors(
   const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
   const ouster::sensor::sensor_info & mdata,
   const std::string & imu_frame,
   const std::string & laser_frame,
   const rclcpp::QoS & qos,
-  const ouster::sensor::packet_format& pf,
+  const ouster::sensor::packet_format & pf,
   std::uint32_t mask = ros2_ouster::DEFAULT_PROC_MASK)
 {
-  std::multimap<ouster::sensor::client_state, std::unique_ptr<ros2_ouster::DataProcessorInterface>> data_processors;
+  std::multimap<ouster::sensor::client_state,
+    std::unique_ptr<ros2_ouster::DataProcessorInterface>> data_processors;
 
   if ((mask & ros2_ouster::PROC_IMG) == ros2_ouster::PROC_IMG) {
     data_processors.insert(
       std::pair<ouster::sensor::client_state, std::unique_ptr<ros2_ouster::DataProcessorInterface>>(
-              ouster::sensor::client_state::LIDAR_DATA, createImageProcessor(
+        ouster::sensor::client_state::LIDAR_DATA, createImageProcessor(
           node, mdata, laser_frame, qos, pf)));
   }
 
   if ((mask & ros2_ouster::PROC_PCL) == ros2_ouster::PROC_PCL) {
     data_processors.insert(
       std::pair<ouster::sensor::client_state, std::unique_ptr<ros2_ouster::DataProcessorInterface>>(
-              ouster::sensor::client_state::LIDAR_DATA, createPointcloudProcessor(
+        ouster::sensor::client_state::LIDAR_DATA, createPointcloudProcessor(
           node, mdata, laser_frame, qos, pf)));
   }
 
   if ((mask & ros2_ouster::PROC_IMU) == ros2_ouster::PROC_IMU) {
     data_processors.insert(
       std::pair<ouster::sensor::client_state, std::unique_ptr<ros2_ouster::DataProcessorInterface>>(
-              ouster::sensor::client_state::IMU_DATA, createIMUProcessor(
+        ouster::sensor::client_state::IMU_DATA, createIMUProcessor(
           node, mdata, imu_frame, qos, pf)));
   }
 
   if ((mask & ros2_ouster::PROC_SCAN) == ros2_ouster::PROC_SCAN) {
     data_processors.insert(
       std::pair<ouster::sensor::client_state, std::unique_ptr<ros2_ouster::DataProcessorInterface>>(
-              ouster::sensor::client_state::LIDAR_DATA, createScanProcessor(
+        ouster::sensor::client_state::LIDAR_DATA, createScanProcessor(
           node, mdata, laser_frame, qos, pf)));
   }
 

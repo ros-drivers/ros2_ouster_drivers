@@ -36,47 +36,47 @@ typedef fd_set FDSET;
 #endif  // --------- End Platform Differentiation Block ---------
 
 namespace ouster {
-namespace impl {
+  namespace impl {
 
 /**
  * Close a specified socket
  * @param sock The socket file descriptor to close
  * @return success
  */
-int socket_close(SOCKET sock);
+    int socket_close(SOCKET sock);
 
 /**
  * Get the error message for socket errors
  * @return The socket error message
  */
-std::string socket_get_error();
+    std::string socket_get_error();
 
 /**
  * Check if a socket file descriptor is valid
  * @param sock The socket file descriptor to check
  * @return The validity of the socket file descriptor
  */
-bool socket_valid(SOCKET value);
+    bool socket_valid(SOCKET value);
 
 /**
  * Check if the last error was a socket exit event
  * @return If the socket has exited
  */
-bool socket_exit();
+    bool socket_exit();
 
 /**
  * Set a specified socket to non-blocking
  * @param sock The socket file descriptor to set non-blocking
  * @return success
  */
-int socket_set_non_blocking(SOCKET value);
+    int socket_set_non_blocking(SOCKET value);
 
 /**
  * Set a specified socket to reuse
  * @param sock The socket file descriptor to set reuse
  * @return success
  */
-int socket_set_reuse(SOCKET value);
+    int socket_set_reuse(SOCKET value);
 
-}  // namespace impl
+  } // namespace impl
 }  // namespace ouster

@@ -32,7 +32,8 @@
 
 using Cloud = pcl::PointCloud<ouster_ros::Point>;
 
-namespace sensor {
+namespace sensor
+{
 /**
  * @class sensor::PointcloudProcessor
  * @brief A data processor interface implementation of a processor
@@ -53,7 +54,7 @@ public:
     const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
     const rclcpp::QoS & qos,
-    const ouster::sensor::packet_format& pf)
+    const ouster::sensor::packet_format & pf)
   : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _height = mdata.format.pixels_per_column;
@@ -70,18 +71,19 @@ public:
    * @brief Handles the packets to create pointcloud
    * @param data
    */
-  void handler(const uint8_t* data, const uint64_t override_ts) {
+  void handler(const uint8_t * data, const uint64_t override_ts)
+  {
     if (_batch->operator()(data, _ls)) {
       auto h = std::find_if(
-          _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
-            return h.timestamp != std::chrono::nanoseconds{0};
-          });
+        _ls.headers.begin(), _ls.headers.end(), [](const auto & h) {
+          return h.timestamp != std::chrono::nanoseconds{0};
+        });
       if (h != _ls.headers.end()) {
         ros2_ouster::toCloud(_xyz_lut, h->timestamp, _ls, *_cloud);
         _pub->publish(ros2_ouster::toMsg(*_cloud, h->timestamp, _frame, override_ts));
       }
     }
-  };
+  }
 
   /**
    * @brief A destructor clearing memory allocated

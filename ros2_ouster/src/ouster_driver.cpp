@@ -75,9 +75,9 @@ void OusterDriver::onConfigure()
 
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
     RCLCPP_WARN(
-        this->get_logger(),
-        "Using TIME_FROM_ROS_RECEPTION to stamp data with ROS time on "
-        "reception. This has unmodelled latency!");
+      this->get_logger(),
+      "Using TIME_FROM_ROS_RECEPTION to stamp data with ROS time on "
+      "reception. This has unmodelled latency!");
     lidar_config.timestamp_mode = "TIME_FROM_INTERNAL_OSC";
     _use_ros_time = true;
   } else {
@@ -207,7 +207,7 @@ void OusterDriver::processData()
     std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
 
     uint64_t override_ts =
-        this->_use_ros_time ? this->now().nanoseconds() : 0;
+      this->_use_ros_time ? this->now().nanoseconds() : 0;
 
     if (_lidar_packet_data) {
       key_its = _data_processors.equal_range(ouster::sensor::client_state::LIDAR_DATA);
@@ -218,11 +218,11 @@ void OusterDriver::processData()
     }
 
     if (_imu_packet_data) {
-        key_its = _data_processors.equal_range(ouster::sensor::client_state::IMU_DATA);
+      key_its = _data_processors.equal_range(ouster::sensor::client_state::IMU_DATA);
 
-        for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
-          it->second->process(_imu_packet_data, override_ts);
-        }
+      for (DataProcessorMapIt it = key_its.first; it != key_its.second; it++) {
+        it->second->process(_imu_packet_data, override_ts);
+      }
     }
 
   } catch (const OusterDriverException & e) {

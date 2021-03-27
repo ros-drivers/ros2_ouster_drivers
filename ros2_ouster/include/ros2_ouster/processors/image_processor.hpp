@@ -34,7 +34,8 @@
 using Cloud = pcl::PointCloud<ouster_ros::Point>;
 namespace viz = ouster::viz;
 
-namespace sensor {
+namespace sensor
+{
 /**
  * @class sensor::ImageProcessor
  * @brief A data processor interface implementation of a processor
@@ -44,7 +45,6 @@ namespace sensor {
 class ImageProcessor : public ros2_ouster::DataProcessorInterface
 {
 public:
-
   /**
    * @brief A constructor for sensor::ImageProcessor
    * @param node Node for creating interfaces
@@ -56,7 +56,7 @@ public:
     const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
     const rclcpp::QoS & qos,
-    const ouster::sensor::packet_format& pf)
+    const ouster::sensor::packet_format & pf)
   : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _height = mdata.format.pixels_per_column;
@@ -83,7 +83,8 @@ public:
     _intensity_image_pub.reset();
   }
 
-  void generate_images(const std::chrono::nanoseconds timestamp, const uint64_t override_ts) {
+  void generate_images(const std::chrono::nanoseconds timestamp, const uint64_t override_ts)
+  {
     _range_image.width = _width;
     _range_image.height = _height;
     _range_image.step = _width;
@@ -95,28 +96,34 @@ public:
     _range_image.height = _height;
     _range_image.step = _width;
     _range_image.encoding = "mono8";
-    _range_image.data.resize(_width * _height * _bit_depth /
-                             (8 * sizeof(*_range_image.data.data())));
-    _range_image.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(override_ts);
+    _range_image.data.resize(
+      _width * _height * _bit_depth /
+      (8 * sizeof(*_range_image.data.data())));
+    _range_image.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(
+      override_ts);
 
     _ambient_image.width = _width;
     _ambient_image.height = _height;
     _ambient_image.step = _width;
     _ambient_image.encoding = "mono8";
-    _ambient_image.data.resize(_width * _height * _bit_depth /
-                              (8 * sizeof(*_ambient_image.data.data())));
-    _ambient_image.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(override_ts);
+    _ambient_image.data.resize(
+      _width * _height * _bit_depth /
+      (8 * sizeof(*_ambient_image.data.data())));
+    _ambient_image.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(
+      override_ts);
 
     _intensity_image.width = _width;
     _intensity_image.height = _height;
     _intensity_image.step = _width;
     _intensity_image.encoding = "mono8";
-    _intensity_image.data.resize(_width * _height * _bit_depth /
-                                (8 * sizeof(*_intensity_image.data.data())));
-    _intensity_image.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(override_ts);
+    _intensity_image.data.resize(
+      _width * _height * _bit_depth /
+      (8 * sizeof(*_intensity_image.data.data())));
+    _intensity_image.header.stamp = override_ts ==
+      0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(override_ts);
 
     using im_t = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic,
-            Eigen::RowMajor>;
+        Eigen::RowMajor>;
     im_t ambient_image_eigen(_height, _width);
     im_t intensity_image_eigen(_height, _width);
 
@@ -127,14 +134,15 @@ public:
         const size_t index = u * _width + vv;
 
         if (_ls.field(ouster::LidarScan::RANGE)(index) == 0) {
-          reinterpret_cast<uint8_t*>(
-                  _range_image.data.data())[u * _width + v] = 0;
+          reinterpret_cast<uint8_t *>(
+            _range_image.data.data())[u * _width + v] = 0;
         } else {
-          reinterpret_cast<uint8_t*>(
-                  _range_image.data.data())[u * _width + v] =
-                  _pixel_value_max -
-                  std::min(std::round(_ls.field(ouster::LidarScan::RANGE)(index) * _range_multiplier),
-                           static_cast<double>(_pixel_value_max));
+          reinterpret_cast<uint8_t *>(
+            _range_image.data.data())[u * _width + v] =
+            _pixel_value_max -
+            std::min(
+            std::round(_ls.field(ouster::LidarScan::RANGE)(index) * _range_multiplier),
+            static_cast<double>(_pixel_value_max));
         }
         ambient_image_eigen(u, v) = _ls.field(ouster::LidarScan::AMBIENT)(index);
         intensity_image_eigen(u, v) = _ls.field(ouster::LidarScan::INTENSITY)(index);
@@ -143,19 +151,19 @@ public:
 
     _ambient_buc.correct(ambient_image_eigen);
     _ambient_ae(
-            Eigen::Map<Eigen::ArrayXd>(ambient_image_eigen.data(), _width * _height));
+      Eigen::Map<Eigen::ArrayXd>(ambient_image_eigen.data(), _width * _height));
     _intensity_ae(
-            Eigen::Map<Eigen::ArrayXd>(intensity_image_eigen.data(), _width * _height));
+      Eigen::Map<Eigen::ArrayXd>(intensity_image_eigen.data(), _width * _height));
     ambient_image_eigen = ambient_image_eigen.sqrt();
     intensity_image_eigen = intensity_image_eigen.sqrt();
     for (size_t u = 0; u < _height; u++) {
       for (size_t v = 0; v < _width; v++) {
-        reinterpret_cast<uint8_t*>(
-                _ambient_image.data.data())[u * _width + v] =
-                ambient_image_eigen(u, v) * _pixel_value_max;
-        reinterpret_cast<uint8_t*>(
-                _intensity_image.data.data())[u * _width + v] =
-                intensity_image_eigen(u, v) * _pixel_value_max;
+        reinterpret_cast<uint8_t *>(
+          _ambient_image.data.data())[u * _width + v] =
+          ambient_image_eigen(u, v) * _pixel_value_max;
+        reinterpret_cast<uint8_t *>(
+          _intensity_image.data.data())[u * _width + v] =
+          intensity_image_eigen(u, v) * _pixel_value_max;
       }
     }
     _range_image_pub->publish(_range_image);
@@ -163,12 +171,13 @@ public:
     _intensity_image_pub->publish(_intensity_image);
   }
 
-  void handler(const uint8_t* data, const uint64_t override_ts) {
+  void handler(const uint8_t * data, const uint64_t override_ts)
+  {
     if (_batch->operator()(data, _ls)) {
       auto h = std::find_if(
-              _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
-                  return h.timestamp != std::chrono::nanoseconds{0};
-              });
+        _ls.headers.begin(), _ls.headers.end(), [](const auto & h) {
+          return h.timestamp != std::chrono::nanoseconds{0};
+        });
       if (h != _ls.headers.end()) {
         generate_images(h->timestamp, override_ts);
       }
@@ -218,7 +227,7 @@ private:
   uint32_t _height;
   uint32_t _width;
   size_t _bit_depth = 8 * sizeof(uint8_t);
-  const ouster::sensor::packet_format& _pf;
+  const ouster::sensor::packet_format & _pf;
   const size_t _pixel_value_max = std::numeric_limits<uint8_t>::max();
   double _range_multiplier = ouster::sensor::range_unit * (1.0 / 200.0);  // assuming 200 m range typical
   viz::AutoExposure _ambient_ae, _intensity_ae;

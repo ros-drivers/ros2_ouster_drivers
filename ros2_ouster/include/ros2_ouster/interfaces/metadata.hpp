@@ -26,8 +26,10 @@ namespace ros2_ouster
 /**
  * @brief metadata about Ouster lidar sensor, inherited from client sensor_info.
  */
-struct Metadata : ouster::sensor::sensor_info {
-  Metadata() {
+struct Metadata : ouster::sensor::sensor_info
+{
+  Metadata()
+  {
     name = "UNKNOWN";
     sn = "UNKNOWN";
     fw_rev = "UNKNOWN";
@@ -44,11 +46,13 @@ struct Metadata : ouster::sensor::sensor_info {
     imu_port = 0;
     lidar_port = 0;
   }
-  Metadata(const ouster::sensor::sensor_info& info, int _imu_port,
-           int _lidar_port, const std::string& _timestamp_mode)
-      : imu_port(_imu_port),
-        lidar_port(_lidar_port),
-        timestamp_mode(_timestamp_mode) {
+  Metadata(
+    const ouster::sensor::sensor_info & info, int _imu_port,
+    int _lidar_port, const std::string & _timestamp_mode)
+  : imu_port(_imu_port),
+    lidar_port(_lidar_port),
+    timestamp_mode(_timestamp_mode)
+  {
     name = info.name;
     sn = info.sn;
     fw_rev = info.fw_rev;
@@ -71,7 +75,8 @@ struct Metadata : ouster::sensor::sensor_info {
 /**
  * @brief fill in values that could not be parsed from metadata.
  */
-inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info& info) {
+inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & info)
+{
   if (info.name.empty()) {
     info.name = "UNKNOWN";
   }

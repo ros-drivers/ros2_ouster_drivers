@@ -18,7 +18,8 @@
 #include "ros2_ouster/interfaces/metadata.hpp"
 #include "ros2_ouster/sensor.hpp"
 
-namespace sensor {
+namespace sensor
+{
 
 Sensor::Sensor()
 : SensorInterface() {}
@@ -46,7 +47,7 @@ void Sensor::configure(const ros2_ouster::Configuration & config)
 
   if (!ouster::sensor::timestamp_mode_of_string(config.timestamp_mode)) {
     throw ros2_ouster::OusterDriverException(
-              "Invalid timestamp mode: " + config.timestamp_mode);
+            "Invalid timestamp mode: " + config.timestamp_mode);
     exit(-1);
   }
 
@@ -87,31 +88,39 @@ ouster::sensor::client_state Sensor::get()
   return state;
 }
 
-uint8_t* Sensor::readLidarPacket(const ouster::sensor::client_state& state) {
+uint8_t * Sensor::readLidarPacket(const ouster::sensor::client_state & state)
+{
   if (state & ouster::sensor::client_state::LIDAR_DATA &&
-      ouster::sensor::read_lidar_packet(*_ouster_client, _lidar_packet.data(),
-                                        this->getPacketFormat())) {
+    ouster::sensor::read_lidar_packet(
+      *_ouster_client, _lidar_packet.data(),
+      this->getPacketFormat()))
+  {
     return _lidar_packet.data();
   }
   return nullptr;
 }
 
-uint8_t* Sensor::readImuPacket(const ouster::sensor::client_state& state) {
+uint8_t * Sensor::readImuPacket(const ouster::sensor::client_state & state)
+{
   if (state & ouster::sensor::client_state::IMU_DATA &&
-      ouster::sensor::read_imu_packet(*_ouster_client, _imu_packet.data(),
-                                      this->getPacketFormat())) {
+    ouster::sensor::read_imu_packet(
+      *_ouster_client, _imu_packet.data(),
+      this->getPacketFormat()))
+  {
     return _imu_packet.data();
   }
   return nullptr;
 }
 
-void Sensor::setMetadata(int lidar_port, int imu_port,
-                            const std::string& timestamp_mode) {
+void Sensor::setMetadata(
+  int lidar_port, int imu_port,
+  const std::string & timestamp_mode)
+{
   if (_ouster_client) {
     _metadata = ros2_ouster::Metadata(
-        ouster::sensor::parse_metadata(
-            ouster::sensor::get_metadata(*_ouster_client)),
-        imu_port, lidar_port, timestamp_mode);
+      ouster::sensor::parse_metadata(
+        ouster::sensor::get_metadata(*_ouster_client)),
+      imu_port, lidar_port, timestamp_mode);
   }
   ros2_ouster::populate_missing_metadata_defaults(_metadata);
 }

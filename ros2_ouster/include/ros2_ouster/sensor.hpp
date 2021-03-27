@@ -23,12 +23,13 @@
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/client/client.h"
 
-namespace sensor {
+namespace sensor
+{
 
 class Sensor : public ros2_ouster::SensorInterface
 {
 public:
- Sensor();
+  Sensor();
 
   ~Sensor() override;
 
@@ -75,8 +76,9 @@ public:
    * @param lidar_port
    * @param imu_port
    */
-  void setMetadata(int lidar_port, int imu_port,
-                   const std::string& timestamp_mode);
+  void setMetadata(
+    int lidar_port, int imu_port,
+    const std::string & timestamp_mode);
 
   /**
    * @brief Get lidar sensor's packet format
@@ -84,7 +86,7 @@ public:
    */
   ouster::sensor::packet_format getPacketFormat() override;
 
- private:
+private:
   std::shared_ptr<ouster::sensor::client> _ouster_client;
   std::vector<uint8_t> _lidar_packet;
   std::vector<uint8_t> _imu_packet;

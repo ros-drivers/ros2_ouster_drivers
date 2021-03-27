@@ -68,7 +68,8 @@ inline std::string toString(const ouster::sensor::client_state & state)
 /**
  * @brief Converts a 4dMatrix into a Vector
  */
-static std::vector<double> toVector(const Eigen::Matrix<double, 4, 4, Eigen::DontAlign>& mat) {
+static std::vector<double> toVector(const Eigen::Matrix<double, 4, 4, Eigen::DontAlign> & mat)
+{
   return std::vector<double>(mat.data(), mat.data() + mat.rows() * mat.cols());
 }
 
@@ -104,10 +105,11 @@ inline geometry_msgs::msg::TransformStamped toMsg(
   tf2::Transform tf;
 
   tf.setOrigin({mat(3) / 1e3, mat(7) / 1e3, mat(11) / 1e3});
-  tf.setBasis({
-    *(mat.data()+0), *(mat.data()+1), *(mat.data()+2), *(mat.data()+4), *(mat.data()+5),
-    *(mat.data()+6), *(mat.data()+8), *(mat.data()+9), *(mat.data()+10)
-  });
+  tf.setBasis(
+    {
+      *(mat.data() + 0), *(mat.data() + 1), *(mat.data() + 2), *(mat.data() + 4), *(mat.data() + 5),
+      *(mat.data() + 6), *(mat.data() + 8), *(mat.data() + 9), *(mat.data() + 10)
+    });
 
   geometry_msgs::msg::TransformStamped msg;
   msg.header.stamp = time;
@@ -127,7 +129,7 @@ inline geometry_msgs::msg::TransformStamped toMsg(
 inline sensor_msgs::msg::Imu toMsg(
   const uint8_t * buf,
   const std::string & frame,
-  const ouster::sensor::packet_format& pf,
+  const ouster::sensor::packet_format & pf,
   const uint64_t override_ts = 0)
 {
   const double standard_g = 9.80665;
@@ -217,18 +219,19 @@ inline sensor_msgs::msg::LaserScan toMsg(
   msg.range_max = 120.0;
 
   msg.scan_time = 1.0 / ouster::sensor::frequency_of_lidar_mode(mdata.mode);
-  msg.time_increment = 1.0 / ouster::sensor::frequency_of_lidar_mode(mdata.mode) / ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
+  msg.time_increment = 1.0 / ouster::sensor::frequency_of_lidar_mode(mdata.mode) /
+    ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
   msg.angle_increment = -2 * M_PI / ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
 
   for (size_t i = ls.w * ring_to_use; i < (ls.w * ring_to_use) + ls.w; i++) {
 
     msg.ranges.push_back(
-        static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i) * ouster::sensor::range_unit))
-                         );
+      static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i) * ouster::sensor::range_unit))
+    );
 
     msg.intensities.push_back(
-        static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i)))
-        );
+      static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i)))
+    );
   }
 
   return msg;
@@ -241,9 +244,11 @@ inline sensor_msgs::msg::LaserScan toMsg(
 * @param ls input lidar data
 * @param cloud output pcl pointcloud to populate
 */
-static void toCloud(const ouster::XYZLut& xyz_lut,
-                          ouster::LidarScan::ts_t scan_ts,
-                          const ouster::LidarScan& ls, pcl::PointCloud<ouster_ros::Point>& cloud) {
+static void toCloud(
+  const ouster::XYZLut & xyz_lut,
+  ouster::LidarScan::ts_t scan_ts,
+  const ouster::LidarScan & ls, pcl::PointCloud<ouster_ros::Point> & cloud)
+{
   cloud.resize(ls.w * ls.h);
   auto points = ouster::cartesian(ls, xyz_lut);
 
@@ -253,15 +258,15 @@ static void toCloud(const ouster::XYZLut& xyz_lut,
       const auto pix = ls.data.row(u * ls.w + v);
       const auto ts = (ls.header(v).timestamp - scan_ts).count();
       cloud(v, u) = ouster_ros::Point{
-          {{static_cast<float>(xyz(0)),
-            static_cast<float>(xyz(1)),
-            static_cast<float>(xyz(2)), 1.0f}},
-          static_cast<float>(pix(ouster::LidarScan::INTENSITY)),
-          static_cast<uint32_t>(ts),
-          static_cast<uint16_t>(pix(ouster::LidarScan::REFLECTIVITY)),
-          static_cast<uint8_t>(u),
-          static_cast<uint16_t>(pix(ouster::LidarScan::AMBIENT)),
-          static_cast<uint32_t>(pix(ouster::LidarScan::REFLECTIVITY))};
+        {{static_cast<float>(xyz(0)),
+          static_cast<float>(xyz(1)),
+          static_cast<float>(xyz(2)), 1.0f}},
+        static_cast<float>(pix(ouster::LidarScan::INTENSITY)),
+        static_cast<uint32_t>(ts),
+        static_cast<uint16_t>(pix(ouster::LidarScan::REFLECTIVITY)),
+        static_cast<uint8_t>(u),
+        static_cast<uint16_t>(pix(ouster::LidarScan::AMBIENT)),
+        static_cast<uint32_t>(pix(ouster::LidarScan::REFLECTIVITY))};
     }
   }
 }
