@@ -19,10 +19,10 @@
 #include <vector>
 #include <algorithm>
 
-#include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
+#include "pcl/point_types.h"
 #include "pcl_conversions/pcl_conversions.h"
-#include "ros2_ouster/client/ouster_ros/point.h"
+#include "ros2_ouster/client/point.h"
 #include "ros2_ouster/interfaces/metadata.hpp"
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -36,21 +36,6 @@
 
 namespace ros2_ouster
 {
-
-/**
- * @brief Run-time big endian check
- *
- * Run-time initialize a constant determining if the underlying machine is big
- * endian. This is needed to properly stamp the `PointCloud2` ROS message
- * (below).
- */
-static const bool IS_BIGENDIAN = []()
-  {
-    std::uint16_t dummy = 0x1;
-    std::uint8_t * dummy_ptr = reinterpret_cast<std::uint8_t *>(&dummy);
-    return dummy_ptr[0] == 0x1 ? false : true;
-  } ();
-
 /**
  * @brief Convert ClientState to string
  */
@@ -143,7 +128,7 @@ inline sensor_msgs::msg::Imu toMsg(
   const uint8_t * buf,
   const std::string & frame,
   const ouster::sensor::packet_format& pf,
-  uint64_t override_ts = 0)
+  const uint64_t override_ts = 0)
 {
   const double standard_g = 9.80665;
   sensor_msgs::msg::Imu m;
@@ -152,8 +137,7 @@ inline sensor_msgs::msg::Imu toMsg(
   m.orientation.z = 0;
   m.orientation.w = 1;
 
-  m.header.stamp = override_ts == 0 ?
-    rclcpp::Time(pf.imu_gyro_ts(buf)) : rclcpp::Time(override_ts);
+  m.header.stamp = override_ts == 0 ? rclcpp::Time(pf.imu_gyro_ts(buf)) : rclcpp::Time(override_ts);
   m.header.frame_id = frame;
 
   m.linear_acceleration.x = pf.imu_la_x(buf) * standard_g;
@@ -201,14 +185,14 @@ inline sensor_msgs::msg::Imu toMsg(
  */
 inline sensor_msgs::msg::PointCloud2 toMsg(
   const pcl::PointCloud<ouster_ros::Point> & cloud,
-  std::chrono::nanoseconds timestamp,
-  const std::string & frame)
+  const std::chrono::nanoseconds timestamp,
+  const std::string & frame,
+  const uint64_t override_ts)
 {
   sensor_msgs::msg::PointCloud2 msg{};
   pcl::toROSMsg(cloud, msg);
   msg.header.frame_id = frame;
-  rclcpp::Time t(timestamp.count());
-  msg.header.stamp = t;
+  msg.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(override_ts);
   return msg;
 }
 
@@ -216,15 +200,16 @@ inline sensor_msgs::msg::PointCloud2 toMsg(
  * @brief Convert cloud to scan message format
  */
 inline sensor_msgs::msg::LaserScan toMsg(
-  ouster::LidarScan ls,
-  std::chrono::nanoseconds timestamp,
+  const ouster::LidarScan ls,
+  const std::chrono::nanoseconds timestamp,
   const std::string & frame,
   const ouster::sensor::sensor_info & mdata,
-  const uint8_t ring_to_use)
+  const uint8_t ring_to_use,
+  const uint64_t override_ts)
 {
   sensor_msgs::msg::LaserScan msg;
   rclcpp::Time t(timestamp.count());
-  msg.header.stamp = t;
+  msg.header.stamp = override_ts == 0 ? t : rclcpp::Time(override_ts);
   msg.header.frame_id = frame;
   msg.angle_min = -M_PI;
   msg.angle_max = M_PI;

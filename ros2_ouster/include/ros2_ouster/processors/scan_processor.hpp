@@ -88,7 +88,7 @@ public:
    * @brief Handles the packets to create scan
    * @param data
    */
-  void handler(const uint8_t* data) {
+  void handler(const uint8_t* data, const uint64_t override_ts) {
     if (_batch->operator()(data, _ls)) {
       auto h = std::find_if(
           _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
@@ -97,7 +97,7 @@ public:
       if (h != _ls.headers.end()) {
         ros2_ouster::toCloud(_xyz_lut, h->timestamp, _ls, *_cloud);
         _pub->publish(ros2_ouster::toMsg(_ls, h->timestamp,
-                                         _frame, _mdata, _ring));
+                                         _frame, _mdata, _ring, override_ts));
       }
     }
   }
@@ -106,9 +106,9 @@ public:
    * @brief Process method to create scan
    * @param data the packet data
    */
-  bool process(uint8_t * data, uint64_t override_ts) override
+  bool process(const uint8_t * data, const uint64_t override_ts) override
   {
-    handler(data);
+    handler(data, override_ts);
     return true;
   }
 

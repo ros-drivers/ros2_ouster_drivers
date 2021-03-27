@@ -66,7 +66,7 @@ public:
    * @brief Process method to create imu
    * @param data the packet data
    */
-  bool process(uint8_t * data, uint64_t override_ts) override
+  bool process(const uint8_t * data, const uint64_t override_ts) override
   {
     if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
       _pub->publish(ros2_ouster::toMsg(data, _frame, _pf, override_ts));

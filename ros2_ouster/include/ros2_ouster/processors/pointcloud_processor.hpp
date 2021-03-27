@@ -25,10 +25,10 @@
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
-#include "ros2_ouster/interfaces/data_processor_interface.hpp"
-#include "ros2_ouster/client/lidar_scan.h"
 #include "ros2_ouster/client/client.h"
-#include "ros2_ouster/client/ouster_ros/point.h"
+#include "ros2_ouster/client/lidar_scan.h"
+#include "ros2_ouster/client/point.h"
+#include "ros2_ouster/interfaces/data_processor_interface.hpp"
 
 using Cloud = pcl::PointCloud<ouster_ros::Point>;
 
@@ -70,7 +70,7 @@ public:
    * @brief Handles the packets to create pointcloud
    * @param data
    */
-  void handler(const uint8_t* data) {
+  void handler(const uint8_t* data, const uint64_t override_ts) {
     if (_batch->operator()(data, _ls)) {
       auto h = std::find_if(
           _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
@@ -78,7 +78,7 @@ public:
           });
       if (h != _ls.headers.end()) {
         ros2_ouster::toCloud(_xyz_lut, h->timestamp, _ls, *_cloud);
-        _pub->publish(ros2_ouster::toMsg(*_cloud, h->timestamp, _frame));
+        _pub->publish(ros2_ouster::toMsg(*_cloud, h->timestamp, _frame, override_ts));
       }
     }
   };
@@ -97,9 +97,9 @@ public:
    * @brief Process method to create pointcloud
    * @param data the packet data
    */
-  bool process(uint8_t * data, uint64_t override_ts) override
+  bool process(const uint8_t * data, const uint64_t override_ts) override
   {
-    handler(data);
+    handler(data, override_ts);
     return true;
   }
 

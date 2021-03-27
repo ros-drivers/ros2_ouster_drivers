@@ -23,6 +23,7 @@
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/ouster_driver.hpp"
 #include "ros2_ouster/processors/processor_factories.hpp"
+#include "ros2_ouster/client/types.h"
 
 namespace ros2_ouster
 {
@@ -71,11 +72,13 @@ void OusterDriver::onConfigure()
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
+
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
     RCLCPP_WARN(
-      this->get_logger(),
-      "Using TIME_FROM_ROS_RECEPTION to stamp data with ROS time on "
-      "reception. This has unmodelled latency!");
+        this->get_logger(),
+        "Using TIME_FROM_ROS_RECEPTION to stamp data with ROS time on "
+        "reception. This has unmodelled latency!");
+    lidar_config.timestamp_mode = "TIME_FROM_INTERNAL_OSC";
     _use_ros_time = true;
   } else {
     _use_ros_time = false;

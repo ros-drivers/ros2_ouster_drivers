@@ -64,7 +64,6 @@ public:
     _px_offset = mdata.format.pixel_shift_by_row;
     _ls = ouster::LidarScan{_width, _height};
     _batch = new ouster::ScanBatcher(_width, _pf);
-    _xyz_lut = ouster::make_xyz_lut(mdata);
 
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", qos);
@@ -85,7 +84,7 @@ public:
     delete(_batch);
   }
 
-  void generate_images(std::chrono::nanoseconds timestamp) {
+  void generate_images(const std::chrono::nanoseconds timestamp, const uint64_t override_ts) {
     _range_image.width = _width;
     _range_image.height = _height;
     _range_image.step = _width;
@@ -99,7 +98,7 @@ public:
     _range_image.encoding = "mono8";
     _range_image.data.resize(_width * _height * _bit_depth /
                              (8 * sizeof(*_range_image.data.data())));
-    _range_image.header.stamp = rclcpp::Time(timestamp.count());
+    _range_image.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(override_ts);
 
     _ambient_image.width = _width;
     _ambient_image.height = _height;
@@ -107,7 +106,7 @@ public:
     _ambient_image.encoding = "mono8";
     _ambient_image.data.resize(_width * _height * _bit_depth /
                               (8 * sizeof(*_ambient_image.data.data())));
-    _ambient_image.header.stamp = rclcpp::Time(timestamp.count());
+    _ambient_image.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(override_ts);
 
     _intensity_image.width = _width;
     _intensity_image.height = _height;
@@ -115,7 +114,7 @@ public:
     _intensity_image.encoding = "mono8";
     _intensity_image.data.resize(_width * _height * _bit_depth /
                                 (8 * sizeof(*_intensity_image.data.data())));
-    _intensity_image.header.stamp = rclcpp::Time(timestamp.count());
+    _intensity_image.header.stamp = override_ts == 0 ? rclcpp::Time(timestamp.count()) : rclcpp::Time(override_ts);
 
     using im_t = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic,
             Eigen::RowMajor>;
@@ -165,14 +164,14 @@ public:
     _intensity_image_pub->publish(_intensity_image);
   }
 
-  void handler(const uint8_t* data) {
+  void handler(const uint8_t* data, const uint64_t override_ts) {
     if (_batch->operator()(data, _ls)) {
       auto h = std::find_if(
               _ls.headers.begin(), _ls.headers.end(), [](const auto& h) {
                   return h.timestamp != std::chrono::nanoseconds{0};
               });
       if (h != _ls.headers.end()) {
-        generate_images(h->timestamp);
+        generate_images(h->timestamp, override_ts);
       }
     }
   }
@@ -181,9 +180,9 @@ public:
    * @brief Process method to create images
    * @param data the packet data
    */
-  bool process(uint8_t * data, uint64_t override_ts) override
+  bool process(const uint8_t * data, const uint64_t override_ts) override
   {
-    handler(data);
+    handler(data, override_ts);
     return true;
   }
 
@@ -227,7 +226,6 @@ private:
   viz::BeamUniformityCorrector _ambient_buc;
   ouster::ScanBatcher* _batch;
   ouster::LidarScan _ls;
-  ouster::XYZLut _xyz_lut;
 };
 
 }  // namespace sensor
