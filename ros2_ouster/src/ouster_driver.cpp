@@ -172,9 +172,6 @@ void OusterDriver::onShutdown()
   _tf_b.reset();
 
   DataProcessorMapIt it;
-  for (it = _data_processors.begin(); it != _data_processors.end(); ++it) {
-    delete it->second;
-  }
   _data_processors.clear();
 }
 
