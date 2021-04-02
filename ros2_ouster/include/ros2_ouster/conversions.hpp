@@ -107,8 +107,9 @@ inline geometry_msgs::msg::TransformStamped toMsg(
   tf.setOrigin({mat(3) / 1e3, mat(7) / 1e3, mat(11) / 1e3});
   tf.setBasis(
     {
-      *(mat.data() + 0), *(mat.data() + 1), *(mat.data() + 2), *(mat.data() + 4), *(mat.data() + 5),
-      *(mat.data() + 6), *(mat.data() + 8), *(mat.data() + 9), *(mat.data() + 10)
+      mat(0), mat(1), mat(2),
+      mat(4), mat(5), mat(6),
+      mat(8), mat(9), mat(10)
     });
 
   geometry_msgs::msg::TransformStamped msg;
