@@ -94,7 +94,6 @@ public:
           return h.timestamp != std::chrono::nanoseconds{0};
         });
       if (h != _ls.headers.end()) {
-        ros2_ouster::toCloud(_xyz_lut, h->timestamp, _ls, *_cloud);
         _pub->publish(
           ros2_ouster::toMsg(
             _ls, h->timestamp,
