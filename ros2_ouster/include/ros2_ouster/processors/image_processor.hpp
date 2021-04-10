@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -30,6 +30,7 @@
 #include "ros2_ouster/client/client.h"
 #include "ros2_ouster/client/viz/autoexposure.h"
 #include "ros2_ouster/client/viz/beam_uniformity.h"
+#include "ros2_ouster/full_rotation_accumulator.hpp"
 
 using Cloud = pcl::PointCloud<ouster_ros::Point>;
 namespace viz = ouster::viz;
@@ -56,14 +57,15 @@ public:
     const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
     const rclcpp::QoS & qos,
-    const ouster::sensor::packet_format & pf)
+    const ouster::sensor::packet_format & pf,
+    std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator)
   : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
+    _fullRotationAccumulator = fullRotationAccumulator;
     _height = mdata.format.pixels_per_column;
     _width = mdata.format.columns_per_frame;
     _px_offset = mdata.format.pixel_shift_by_row;
     _ls = ouster::LidarScan{_width, _height};
-    _batch = std::make_unique<ouster::ScanBatcher>(_width, _pf);
 
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", qos);
@@ -173,15 +175,12 @@ public:
 
   void handler(const uint8_t * data, const uint64_t override_ts)
   {
-    if (_batch->operator()(data, _ls)) {
-      auto h = std::find_if(
-        _ls.headers.begin(), _ls.headers.end(), [](const auto & h) {
-          return h.timestamp != std::chrono::nanoseconds{0};
-        });
-      if (h != _ls.headers.end()) {
-        generate_images(h->timestamp, override_ts);
-      }
+    if (!_fullRotationAccumulator->isBatchReady()) {
+      return;
     }
+
+    _ls = *_fullRotationAccumulator->getLidarScan();
+    generate_images(_fullRotationAccumulator->getTimestamp(), override_ts);
   }
 
   /**
@@ -232,8 +231,8 @@ private:
   double _range_multiplier = ouster::sensor::range_unit * (1.0 / 200.0);  // assuming 200 m range typical
   viz::AutoExposure _ambient_ae, _intensity_ae;
   viz::BeamUniformityCorrector _ambient_buc;
-  std::unique_ptr<ouster::ScanBatcher> _batch;
   ouster::LidarScan _ls;
+  std::shared_ptr<sensor::FullRotationAccumulator> _fullRotationAccumulator;
 };
 
 }  // namespace sensor

@@ -1,6 +1,6 @@
 # ROS2 Ouster Drivers
 
-These are an implementation of ROS2 drivers for the Ouster OS-1 3D lidars. This includes all models of the OS-1 from 16 to 128 beams.
+These are an implementation of ROS2 drivers for the Ouster lidar running firmware 2.0. This includes all models of the OS-X from 16 to 128 beams.
 
 You can find a few videos looking over the sensor below. They both introduce the ROS1 driver but are extremely useful references regardless:
 
@@ -95,7 +95,7 @@ varies. Accuracy is +/- <50 us from the 1588 master.
 
 #### `TIME_FROM_ROS_RECEPTION`
 
-Data are stamped with the ROS time when they are received. The inherent latency
+The sensor will run in `TIME_FROM_INTERNAL_OSC` time mode but data are stamped with the ROS time when they are received. The inherent latency
 between when the data were sampled by the LiDAR and when the data were received
 by this ROS node is not modelled. This approach may be acceptable to get up and
 running quickly or for static applications. However, for mobile robots,

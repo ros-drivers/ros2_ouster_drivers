@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -32,6 +32,7 @@
 
 #include "ros2_ouster/interfaces/configuration.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/full_rotation_accumulator.hpp"
 
 namespace ros2_ouster
 {
@@ -139,6 +140,8 @@ private:
   std::multimap<ouster::sensor::client_state,
     std::unique_ptr<ros2_ouster::DataProcessorInterface>> _data_processors;
   rclcpp::TimerBase::SharedPtr _process_timer;
+
+  std::shared_ptr<sensor::FullRotationAccumulator> _full_rotation_accumulator;
 
   std::string _laser_sensor_frame, _laser_data_frame, _imu_data_frame;
   std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
