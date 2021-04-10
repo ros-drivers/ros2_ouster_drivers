@@ -69,26 +69,6 @@ public:
   }
 
   /**
-   * @brief Handles the packets to create pointcloud
-   * @param data
-   */
-  void handler(const uint8_t * data, const uint64_t override_ts)
-  {
-    if (!_fullRotationAccumulator->isBatchReady()) {
-      return;
-    }
-
-    ros2_ouster::toCloud(
-      _xyz_lut, _fullRotationAccumulator->getTimestamp(),
-      *_fullRotationAccumulator->getLidarScan(), *_cloud);
-    _pub->publish(
-      ros2_ouster::toMsg(
-        *_cloud,
-        _fullRotationAccumulator->getTimestamp(),
-        _frame, override_ts));
-  }
-
-  /**
    * @brief A destructor clearing memory allocated
    */
   ~PointcloudProcessor()
@@ -102,7 +82,19 @@ public:
    */
   bool process(const uint8_t * data, const uint64_t override_ts) override
   {
-    handler(data, override_ts);
+    if (!_fullRotationAccumulator->isBatchReady()) {
+      return true;
+    }
+
+    ros2_ouster::toCloud(
+      _xyz_lut, _fullRotationAccumulator->getTimestamp(),
+      *_fullRotationAccumulator->getLidarScan(), *_cloud);
+    _pub->publish(
+      ros2_ouster::toMsg(
+        *_cloud,
+        _fullRotationAccumulator->getTimestamp(),
+        _frame, override_ts));
+
     return true;
   }
 

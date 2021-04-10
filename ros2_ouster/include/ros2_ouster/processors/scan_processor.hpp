@@ -77,13 +77,13 @@ public:
   }
 
   /**
-   * @brief Handles the packets to create scan
-   * @param data
+   * @brief Process method to create scan
+   * @param data the packet data
    */
-  void handler(const uint8_t * data, const uint64_t override_ts)
+  bool process(const uint8_t * data, const uint64_t override_ts) override
   {
     if (!_fullRotationAccumulator->isBatchReady()) {
-      return;
+      return true;
     }
 
     _pub->publish(
@@ -91,15 +91,6 @@ public:
         *_fullRotationAccumulator->getLidarScan(),
         _fullRotationAccumulator->getTimestamp(),
         _frame, _mdata, _ring, override_ts));
-  }
-
-  /**
-   * @brief Process method to create scan
-   * @param data the packet data
-   */
-  bool process(const uint8_t * data, const uint64_t override_ts) override
-  {
-    handler(data, override_ts);
     return true;
   }
 

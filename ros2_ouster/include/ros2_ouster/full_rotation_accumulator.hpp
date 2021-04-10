@@ -80,23 +80,12 @@ public:
   /**
    * @brief Takes packet data to batch it into a lidarscan
    */
-  bool accumulate(const uint8_t * data, uint64_t override_ts)
+  void accumulate(const uint8_t * data, uint64_t override_ts)
   {
     if (_batchReady) {
       _batchReady = false;
     }
 
-    handle(data, override_ts);
-    return true;
-  }
-
-private:
-  /**
-  * @brief Private function handling the packet data and batching it into a
-   * lidarscan
-  */
-  bool handle(const uint8_t * data, uint64_t override_ts)
-  {
     if (_batch->operator()(data, *_ls)) {
       auto h = std::find_if(
         _ls->headers.begin(), _ls->headers.end(), [](const auto & h) {
@@ -107,9 +96,9 @@ private:
       }
       _batchReady = true;
     }
-    return true;
   }
 
+private:
   bool _batchReady;
   std::chrono::nanoseconds _timestamp;
   std::unique_ptr<ouster::ScanBatcher> _batch;

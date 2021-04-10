@@ -173,23 +173,18 @@ public:
     _intensity_image_pub->publish(_intensity_image);
   }
 
-  void handler(const uint8_t * data, const uint64_t override_ts)
-  {
-    if (!_fullRotationAccumulator->isBatchReady()) {
-      return;
-    }
-
-    _ls = *_fullRotationAccumulator->getLidarScan();
-    generate_images(_fullRotationAccumulator->getTimestamp(), override_ts);
-  }
-
   /**
    * @brief Process method to create images
    * @param data the packet data
    */
   bool process(const uint8_t * data, const uint64_t override_ts) override
   {
-    handler(data, override_ts);
+    if (!_fullRotationAccumulator->isBatchReady()) {
+      return true;
+    }
+
+    _ls = *_fullRotationAccumulator->getLidarScan();
+    generate_images(_fullRotationAccumulator->getTimestamp(), override_ts);
     return true;
   }
 
