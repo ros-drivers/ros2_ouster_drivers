@@ -56,6 +56,10 @@ OusterDriver::~OusterDriver() = default;
 
 void OusterDriver::onConfigure()
 {
+  RCLCPP_INFO(
+      this->get_logger(),
+      "This driver is compatible with sensors running fw 2.x.");
+
   ros2_ouster::Configuration lidar_config;
   try {
     lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();

@@ -93,11 +93,6 @@ public:
     _range_image.encoding = "mono8";
     _range_image.header.frame_id = _frame;
     _range_image.data.resize(_width * _height);
-
-    _range_image.width = _width;
-    _range_image.height = _height;
-    _range_image.step = _width;
-    _range_image.encoding = "mono8";
     _range_image.data.resize(
       _width * _height * _bit_depth /
       (8 * sizeof(*_range_image.data.data())));
@@ -107,6 +102,7 @@ public:
     _ambient_image.width = _width;
     _ambient_image.height = _height;
     _ambient_image.step = _width;
+    _ambient_image.header.frame_id = _frame;
     _ambient_image.encoding = "mono8";
     _ambient_image.data.resize(
       _width * _height * _bit_depth /
@@ -117,6 +113,7 @@ public:
     _intensity_image.width = _width;
     _intensity_image.height = _height;
     _intensity_image.step = _width;
+    _intensity_image.header.frame_id = _frame;
     _intensity_image.encoding = "mono8";
     _intensity_image.data.resize(
       _width * _height * _bit_depth /
