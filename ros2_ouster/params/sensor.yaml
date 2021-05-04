@@ -31,12 +31,12 @@ ouster_driver:
     # activated upon startup of the driver. This will determine the topics
     # that are available for client applications to consume. The defacto
     # reference for these values are defined in:
-    # `include/ros2_ouster/OS1/processor_factories.hpp`
+    # `include/ros2_ouster/processors/processor_factories.hpp`
     #
     # For convenience, the available data processors are:
     #
     # IMG   - Provides 8-bit image topics suitable for ML applications encoding
-    #         the noise, range, intensity, and reflectivity data from a scan
+    #         the range, ambient and intensity data from a scan
     # PCL   - Provides a point cloud encoding of a LiDAR scan
     # IMU   - Provides a data stream from the LiDARs integral IMU
     # SCAN  - Provides a synthesized 2D LaserScan from the 3D LiDAR data
@@ -49,4 +49,4 @@ ouster_driver:
     # IMG|PCL|IMU|SCAN
     # PCL
     #
-    os1_proc_mask: IMG|PCL|IMU|SCAN
+    proc_mask: IMG|PCL|IMU|SCAN

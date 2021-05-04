@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -11,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__OS1__PROCESSORS__IMU_PROCESSOR_HPP_
-#define ROS2_OUSTER__OS1__PROCESSORS__IMU_PROCESSOR_HPP_
+#ifndef ROS2_OUSTER__PROCESSORS__IMU_PROCESSOR_HPP_
+#define ROS2_OUSTER__PROCESSORS__IMU_PROCESSOR_HPP_
 
 #include <vector>
 #include <memory>
@@ -25,12 +25,13 @@
 #include "sensor_msgs/msg/imu.hpp"
 
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/client/client.h"
 
-namespace OS1
+namespace sensor
 {
 
 /**
- * @class OS1::IMUProcessor
+ * @class sensor::IMUProcessor
  * @brief A data processor interface implementation of a processor
  * for creating IMU in the driver in ROS2.
  */
@@ -38,17 +39,18 @@ class IMUProcessor : public ros2_ouster::DataProcessorInterface
 {
 public:
   /**
-   * @brief A constructor for OS1::IMUProcessor
+   * @brief A constructor for sensor::IMUProcessor
    * @param node Node for creating interfaces
    * @param mdata metadata about the sensor
    * @param frame frame_id to use for messages
    */
   IMUProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
-    const ros2_ouster::Metadata & mdata,
+    const ouster::sensor::sensor_info & mdata,
     const std::string & frame,
-    const rclcpp::QoS & qos)
-  : DataProcessorInterface(), _node(node), _frame(frame)
+    const rclcpp::QoS & qos,
+    const ouster::sensor::packet_format & pf)
+  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
   {
     _pub = node->create_publisher<sensor_msgs::msg::Imu>("imu", qos);
   }
@@ -65,10 +67,10 @@ public:
    * @brief Process method to create imu
    * @param data the packet data
    */
-  bool process(uint8_t * data, uint64_t override_ts) override
+  bool process(const uint8_t * data, const uint64_t override_ts) override
   {
     if (_pub->get_subscription_count() > 0 && _pub->is_activated()) {
-      _pub->publish(ros2_ouster::toMsg(data, _frame, override_ts));
+      _pub->publish(ros2_ouster::toMsg(data, _frame, _pf, override_ts));
     }
     return true;
   }
@@ -93,8 +95,9 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr _pub;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   std::string _frame;
+  ouster::sensor::packet_format _pf;
 };
 
-}  // namespace OS1
+}  // namespace sensor
 
-#endif  // ROS2_OUSTER__OS1__PROCESSORS__IMU_PROCESSOR_HPP_
+#endif  // ROS2_OUSTER__PROCESSORS__IMU_PROCESSOR_HPP_

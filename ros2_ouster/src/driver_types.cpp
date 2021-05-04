@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,12 +16,12 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_components/register_node_macro.hpp"
 #include "ros2_ouster/driver_types.hpp"
-#include "ros2_ouster/OS1/OS1_sensor.hpp"
+#include "ros2_ouster/sensor.hpp"
 
 namespace ros2_ouster
 {
-ros2_ouster::OS1Driver::OS1Driver(rclcpp::NodeOptions options)
-: OusterDriver{std::make_unique<OS1::OS1Sensor>(), options} {}
+ros2_ouster::Driver::Driver(rclcpp::NodeOptions options)
+: OusterDriver{std::make_unique<sensor::Sensor>(), options} {}
 }
 
-RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::OS1Driver)
+RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::Driver)

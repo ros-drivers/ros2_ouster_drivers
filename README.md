@@ -1,6 +1,6 @@
 # ROS2 Ouster Drivers
 
-These are an implementation of ROS2 drivers for the Ouster OS-1 3D lidars. This includes all models of the OS-1 from 16 to 128 beams.
+These are an implementation of ROS2 drivers for the Ouster lidar. This includes all models of the OS-x from 16 to 128 beams running the firmware 2.x.
 
 You can find a few videos looking over the sensor below. They both introduce the ROS1 driver but are extremely useful references regardless:
 
@@ -67,15 +67,15 @@ description of each now follows.
 #### `TIME_FROM_INTERNAL_OSC`
 
 Use the LiDAR internal clock. Measurements are time stamped with ns since
-power-on. Free running counter based on the OS1’s internal oscillator. Counts
-seconds and nanoseconds since OS1 turn on, reported at ns resolution (both a
+power-on. Free running counter based on the sensor’s internal oscillator. Counts
+seconds and nanoseconds since sensor turn on, reported at ns resolution (both a
 second and nanosecond register in every UDP packet), but min increment is on
 the order of 10 ns. Accuracy is +/- 90 ppm.
 
 #### `TIME_FROM_SYNC_PULSE_IN`
 
 A free running counter synced to the `SYNC_PULSE_IN` input counts seconds (# of
-pulses) and nanoseconds since OS1 turn on. If `multipurpose_io_mode` is set to
+pulses) and nanoseconds since sensor turn on. If `multipurpose_io_mode` is set to
 `INPUT_NMEA_UART` then the seconds register jumps to time extracted from a NMEA
 `$GPRMC` message read on the `multipurpose_io` port. Reported at ns resolution
 (both a second and nanosecond register in every UDP packet), but min increment
@@ -95,7 +95,7 @@ varies. Accuracy is +/- <50 us from the 1588 master.
 
 #### `TIME_FROM_ROS_RECEPTION`
 
-Data are stamped with the ROS time when they are received. The inherent latency
+The sensor will run in `TIME_FROM_INTERNAL_OSC` time mode but data are stamped with the ROS time when they are received. The inherent latency
 between when the data were sampled by the LiDAR and when the data were received
 by this ROS node is not modelled. This approach may be acceptable to get up and
 running quickly or for static applications. However, for mobile robots,
@@ -109,7 +109,7 @@ The `os1_proc_mask` parameter is set to a mask-like-string used to define the
 data processors that should be activated upon startup of the driver. This will
 determine the topics that are available for client applications to consume. The
 *de facto* reference for these values are defined in
-[processor_factories.hpp](ros2_ouster/include/ros2_ouster/OS1/processor_factories.hpp). It
+[processor_factories.hpp](ros2_ouster/include/ros2_ouster/processors/processor_factories.hpp). It
 is recommended to only use the processors that you require for your application.
 
 The available data processors are:
@@ -130,7 +130,7 @@ Lidar Processing](#additional-lidar-processing) section below.
 
 ## Extensions
 
-This package was intentionally designed for new capabilities to be added. Whether that being supporting new classes of Ouster lidars (OS1-custom, OS2, ...) or supporting new ways of processing the data packets.
+This package was intentionally designed for new capabilities to be added. Whether that being supporting new classes of Ouster lidars (sensor-custom, OS2, ...) or supporting new ways of processing the data packets.
 
 ### Additional Lidar Processing
 It can be imagined that if you have a stream of lidar or IMU packets, you may want to process them differently. If you're working with a high speed vehicle, you may want the packets projected into a pointcloud and published with little batching inside the driver. If you're working with pointclouds for machine learning, you may only want the pointcloud to include the `XYZ` information and not the intensity, reflectivity, and noise information to reduce dimensionality.
@@ -150,7 +150,7 @@ Some examples:
 ### Additional Lidar Units
 To create a new lidar for this driver, you only need to make an implementation of the `ros2_ouster::SensorInterface` class and include any required SDKs. Then, in the `driver_types.hpp` file, add your new interface as a template of the `OusterDriver` and you're good to go.
 
-You may need to add an additional `main` method for the new templated program, depending if you're using components. If it uses another underlying SDK other than `OS1` you will also need to create new processors for it as the processors are bound to a specific unit as the data formatting may be different. If they are the same, you can reuse the `OS1` processors.
+You may need to add an additional `main` method for the new templated program, depending if you're using components. If it uses another underlying SDK other than `sensor` you will also need to create new processors for it as the processors are bound to a specific unit as the data formatting may be different. If they are the same, you can reuse the `sensor` processors.
 
 ## Lifecycle
 

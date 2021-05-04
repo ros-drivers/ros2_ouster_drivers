@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -32,6 +32,7 @@
 
 #include "ros2_ouster/interfaces/configuration.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/full_rotation_accumulator.hpp"
 
 namespace ros2_ouster
 {
@@ -46,7 +47,8 @@ class SensorInterface;
 class OusterDriver : public lifecycle_interface::LifecycleInterface
 {
 public:
-  using DataProcessorMap = std::multimap<ClientState, DataProcessorInterface *>;
+  using DataProcessorMap = std::multimap<ouster::sensor::client_state,
+      std::unique_ptr<ros2_ouster::DataProcessorInterface>>;
   using DataProcessorMapIt = DataProcessorMap::iterator;
 
   /**
@@ -107,7 +109,7 @@ private:
   /**
    * @brief Create TF2 frames for the lidar sensor
    */
-  void broadcastStaticTransforms(const ros2_ouster::Metadata & mdata);
+  void broadcastStaticTransforms(const ouster::sensor::sensor_info & mdata);
 
   /**
   * @brief service callback to reset the lidar
@@ -135,8 +137,11 @@ private:
   rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
 
   std::unique_ptr<SensorInterface> _sensor;
-  std::multimap<ClientState, DataProcessorInterface *> _data_processors;
+  std::multimap<ouster::sensor::client_state,
+    std::unique_ptr<ros2_ouster::DataProcessorInterface>> _data_processors;
   rclcpp::TimerBase::SharedPtr _process_timer;
+
+  std::shared_ptr<sensor::FullRotationAccumulator> _full_rotation_accumulator;
 
   std::string _laser_sensor_frame, _laser_data_frame, _imu_data_frame;
   std::unique_ptr<tf2_ros::StaticTransformBroadcaster> _tf_b;
@@ -144,7 +149,10 @@ private:
   bool _use_system_default_qos;
   bool _use_ros_time;
 
-  std::uint32_t _os1_proc_mask;
+  std::uint32_t _proc_mask;
+
+  uint8_t * _lidar_packet_data;
+  uint8_t * _imu_packet_data;
 };
 
 }  // namespace ros2_ouster

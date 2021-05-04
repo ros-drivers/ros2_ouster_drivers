@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -49,7 +49,7 @@ public:
    * @param override_ts Timestamp in nanos to use to override the ts in the
    *                    packet data. To use the packet data, pass as 0.
    */
-  virtual bool process(uint8_t * data, uint64_t override_ts = 0) = 0;
+  virtual bool process(const uint8_t * data, uint64_t override_ts = 0) = 0;
 
   /**
    * @brief Activating processor from lifecycle state transitions

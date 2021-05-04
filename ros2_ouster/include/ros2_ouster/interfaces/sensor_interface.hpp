@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include "ros2_ouster/interfaces/metadata.hpp"
 #include "ros2_ouster/interfaces/configuration.hpp"
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/client/client.h"
 
 namespace ros2_ouster
 {
@@ -66,20 +67,33 @@ public:
    * @brief Ask sensor to get its current state for data collection
    * @return the state enum value
    */
-  virtual ros2_ouster::ClientState get() = 0;
+  virtual ouster::sensor::client_state get() = 0;
 
   /**
-   * @brief reading the packet corresponding to the sensor state
+   * @brief reading a lidar packet
    * @param state of the sensor
    * @return the packet of data
    */
-  virtual uint8_t * readPacket(const ros2_ouster::ClientState & state) = 0;
+  virtual uint8_t * readLidarPacket(const ouster::sensor::client_state & state) = 0;
+
+  /**
+   * @brief reading an imu packet
+   * @param state of the sensor
+   * @return the packet of data
+   */
+  virtual uint8_t * readImuPacket(const ouster::sensor::client_state & state) = 0;
 
   /**
    * @brief Get lidar sensor's metadata
    * @return sensor metadata struct
    */
   virtual ros2_ouster::Metadata getMetadata() = 0;
+
+  /**
+   * @brief Get lidar sensor's packet format
+   * @return packet format struct
+   */
+  virtual ouster::sensor::packet_format getPacketFormat() = 0;
 };
 
 }  // namespace ros2_ouster
