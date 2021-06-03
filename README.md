@@ -41,7 +41,7 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | Parameter                | Type    | Description                                                                                                 |
 |--------------------------|---------|-------------------------------------------------------------------------------------------------------------|
 | `lidar_ip`               | String  | IP or hostname of lidar (ex. 10.5.5.87, os1-serialno.local)                                                 |
-| `computer_ip`            | String  | IP or hostname of computer to get data (ex. 10.5.5.1) or broadcast (ex. 255.255.255.255)                    |
+| `computer_ip`            | String  | IP or hostname of computer to get data (ex. 10.5.5.1) or broadcast (ex. 255.255.255.255) or "" for automatic detection                   |
 | `lidar_mode`             | String  | Mode of data capture, default `512x10`                                                                      |
 | `imu_port`               | int     | Port of IMU data, default 7503                                                                              |
 | `lidar_port`             | int     | Port of laser data, default 7502                                                                            |
@@ -189,7 +189,7 @@ A message `Metadata` was created to describe the metadata of the lidars. In addi
 
 Ouster gives you some tools to set up a direct connection to the sensor from you computer. I'd argue these are a bit obtuse and they should really provide a set of scripts to set this up automatically as a daemon. However, since I am also using this as a development tool, I don't want this always running in the background on my machines so I provide the directions below to setup the network connection.
 
-### One time setup
+### One time setup with IPv4
 
 These are bash commands in Linux to setup the connection. These steps only need to happen the first time you set up the laser. After the first time, when you establish the network connection to the sensor, you can just select this created network profile. **Ensure the sensor is powered off and disconnected at this point.**
 
@@ -216,7 +216,7 @@ sudo addr show dev [eth name]
 
 The output you see from `show` should look something like `[eth name] ... state UP ...`. Its only important that you see `UP` now and not `DOWN`. At this point, you've setup the networking needed for the one time setup.
 
-### Connection
+### Connection with IPv4
 
 We can setup the network connection to the sensor now with the proper settings. Note: This command could take up to 30 seconds to setup, be patient. If after a minute you see no results, then you probably have an issue. Start the instructions above over. Lets set up the network
 
@@ -246,13 +246,42 @@ dnsmasq-dhcp: DHCPREQUEST(enxa0cec8c012f8) 10.5.5.87 [HWaddr]
 dnsmasq-dhcp: DHCPACK(enxa0cec8c012f8) 10.5.5.87 [HWaddr] os1-SerialNumXX
 ```
 
-Now you're ready for business. Lets see what IP addgress its on (10.5.5.87). Lets ping it
+Now you're ready for business. Lets see what IP address it's on (10.5.5.87). Lets ping it
 
 ```
 ping 10.5.5.87
 ```
 
 and we're good to go!
+
+### Using IPv6 with link local
+
+Instead of having to configure `dnsmasq` and static addresses in the previous section, you can use link local IPv6 addresses.
+
+1. Find the link local address of the Ouster. With avahi-browse, we can find the address of the ouster by browsing all non-local services and resolving them.
+```
+$ avahi-browse -arlt
++   eth2 IPv6 Ouster Sensor 992109000xxx                    _roger._tcp          local
++   eth2 IPv4 Ouster Sensor 992109000xxx                    _roger._tcp          local
+=   eth2 IPv6 Ouster Sensor 992109000xxx                    _roger._tcp          local
+   hostname = [os-992109000xxx.local]
+   address = [fe80::be0f:a7ff:fe00:2861]
+   port = [7501]
+   txt = ["fw=ousteros-image-prod-aries-v2.0.0+20201124065024" "sn=992109000xxx" "pn=840-102144-D"]
+=   eth2 IPv4 Ouster Sensor 992109000xxx                    _roger._tcp          local
+   hostname = [os-992109000xxx.local]
+   address = [192.168.90.2]
+   port = [7501]
+   txt = ["fw=ousteros-image-prod-aries-v2.0.0+20201124065024" "sn=992109000xxx" "pn=840-102144-D"]
+
+```
+As shown above, on interface `eth2`, the ouster has an IPv6 link local address of `fe80::be0f:a7ff:fe00:2861`.
+
+To use link local addressing with IPv6, the standard way to add a scope ID is appended with a `%` character like so in `sensor.yaml`. Automatic detection for computer IP address can be used with an empty string.
+```
+lidar_ip: "fe80::be0f:a7ff:fe00:2861%eth2"
+computer_ip: ""
+```
 
 ### ROS Connection
 
@@ -263,6 +292,9 @@ ros2 launch ros2_ouster os1_launch.py
 ```
 
 Make sure to update your parameters file if you don't use the default IPs (10.5.5.1, 10.5.5.87). You may also use the `.local` version of your ouster lidar. To find your IPs, see the `dnsmasq` output or check with `nmap -SP 10.5.5.*/24`.
+An alternative tool is [avahi-browse](https://linux.die.net/man/1/avahi-browse) ```
+avahi-browse -arlt
+```
 
 Now that your connection is up (hopefully), you can view this information in RViz. Open an RViz session and subscribe to the points, images, and IMU topics in the laser frame.
 

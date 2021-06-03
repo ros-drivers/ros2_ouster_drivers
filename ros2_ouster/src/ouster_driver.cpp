@@ -99,10 +99,16 @@ void OusterDriver::onConfigure()
   RCLCPP_INFO(
     this->get_logger(),
     "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());
-  RCLCPP_INFO(
-    this->get_logger(),
-    "Sending data from sensor to %s.", lidar_config.computer_ip.c_str());
 
+  if (lidar_config.computer_ip == "") {
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Sending data from sensor to computer using automatic address detection");
+  }  else {
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Sending data from sensor to %s.", lidar_config.computer_ip.c_str());
+  }
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
   _metadata_srv = this->create_service<ouster_msgs::srv::GetMetadata>(
