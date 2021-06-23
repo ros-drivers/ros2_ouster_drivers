@@ -1,4 +1,17 @@
-0.3.0 (YYYY-MM-DD)
+Changelog
+=========
+
+[unreleased] Ported client changes for FW 2.0/2.1 (2021-06-23)
+============
+
+ouster_client
+-------------
+* add support for new signal multiplier config parameter
+* add early version of a C++ API covering the full sensor configuration interface
+* increase default initialization timeout to 60 seconds to account for the worst case: waking up
+  from STANDBY mode
+
+[0.3.0] (YYYY-MM-DD)
 ------------------
 * Increased the rate at which the timer callback fires to process incoming data
   from 1280 Hz to 2560 Hz.
