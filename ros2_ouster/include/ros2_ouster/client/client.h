@@ -57,7 +57,7 @@ namespace ouster {
       timestamp_mode ts_mode = TIME_FROM_UNSPEC,
       int lidar_port = 0,
       int imu_port = 0,
-      int timeout_sec = 30);
+      int timeout_sec = 60);
 
     /**
      * Block for up to timeout_sec until either data is ready or an error occurs.
@@ -103,7 +103,7 @@ namespace ouster {
      * @param timeout_sec how long to wait for the sensor to initialize
      * @return a text blob of metadata parseable into a sensor_info struct
      */
-    std::string get_metadata(client & cli, int timeout_sec = 30);
+    std::string get_metadata(client & cli, int timeout_sec = 60);
 
     /**
      * Get sensor config from the sensor

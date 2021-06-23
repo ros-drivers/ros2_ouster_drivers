@@ -117,6 +117,7 @@ bool operator==(const sensor_config& lhs, const sensor_config& rhs)
           lhs.ts_mode == rhs.ts_mode && lhs.ld_mode == rhs.ld_mode &&
           lhs.operating_mode == rhs.operating_mode &&
           lhs.azimuth_window == rhs.azimuth_window &&
+          lhs.signal_multiplier == rhs.signal_multiplier &&
           lhs.sync_pulse_out_angle == rhs.sync_pulse_out_angle &&
           lhs.sync_pulse_out_pulse_width == rhs.sync_pulse_out_pulse_width &&
           lhs.nmea_in_polarity == rhs.nmea_in_polarity &&
@@ -449,6 +450,9 @@ sensor_config parse_config(const Json::Value& root)
     config.azimuth_window =
       std::make_pair(root["azimuth_window"][0].asInt(),
                      root["azimuth_window"][1].asInt());
+
+  if (!root["signal_multiplier"].empty())
+    config.signal_multiplier = root["signal_multiplier"].asInt();
 
   if (!root["operating_mode"].empty()) 
   {
@@ -826,6 +830,11 @@ std::string to_string(const sensor_config& config) {
       azimuth_window.append(config.azimuth_window.value().first);
       azimuth_window.append(config.azimuth_window.value().second);
       root["azimuth_window"] = azimuth_window;
+    }
+
+    if (config.signal_multiplier) 
+    {
+      root["signal_multiplier"] = config.signal_multiplier.value();
     }
 
     if (config.sync_pulse_out_angle) 

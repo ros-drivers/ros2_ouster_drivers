@@ -135,6 +135,7 @@ namespace ouster {
       optional<MultipurposeIOMode> multipurpose_io_mode;
 
       optional<AzimuthWindow> azimuth_window;
+      optional<int> signal_multiplier;
 
       optional<Polarity> nmea_in_polarity;
       optional<bool> nmea_ignore_valid_char;
