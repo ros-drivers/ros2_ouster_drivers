@@ -50,6 +50,7 @@ add_library(${library_name} SHARED
   src/ouster_driver.cpp
   src/lifecycle_interface.cpp
   src/sensor.cpp
+  src/sensor_tins.cpp
   src/client/client.cpp
   src/client/lidar_scan.cpp
   src/client/netcompat.cpp
