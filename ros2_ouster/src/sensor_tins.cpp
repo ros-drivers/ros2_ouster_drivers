@@ -52,17 +52,21 @@ namespace sensor
       exit(-1);
     }
 
+    // The driver config is saved internally b/c some parameters are needed for 
+    // the Tins sniffer
+    _driver_config = config;
+
     // Read metadata from file
     loadSensorInfoFromJsonFile(
-        config.metadata_filepath,
+        _driver_config.metadata_filepath,
         _metadata);  
 
     // loadSensorInfoFromJsonFile actually returns a sensor_info object, so 
     // fill in the params specific to the ros2_ouster::Metadata object, that 
     // aren't normally supplied in the metadata file.
-    _metadata.imu_port = config.imu_port;
-    _metadata.lidar_port = config.lidar_port;
-    _metadata.timestamp_mode = config.timestamp_mode;
+    _metadata.imu_port = _driver_config.imu_port;
+    _metadata.lidar_port = _driver_config.lidar_port;
+    _metadata.timestamp_mode = _driver_config.timestamp_mode;
 
     // Fill anything missing with defaults and resize the packet containers
     ros2_ouster::populate_missing_metadata_defaults(_metadata);
@@ -70,12 +74,20 @@ namespace sensor
     _imu_packet.resize(getPacketFormat().imu_packet_size + 1);
 
     // Create and initialize the Tins sniffer object
-
+    initializeSniffer(_driver_config.ethernet_interface);
   }
 
   ouster::sensor::client_state SensorTins::get()
   {
-    
+    // Start a sniff loop to look for a valid LiDAR or IMU packet
+    _tins_sniffer_pointer->sniff_loop(
+      std::bind(
+        &SensorTins::sniffOnePacket,
+        this,
+        std::placeholders::_1));
+
+    // Return the state, as best can be inferred from the data
+    return _inferred_state;
   }
 
   uint8_t * SensorTins::readLidarPacket(const ouster::sensor::client_state & state)
@@ -127,6 +139,66 @@ namespace sensor
         " with exception ");
       exit(-1);
     }    
+  }
+
+  void SensorTins::initializeSniffer(const std::string eth_device)
+  {
+    _sniffer_config.set_promisc_mode(true);
+    _sniffer_config.set_immediate_mode(true);
+    _tins_sniffer_pointer = new Tins::Sniffer(eth_device, _sniffer_config);
+  }
+
+  bool SensorTins::sniffOnePacket(Tins::Packet& packet)
+  {
+    auto &pdu_to_process = *packet.pdu();
+
+        // Reassemble the packet if it's fragmented
+    if (_tins_ipv4_reassembler.process(pdu_to_process) != 
+          Tins::IPv4Reassembler::FRAGMENTED)
+    {
+      // Reject the packet if it's not a IP>UDP>RawPDU packet 
+      const Tins::IP *ip = pdu_to_process.find_pdu<Tins::IP>();
+      if (!ip)
+      {
+        return true;
+      }
+      const Tins::UDP *udp = pdu_to_process.find_pdu<Tins::UDP>();
+      if (!udp)
+      {
+        return true;
+      }
+      const Tins::RawPDU *raw = pdu_to_process.find_pdu<Tins::RawPDU>();
+      if (!raw)
+      {
+        return true;
+      }
+
+      const Tins::RawPDU::payload_type &payload = raw->payload();
+
+      // If a LiDAR packet...
+      if (    (ip->dst_addr().to_string() == _driver_config.computer_ip)
+          && (payload.size() == getPacketFormat().lidar_packet_size)
+          && (udp->dport() == _driver_config.lidar_port))
+      {
+        _inferred_state = ouster::sensor::client_state::LIDAR_DATA;
+        _lidar_packet = payload;
+        return false;
+      }
+
+      // If an IMU packet...
+      if (    (ip->dst_addr().to_string() == _driver_config.computer_ip)
+          && (payload.size() == getPacketFormat().imu_packet_size)
+          && (udp->dport() == _driver_config.imu_port))
+      {
+        _inferred_state = ouster::sensor::client_state::IMU_DATA;
+        _imu_packet = payload;
+        return false;
+      }
+    }
+
+    // The packet is valid but from neither the IMU or LiDAR. Return true to 
+    // keep sniffing.
+    return true;
   }
 
 } // namespace sensor

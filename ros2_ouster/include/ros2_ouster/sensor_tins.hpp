@@ -112,20 +112,56 @@ class SensorTins : public ros2_ouster::SensorInterface
      *          Ouster library is inconsistent in what parameters must be 
      *          provided in the JSON file vs what will be silently set to a 
      *          default value if not provided.
-     * @param filepath_to_read A fully qualified filepath to a yaml file 
-     *        containing the parameters to load
-     * @param sensor_info The metadata to load data into. 
+     * @param[in] filepath_to_read A fully qualified filepath to a yaml file 
+     *            containing the parameters to load
+     * @param[out] sensor_info The metadata to load data into. 
      */
     void loadSensorInfoFromJsonFile(
       const std::string filepath_to_read,
       ouster::sensor::sensor_info& sensor_info);
 
+    /**
+     * @brief Initializes the internal Tins::Sniffer object.
+     * @param[in] eth_device The name of the ethernet device for the sniffer to
+     *            listen to. This is typically a device like "eth0", "eth1" or 
+     *            "eno0" 
+     */
+    void initializeSniffer(const std::string eth_device);
+
+    /**
+     * @brief sniff for one packet and one packet only. If a valid LiDAR or IMU
+     *        packet is found, it will set the internal _replay_state to 
+     *        client_state::LIDAR_DATA or client_state::IMU_DATA
+     * @details This function is intended to only be used as a callback for the
+     *          sniffer->sniff_loop function
+     * @param[in] packet The input packet from the tins sniffer to parse. 
+     * @returns False if the packet is an Ouster LiDAR or IMU packet, in which 
+     *          case we don't want to continue sniffing, and want sniff_loop to
+     *          stop. True if the packets aren't good and we need to continue 
+     *          looking.
+     */
+    bool sniffOnePacket(Tins::Packet& packet);
+
   private:
 
+    /** 
+     * the client is here because it needs to be, but is not actually used 
+     * in this implementation of the SensorInterface class.
+     */
     std::shared_ptr<ouster::sensor::client> _ouster_client;
+
     std::vector<uint8_t> _lidar_packet;
     std::vector<uint8_t> _imu_packet;
     ros2_ouster::Metadata _metadata{};
+
+    /** Driver configuration */
+    ros2_ouster::Configuration _driver_config;
+
+    /** 
+     * The inferred state of the LiDAR, determined by the most recently 
+     * received packet instead of requested from the real LiDAR
+     */
+    ouster::sensor::client_state _inferred_state;
 
     /** Tins sniffer object for listening to packets */
     Tins::Sniffer *_tins_sniffer_pointer;
