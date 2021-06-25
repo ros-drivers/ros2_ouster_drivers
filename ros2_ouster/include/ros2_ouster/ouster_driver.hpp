@@ -56,7 +56,6 @@ public:
    * @param options Node options for lifecycle node interfaces
    */
   OusterDriver(
-    std::unique_ptr<SensorInterface> sensor,
     const rclcpp::NodeOptions & options);
 
   /**

@@ -47,7 +47,6 @@ set(dependencies
 )
 
 add_library(${library_name} SHARED
-  src/driver_types.cpp
   src/ouster_driver.cpp
   src/lifecycle_interface.cpp
   src/sensor.cpp

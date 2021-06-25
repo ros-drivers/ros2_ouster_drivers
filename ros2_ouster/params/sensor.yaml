@@ -9,6 +9,24 @@ ouster_driver:
     laser_frame: laser_data_frame
     imu_frame: imu_data_frame
 
+    metadata_filepath: "/workspaces/tas-ros2-system/src/ros2_ouster_drivers/ros2_ouster/params/metadata.json"
+    
+    # The ethernet device the packets are being broadcast through. Only used
+    # by the "tins" driver type.
+    ethernet_interface: eth1
+
+    # Select the type of driver to use. Valid options are:
+    #
+    #  "default" - The default Ouster driver that will attempt to connect to,
+    #              configure and read directly from a real Ouster LiDAR.
+    #  "tins" -    The Tins-based driver that will use Libtins to listen to the 
+    #              ethernet device the data is being broadcast through, and read 
+    #              packets on this device. Requires a valid metadata file.
+    #              Allows the user to use this driver with data replayed from a
+    #              pcap or other log file.
+    #
+    driver_type: "tins"
+
     # if False, data are published with sensor data QoS. This is preferrable
     # for production but default QoS is needed for rosbag.
     # See: https://github.com/ros2/rosbag2/issues/125

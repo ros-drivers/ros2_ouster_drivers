@@ -24,6 +24,8 @@
 #include "ros2_ouster/ouster_driver.hpp"
 #include "ros2_ouster/processors/processor_factories.hpp"
 #include "ros2_ouster/client/types.h"
+#include "ros2_ouster/sensor.hpp"
+#include "ros2_ouster/sensor_tins.hpp"
 
 namespace ros2_ouster
 {
@@ -34,9 +36,8 @@ using std::placeholders::_3;
 using namespace std::chrono_literals;
 
 OusterDriver::OusterDriver(
-  std::unique_ptr<SensorInterface> sensor,
   const rclcpp::NodeOptions & options)
-: LifecycleInterface("OusterDriver", options), _sensor{std::move(sensor)}
+: LifecycleInterface("OusterDriver", options)
 {
   this->declare_parameter("lidar_ip");
   this->declare_parameter("computer_ip");
@@ -50,6 +51,9 @@ OusterDriver::OusterDriver(
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
   this->declare_parameter("use_system_default_qos", false);
   this->declare_parameter("proc_mask", std::string("IMG|PCL|IMU|SCAN"));
+  this->declare_parameter("metadata_filepath");
+  this->declare_parameter("ethernet_interface");
+  this->declare_parameter("driver_type", std::string("imu_data_frame"));
 }
 
 OusterDriver::~OusterDriver() = default;
@@ -61,6 +65,33 @@ void OusterDriver::onConfigure()
       "This driver is compatible with sensors running fw 2.x.");
 
   ros2_ouster::Configuration lidar_config;
+
+  // Select the sensor driver type to use
+  std::string driver_type = get_parameter("driver_type").as_string();
+  if (driver_type == "default")
+  {
+    _sensor = std::make_unique<sensor::Sensor>();
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Using default Ouster sensor driver");
+  }
+  else if (driver_type == "tins")  
+  {
+    _sensor = std::make_unique<sensor::SensorTins>();
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Using Tins-based sensor driver");
+    lidar_config.ethernet_interface = get_parameter("ethernet_interface").as_string();
+  }
+  else 
+  {
+    RCLCPP_FATAL(
+      this->get_logger(),
+      "No valid driver type specified. Expected \"default\" or \"tins\"");
+  }
+
+
+  
   try {
     lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
     lidar_config.computer_ip = get_parameter("computer_ip").as_string();
@@ -76,6 +107,7 @@ void OusterDriver::onConfigure()
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
+  lidar_config.metadata_filepath = get_parameter("metadata_filepath").as_string();
 
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
     RCLCPP_WARN(
@@ -279,3 +311,6 @@ void OusterDriver::getMetadata(
 }
 
 }  // namespace ros2_ouster
+
+
+//RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::Driver)
