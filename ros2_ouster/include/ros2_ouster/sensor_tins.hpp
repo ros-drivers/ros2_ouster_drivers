@@ -94,6 +94,23 @@ class SensorTins : public ros2_ouster::SensorInterface
      */
     ouster::sensor::packet_format getPacketFormat() override;
 
+    /**
+     * @brief Load metadata from a file. 
+     * @details Some important notes about this function: This populates an 
+     *          ouster::sensor::sensor_info object, but the more commonly used 
+     *          ros2_ouster::Metadata object has some additional parameters
+     *          that must be sourced elsewhere. Also note that the underlying 
+     *          Ouster library is inconsistent in what parameters must be 
+     *          provided in the JSON file vs what will be silently set to a 
+     *          default value if not provided.
+     * @param filepath_to_read A fully qualified filepath to a yaml file 
+     *        containing the parameters to load
+     * @param sensor_info The metadata to load data into. 
+     */
+    void loadSensorInfoFromJsonFile(
+      const std::string filepath_to_read,
+      ouster::sensor::sensor_info& sensor_info);
+
   private:
 
     std::shared_ptr<ouster::sensor::client> _ouster_client;

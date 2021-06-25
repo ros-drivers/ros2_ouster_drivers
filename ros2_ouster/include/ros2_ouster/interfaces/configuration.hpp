@@ -29,6 +29,8 @@ struct Configuration
   int lidar_port;
   std::string lidar_mode;
   std::string timestamp_mode;
+  std::string metadata_filepath;
+  std::string ethernet_interface;
 };
 
 }  // namespace ros2_ouster
