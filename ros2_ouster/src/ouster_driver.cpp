@@ -66,32 +66,6 @@ void OusterDriver::onConfigure()
 
   ros2_ouster::Configuration lidar_config;
 
-  // Select the sensor driver type to use
-  std::string driver_type = get_parameter("driver_type").as_string();
-  if (driver_type == "default")
-  {
-    _sensor = std::make_unique<sensor::Sensor>();
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Using default Ouster sensor driver");
-  }
-  else if (driver_type == "tins")  
-  {
-    _sensor = std::make_unique<sensor::SensorTins>();
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Using Tins-based sensor driver");
-    lidar_config.ethernet_interface = get_parameter("ethernet_interface").as_string();
-  }
-  else 
-  {
-    RCLCPP_FATAL(
-      this->get_logger(),
-      "No valid driver type specified. Expected \"default\" or \"tins\"");
-  }
-
-
-  
   try {
     lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
     lidar_config.computer_ip = get_parameter("computer_ip").as_string();
@@ -101,6 +75,40 @@ void OusterDriver::onConfigure()
       "Failed to get lidar or IMU IP address or "
       "hostname. An IP address for both are required!");
     exit(-1);
+  }
+
+  // Select the sensor driver type to use
+  std::string driver_type = get_parameter("driver_type").as_string();
+  if (driver_type == "default")
+  {
+    _sensor = std::make_unique<sensor::Sensor>();
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Using default Ouster sensor driver");
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Connecting to sensor at %s. \nSending data from sensor to %s.", 
+      lidar_config.lidar_ip.c_str(),
+      lidar_config.computer_ip.c_str());
+  }
+  else if (driver_type == "tins")  
+  {
+    _sensor = std::make_unique<sensor::SensorTins>();
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Using Tins-based sensor driver");
+    lidar_config.ethernet_interface = get_parameter("ethernet_interface").as_string();
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Looking for packets on device %s with the ipv4 destination %s.", 
+      lidar_config.ethernet_interface.c_str(),
+      lidar_config.computer_ip.c_str());
+  }
+  else 
+  {
+    RCLCPP_FATAL(
+      this->get_logger(),
+      "No valid driver type specified. Expected \"default\" or \"tins\"");
   }
 
   lidar_config.imu_port = get_parameter("imu_port").as_int();
@@ -141,6 +149,7 @@ void OusterDriver::onConfigure()
       this->get_logger(),
       "Sending data from sensor to %s.", lidar_config.computer_ip.c_str());
   }
+  
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
   _metadata_srv = this->create_service<ouster_msgs::srv::GetMetadata>(

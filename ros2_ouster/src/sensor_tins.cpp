@@ -177,8 +177,8 @@ namespace sensor
 
       // If a LiDAR packet...
       if (    (ip->dst_addr().to_string() == _driver_config.computer_ip)
-          && (payload.size() == getPacketFormat().lidar_packet_size)
-          && (udp->dport() == _driver_config.lidar_port))
+           && (payload.size() == getPacketFormat().lidar_packet_size)
+           && (udp->dport() == _driver_config.lidar_port))
       {
         _inferred_state = ouster::sensor::client_state::LIDAR_DATA;
         _lidar_packet = payload;
@@ -187,8 +187,8 @@ namespace sensor
 
       // If an IMU packet...
       if (    (ip->dst_addr().to_string() == _driver_config.computer_ip)
-          && (payload.size() == getPacketFormat().imu_packet_size)
-          && (udp->dport() == _driver_config.imu_port))
+           && (payload.size() == getPacketFormat().imu_packet_size)
+           && (udp->dport() == _driver_config.imu_port))
       {
         _inferred_state = ouster::sensor::client_state::IMU_DATA;
         _imu_packet = payload;
