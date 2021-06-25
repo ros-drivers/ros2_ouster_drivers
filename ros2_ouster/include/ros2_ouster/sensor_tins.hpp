@@ -21,6 +21,15 @@
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/client/client.h"
 
+// Libtins includes
+#include <tins/packet.h>
+#include <tins/rawpdu.h>
+#include <tins/sniffer.h>
+#include <tins/tins.h>
+#include <tins/udp.h>
+#include <tins/ip_reassembler.h>
+
+
 namespace sensor
 {
 
@@ -117,6 +126,15 @@ class SensorTins : public ros2_ouster::SensorInterface
     std::vector<uint8_t> _lidar_packet;
     std::vector<uint8_t> _imu_packet;
     ros2_ouster::Metadata _metadata{};
+
+    /** Tins sniffer object for listening to packets */
+    Tins::Sniffer *_tins_sniffer_pointer;
+
+    /** Tins reassembler for reconstructing fragmented packets */
+    Tins::IPv4Reassembler _tins_ipv4_reassembler;
+
+    /** Configuration for _tins_sniffer_pointer */
+    Tins::SnifferConfiguration _sniffer_config;
 };
 
 }  // namespace sensor

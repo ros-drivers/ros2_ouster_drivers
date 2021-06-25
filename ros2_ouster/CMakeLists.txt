@@ -25,6 +25,7 @@ find_package(jsoncpp REQUIRED)
 include_directories(
   include
   ${PCL_INCLUDE_DIRS}
+  /usr/include/tins
 )
 
 set(executable_name ouster_driver)
@@ -63,6 +64,7 @@ ament_target_dependencies(${library_name}
 
 target_link_libraries(${library_name}
   jsoncpp_lib
+  tins
   ${PCL_LIBRARIES}
 )
 
