@@ -14,20 +14,19 @@
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 #include "ros2_ouster/driver_types.hpp"
+#include "ros2_ouster/sensor.hpp"
+#include "ros2_ouster/sensor_tins.hpp"
 
-int main(int argc, char ** argv)
+namespace ros2_ouster
 {
-  rclcpp::init(argc, argv);
-  auto options = rclcpp::NodeOptions();
+  ros2_ouster::DefaultDriver::DefaultDriver(rclcpp::NodeOptions options)
+    : OusterDriver{std::make_unique<sensor::Sensor>(), options} {}
 
-  rclcpp::Parameter driver_type = rclcpp::Node::get_parameter("driver_type");
-  std::cout << driver_type << std::endl;
-
-  auto node = std::make_shared<ros2_ouster::TinsDriver>(options);
-
-  rclcpp::spin(node->get_node_base_interface());
-
-  rclcpp::shutdown();
-  return 0;
+  ros2_ouster::TinsDriver::TinsDriver(rclcpp::NodeOptions options)
+    : OusterDriver{std::make_unique<sensor::SensorTins>(), options} {}
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::DefaultDriver)
+RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::TinsDriver)

@@ -36,8 +36,9 @@ using std::placeholders::_3;
 using namespace std::chrono_literals;
 
 OusterDriver::OusterDriver(
+  std::unique_ptr<SensorInterface> sensor,
   const rclcpp::NodeOptions & options)
-: LifecycleInterface("OusterDriver", options)
+: LifecycleInterface("OusterDriver", options), _sensor{std::move(sensor)}
 {
   this->declare_parameter("lidar_ip");
   this->declare_parameter("computer_ip");
@@ -81,7 +82,7 @@ void OusterDriver::onConfigure()
   std::string driver_type = get_parameter("driver_type").as_string();
   if (driver_type == "default")
   {
-    _sensor = std::make_unique<sensor::Sensor>();
+    // _sensor = std::make_unique<sensor::Sensor>();
     RCLCPP_INFO(
       this->get_logger(),
       "Using default Ouster sensor driver");
@@ -93,7 +94,7 @@ void OusterDriver::onConfigure()
   }
   else if (driver_type == "tins")  
   {
-    _sensor = std::make_unique<sensor::SensorTins>();
+    // _sensor = std::make_unique<sensor::SensorTins>();
     RCLCPP_INFO(
       this->get_logger(),
       "Using Tins-based sensor driver");
