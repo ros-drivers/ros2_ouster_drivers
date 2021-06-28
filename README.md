@@ -302,3 +302,23 @@ avahi-browse -arlt
 Now that your connection is up (hopefully), you can view this information in RViz. Open an RViz session and subscribe to the points, images, and IMU topics in the laser frame.
 
 Have fun!
+
+### Usage with SensorTins
+
+If you want to use the driver to read data from a pcap file, you can use the `Tins`-based driver. To do this, edit the sensor.yaml file and change these parameters as instructed:
+
+* `metadata_filepath`: Change this to a valid metadata file that exists on your machine. You can generate one by running the driver with a live Ouster sensor, and provided the connection is successful, the driver will save the metadata to this file. Alternatively you can copy and edit the example provided in the params folder: `example_metadata.json`. Note that the metadata values must match those that the LiDAR was set to, when the original data was collected.  
+* `ethernet_interface`: Change this to a working ethernet device on your computer that you plan to replay data through.
+* `driver_type`: Change this from "default" to "tins" if it has not been changed already.
+
+You can now run the driver as normal with the command below:
+
+```
+ros2 launch ros2_ouster os1_launch.py
+```
+
+In a new terminal, now replay a pcap file of recorded ouster data using the following commnad (as an example):
+
+```
+sudo tcpreplay --intf1=eth1 saved_ouster_data.pcap 
+```
