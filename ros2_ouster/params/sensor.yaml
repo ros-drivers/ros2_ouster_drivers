@@ -9,7 +9,14 @@ ouster_driver:
     laser_frame: laser_data_frame
     imu_frame: imu_data_frame
 
-    metadata_filepath: "/workspaces/tas-ros2-system/src/ros2_ouster_drivers/ros2_ouster/params/metadata.json"
+    # The filepath to the json metadata file to save and/or read metadata from. 
+    # Note that a valid metadata file is REQUIRED if using the tins driver (see
+    # "driver_type" below).
+    #
+    # If empty, the driver assumes that the user does not want to write metadata
+    # and will not need it in future. In this case, the driver will not attempt 
+    # to read from or write to any file. 
+    metadata_filepath: "/workspaces/tas-ros2-system/src/ros2_ouster_drivers/ros2_ouster/params/example_metadata.json"
     
     # The ethernet device the packets are being broadcast through. Only used
     # by the "tins" driver type.

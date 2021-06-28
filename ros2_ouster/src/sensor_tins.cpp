@@ -128,6 +128,13 @@ namespace sensor
     std::string filepath_to_read,
     ouster::sensor::sensor_info& sensor_info)
   {
+    if (filepath_to_read == "")
+    {
+      throw ros2_ouster::OusterDriverException(
+        "Metadata filepath is empty! The Tins driver needs a valid metadata file!");
+      exit(-1);
+    }
+
     try
     {
       sensor_info = ouster::sensor::metadata_from_json(filepath_to_read);
@@ -136,7 +143,7 @@ namespace sensor
     {
       throw ros2_ouster::OusterDriverException(
         "Failed to read metadata from file: " + filepath_to_read + 
-        " with exception ");
+        " with exception " + e.what());
       exit(-1);
     }    
   }

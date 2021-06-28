@@ -150,8 +150,13 @@ class SensorTins : public ros2_ouster::SensorInterface
      */
     std::shared_ptr<ouster::sensor::client> _ouster_client;
 
+    /** Internal storage for LiDAR data */
     std::vector<uint8_t> _lidar_packet;
+
+    /** Internal storage for IMU data */
     std::vector<uint8_t> _imu_packet;
+
+    /** Metadata for the sensor */
     ros2_ouster::Metadata _metadata{};
 
     /** Driver configuration */
