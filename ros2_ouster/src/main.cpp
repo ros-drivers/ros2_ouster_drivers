@@ -21,8 +21,8 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
   auto options = rclcpp::NodeOptions();
 
-  rclcpp::Parameter driver_type = rclcpp::Node::get_parameter("driver_type");
-  std::cout << driver_type << std::endl;
+  // rclcpp::Parameter driver_type = rclcpp::Node::get_parameter("driver_type");
+  // std::cout << driver_type << std::endl;
 
   auto node = std::make_shared<ros2_ouster::TinsDriver>(options);
 
