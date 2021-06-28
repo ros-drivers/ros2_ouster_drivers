@@ -1,6 +1,21 @@
 Changelog
 =========
 
+[unreleased] Added a new SensorTins implementation (2021-06-23)
+
+**General Changes**
+
+* Added an example metadata file.
+* Added/exposed the functions for loading and saving metadata to a json file.
+* Contibutors: Matthew Young (Trimble Inc)
+
+**SensorTins**
+
+* Added a new SensorImplementation called SensorTins. This implementation uses the Tins library to find LiDAR and IMU packets, so it works with real data as well as data replayed from a pcap file. 
+* Added a parameter allowing the user to switch between SensorTins and the original Sensor driver implementation
+* Updated readme and parameter file to explain usage of the SensorTins implementation.
+* Contibutors: Matthew Young (Trimble Inc)
+
 [unreleased] Ported client changes for FW 2.0/2.1 (2021-06-23)
 -------------
 
