@@ -11,28 +11,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__INTERFACES__CONFIGURATION_HPP_
-#define ROS2_OUSTER__INTERFACES__CONFIGURATION_HPP_
+#include <memory>
 
-#include <string>
+#include "rclcpp/rclcpp.hpp"
+#include "ros2_ouster/driver_types.hpp"
 
-namespace ros2_ouster
+int main(int argc, char ** argv)
 {
-/**
- * @brief Configuration parameters to send to Ouster lidar
- */
-struct Configuration
-{
-  std::string lidar_ip;
-  std::string computer_ip;
-  int imu_port;
-  int lidar_port;
-  std::string lidar_mode;
-  std::string timestamp_mode;
-  std::string metadata_filepath;
-  std::string ethernet_device;
-};
+  rclcpp::init(argc, argv);
+  auto options = rclcpp::NodeOptions();
 
-}  // namespace ros2_ouster
+  auto node = std::make_shared<ros2_ouster::TinsDriver>(options);
 
-#endif  // ROS2_OUSTER__INTERFACES__CONFIGURATION_HPP_
+  rclcpp::spin(node->get_node_base_interface());
+
+  rclcpp::shutdown();
+  return 0;
+}

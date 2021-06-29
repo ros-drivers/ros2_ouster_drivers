@@ -20,19 +20,7 @@ ouster_driver:
     
     # The ethernet device the packets are being broadcast through. Only used
     # by the "tins" driver type.
-    ethernet_interface: eth1
-
-    # Select the type of driver to use. Valid options are:
-    #
-    #  "default" - The default Ouster driver that will attempt to connect to,
-    #              configure and read directly from a real Ouster LiDAR.
-    #  "tins" -    The Tins-based driver that will use Libtins to listen to the 
-    #              ethernet device the data is being broadcast through, and read 
-    #              packets on this device. Requires a valid metadata file.
-    #              Allows the user to use this driver with data replayed from a
-    #              pcap or other log file.
-    #
-    driver_type: "tins"
+    ethernet_device: eth1
 
     # if False, data are published with sensor data QoS. This is preferrable
     # for production but default QoS is needed for rosbag.

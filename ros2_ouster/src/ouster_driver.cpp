@@ -53,8 +53,7 @@ OusterDriver::OusterDriver(
   this->declare_parameter("use_system_default_qos", false);
   this->declare_parameter("proc_mask", std::string("IMG|PCL|IMU|SCAN"));
   this->declare_parameter("metadata_filepath");
-  this->declare_parameter("ethernet_interface");
-  this->declare_parameter("driver_type", std::string("imu_data_frame"));
+  this->declare_parameter("ethernet_device");
 }
 
 OusterDriver::~OusterDriver() = default;
@@ -70,6 +69,11 @@ void OusterDriver::onConfigure()
   try {
     lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
     lidar_config.computer_ip = get_parameter("computer_ip").as_string();
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Looking for packets from IPv4 address %s to destination %s.", 
+      lidar_config.lidar_ip.c_str(),
+      lidar_config.computer_ip.c_str());
   } catch (...) {
     RCLCPP_FATAL(
       this->get_logger(),
@@ -78,45 +82,12 @@ void OusterDriver::onConfigure()
     exit(-1);
   }
 
-  // Select the sensor driver type to use
-  std::string driver_type = get_parameter("driver_type").as_string();
-  if (driver_type == "default")
-  {
-    // _sensor = std::make_unique<sensor::Sensor>();
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Using default Ouster sensor driver");
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Connecting to sensor at %s. \nSending data from sensor to %s.", 
-      lidar_config.lidar_ip.c_str(),
-      lidar_config.computer_ip.c_str());
-  }
-  else if (driver_type == "tins")  
-  {
-    // _sensor = std::make_unique<sensor::SensorTins>();
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Using Tins-based sensor driver");
-    lidar_config.ethernet_interface = get_parameter("ethernet_interface").as_string();
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Looking for packets on device %s with the ipv4 destination %s.", 
-      lidar_config.ethernet_interface.c_str(),
-      lidar_config.computer_ip.c_str());
-  }
-  else 
-  {
-    RCLCPP_FATAL(
-      this->get_logger(),
-      "No valid driver type specified. Expected \"default\" or \"tins\"");
-  }
-
   lidar_config.imu_port = get_parameter("imu_port").as_int();
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
   lidar_config.metadata_filepath = get_parameter("metadata_filepath").as_string();
+  lidar_config.ethernet_device = get_parameter("ethernet_device").as_string();
 
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
     RCLCPP_WARN(
@@ -321,6 +292,3 @@ void OusterDriver::getMetadata(
 }
 
 }  // namespace ros2_ouster
-
-
-//RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::Driver)

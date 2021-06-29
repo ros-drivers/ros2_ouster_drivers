@@ -74,7 +74,17 @@ namespace sensor
     _imu_packet.resize(getPacketFormat().imu_packet_size + 1);
 
     // Create and initialize the Tins sniffer object
-    initializeSniffer(_driver_config.ethernet_interface);
+    try
+    {
+      initializeSniffer(_driver_config.ethernet_device);
+    }
+    catch(const std::exception& e)
+    {
+      throw ros2_ouster::OusterDriverException(
+        "Failed to configure Tins sniffer. Check that the entered ethernet device "
+        + _driver_config.ethernet_device + " is valid.");
+      exit(-1);
+    } 
   }
 
   ouster::sensor::client_state SensorTins::get()

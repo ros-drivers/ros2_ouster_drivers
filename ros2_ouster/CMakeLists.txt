@@ -19,7 +19,6 @@ find_package(tf2_ros REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(ouster_msgs REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common)
-
 find_package(jsoncpp REQUIRED)
 
 include_directories(
@@ -28,8 +27,12 @@ include_directories(
   /usr/include/tins
 )
 
-set(executable_name ouster_driver)
-set(library_name ${executable_name}_core)
+# Create separate executables for the default and Tins drivers.
+set(default_executable_name ouster_default_driver)
+set(tins_executable_name ouster_tins_driver)
+
+# Create a single library target to use for both default and Tins driver.
+set(library_name ${default_executable_name}_core)
 
 set(dependencies
   rclcpp
@@ -68,16 +71,23 @@ target_link_libraries(${library_name}
   ${PCL_LIBRARIES}
 )
 
-add_executable(${executable_name}
-  src/main.cpp
+add_executable(${default_executable_name}
+  src/main_default.cpp
+)
+add_executable(${tins_executable_name}
+  src/main_tins.cpp
 )
 
-target_link_libraries(${executable_name} ${library_name})
+target_link_libraries(${default_executable_name} ${library_name})
+target_link_libraries(${tins_executable_name} ${library_name})
 
-rclcpp_components_register_nodes(ouster_driver_core "${PROJECT_NAME}::Driver")
-set(node_plugins "${node_plugins}${PROJECT_NAME}::Driver;$<TARGET_FILE:ouster_driver>\n")
+rclcpp_components_register_nodes(${library_name} "${PROJECT_NAME}::DefaultDriver")
+rclcpp_components_register_nodes(${library_name} "${PROJECT_NAME}::TinsDriver")
 
-install(TARGETS ${executable_name} ${library_name}
+set(node_plugins "${node_plugins}${PROJECT_NAME}::DefaultDriver;$<TARGET_FILE:ouster_driver>\n")
+set(node_plugins "${node_plugins}${PROJECT_NAME}::TinsDriver;$<TARGET_FILE:ouster_driver>\n")
+
+install(TARGETS ${default_executable_name} ${tins_executable_name} ${library_name}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}

@@ -49,7 +49,7 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                                                          |
 | `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                                                              |
 | `metadata_filepath`      | String  | A filepath to save metadata to, or read metadata from. If empty, the driver will do neither                 |
-| `ethernet_interface`     | String  | An ethernet device (e.g. eth0 or eno1) on which the Tins driver will listen for packets.                    |
+| `ethernet_device`        | String  | An ethernet device (e.g. eth0 or eno1) on which the Tins driver will listen for packets.                    |
 | `driver_type`            | String  | Either "default" or "tins". See section "Driver Types" for more information.                                |
 | `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`                                        |
 | `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`                                     |
@@ -291,7 +291,7 @@ computer_ip: ""
 Now that we have a connection over the network, lets view some data. After building your colcon workspace with this package, source the install space. Run
 
 ```
-ros2 launch ros2_ouster os1_launch.py
+ros2 launch ros2_ouster driver_launch.py
 ```
 
 Make sure to update your parameters file if you don't use the default IPs (10.5.5.1, 10.5.5.87). You may also use the `.local` version of your ouster lidar. To find your IPs, see the `dnsmasq` output or check with `nmap -SP 10.5.5.*/24`.
@@ -308,13 +308,13 @@ Have fun!
 If you want to use the driver to read data from a pcap file, you can use the `Tins`-based driver. To do this, edit the sensor.yaml file and change these parameters as instructed:
 
 * `metadata_filepath`: Change this to a valid metadata file that exists on your machine. You can generate one by running the driver with a live Ouster sensor, and provided the connection is successful, the driver will save the metadata to this file. Alternatively you can copy and edit the example provided in the params folder: `example_metadata.json`. Note that the metadata values must match those that the LiDAR was set to, when the original data was collected.  
-* `ethernet_interface`: Change this to a working ethernet device on your computer that you plan to replay data through.
+* `ethernet_device`: Change this to a working ethernet device on your computer that you plan to replay data through.
 * `driver_type`: Change this from "default" to "tins" if it has not been changed already.
 
 You can now run the driver as normal with the command below:
 
 ```
-ros2 launch ros2_ouster os1_launch.py
+ros2 launch ros2_ouster tins_driver_launch.py
 ```
 
 In a new terminal, now replay a pcap file of recorded ouster data using the following commnad (as an example):
