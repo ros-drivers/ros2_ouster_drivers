@@ -34,19 +34,28 @@ import os
 def generate_launch_description():
     share_dir = get_package_share_directory('ros2_ouster')
     parameter_file = LaunchConfiguration('params_file')
+    metadata_filepath = LaunchConfiguration('metadata_filepath')
     node_name = 'ouster_driver'
 
+    # Acquire the driver param file
     params_declare = DeclareLaunchArgument('params_file',
                                            default_value=os.path.join(
                                                share_dir, 'params', 'sensor.yaml'),
                                            description='FPath to the ROS2 parameters file to use.')
+
+    # Acquire the metadata param file
+    metadata_declare = DeclareLaunchArgument('metadata_filepath',
+                                             default_value=os.path.join(
+                                                share_dir, 'params', 'latest_metadata.json'),
+                                             description='File for reading/writing sensor metadata to.')
 
     driver_node = LifecycleNode(package='ros2_ouster',
                                 executable='ouster_default_driver',
                                 name=node_name,
                                 output='screen',
                                 emulate_tty=True,
-                                parameters=[parameter_file],
+                                parameters=[{'metadata_filepath':metadata_filepath},
+                                            parameter_file],
                                 namespace='/',
                                 )
 
@@ -87,6 +96,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         params_declare,
+        metadata_declare,
         driver_node,
         activate_event,
         configure_event,
