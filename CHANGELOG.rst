@@ -7,13 +7,15 @@ Changelog
 
 * Added an example metadata file.
 * Added/exposed the functions for loading and saving metadata to a json file.
+* Renamed the existing driver to DefaultDriver, to differentiate it from the new TinsDriver (see below)
 * Contibutors: Matthew Young (Trimble Inc)
 
 **SensorTins**
 
 * Added a new SensorImplementation called SensorTins. This implementation uses the Tins library to find LiDAR and IMU packets, so it works with real data as well as data replayed from a pcap file. 
-* Added a parameter allowing the user to switch between SensorTins and the original Sensor driver implementation
-* Updated readme and parameter file to explain usage of the SensorTins implementation.
+* Added a new driver called TinsDriver which utilizes the existing OusterDriver class with the SensorTins class.
+* Added an new set of launch and main files for the TinsDriver
+* Updated readme and parameter file to explain usage of the TinsDriver implementation.
 * Contibutors: Matthew Young (Trimble Inc)
 
 [unreleased] Ported client changes for FW 2.0/2.1 (2021-06-23)

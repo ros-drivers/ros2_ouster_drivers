@@ -303,13 +303,12 @@ Now that your connection is up (hopefully), you can view this information in RVi
 
 Have fun!
 
-### Usage with SensorTins
+### Usage with TinsDriver
 
 If you want to use the driver to read data from a pcap file, you can use the `Tins`-based driver. To do this, edit the sensor.yaml file and change these parameters as instructed:
 
-* `metadata_filepath`: Change this to a valid metadata file that exists on your machine. You can generate one by running the driver with a live Ouster sensor, and provided the connection is successful, the driver will save the metadata to this file. Alternatively you can copy and edit the example provided in the params folder: `example_metadata.json`. Note that the metadata values must match those that the LiDAR was set to, when the original data was collected.  
-* `ethernet_device`: Change this to a working ethernet device on your computer that you plan to replay data through.
-* `driver_type`: Change this from "default" to "tins" if it has not been changed already.
+* `metadata_filepath`: Change this to a valid metadata file that exists on your machine. You can generate one by running the driver with a live Ouster sensor, and the default driver (see above). Provided the connection is successful, the driver will save the metadata to this file. Alternatively you can copy and edit the example provided in the params folder: `example_metadata.json`. Note that the metadata values must match those that the LiDAR was set to when the original data was collected.  
+* `ethernet_device`: Change this to a working ethernet device on your computer that you plan to replay data through (e.g. "eth1").
 
 You can now run the driver as normal with the command below:
 
@@ -317,8 +316,10 @@ You can now run the driver as normal with the command below:
 ros2 launch ros2_ouster tins_driver_launch.py
 ```
 
-In a new terminal, now replay a pcap file of recorded ouster data using the following commnad (as an example):
+In a new terminal, now replay a pcap file of recorded ouster data using the following command (as an example):
 
 ```
 sudo tcpreplay --intf1=eth1 saved_ouster_data.pcap 
 ```
+
+Note that this driver version will also work with a live Ouster sensor, provided the data is coming into the correct ethernet device, and the parameters in the metadata file match those of the sensor. However it is recommended that you run the default drive with a real sensor, as this will guarantee that the metadata settings are correct.
