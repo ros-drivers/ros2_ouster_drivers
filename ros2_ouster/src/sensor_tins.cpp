@@ -162,6 +162,12 @@ namespace sensor
   {
     _sniffer_config.set_promisc_mode(true);
     _sniffer_config.set_immediate_mode(true);
+
+    // Filter out all packets not from the sensor
+    std::string filter_string = "ip src " 
+                              + _driver_config.lidar_ip;
+    _sniffer_config.set_filter(filter_string);
+
     _tins_sniffer_pointer = new Tins::Sniffer(eth_device, _sniffer_config);
   }
 
@@ -169,7 +175,7 @@ namespace sensor
   {
     auto &pdu_to_process = *packet.pdu();
 
-        // Reassemble the packet if it's fragmented
+    // Reassemble the packet if it's fragmented
     if (_tins_ipv4_reassembler.process(pdu_to_process) != 
           Tins::IPv4Reassembler::FRAGMENTED)
     {

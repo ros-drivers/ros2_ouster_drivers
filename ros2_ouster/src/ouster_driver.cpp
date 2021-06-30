@@ -71,7 +71,7 @@ void OusterDriver::onConfigure()
     lidar_config.computer_ip = get_parameter("computer_ip").as_string();
     RCLCPP_INFO(
       this->get_logger(),
-      "Looking for packets from IPv4 address %s to destination %s.", 
+      "Looking for packets from sensor IPv4 address %s to destination %s.", 
       lidar_config.lidar_ip.c_str(),
       lidar_config.computer_ip.c_str());
   } catch (...) {
