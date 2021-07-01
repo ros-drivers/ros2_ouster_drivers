@@ -164,8 +164,7 @@ namespace sensor
     _sniffer_config.set_immediate_mode(true);
 
     // Filter out all packets not from the sensor
-    std::string filter_string = "ip src " 
-                              + _driver_config.lidar_ip;
+    std::string filter_string = "ip src " + _driver_config.lidar_ip;
     _sniffer_config.set_filter(filter_string);
 
     _tins_sniffer_pointer = new Tins::Sniffer(eth_device, _sniffer_config);
