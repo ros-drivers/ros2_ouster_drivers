@@ -56,6 +56,7 @@ def generate_launch_description():
                                 emulate_tty=True,
                                 parameters=[{'metadata_filepath':metadata_filepath},
                                             parameter_file],
+                                arguments=['--ros-args', '--log-level', 'INFO'],
                                 namespace='/',
                                 )
 
