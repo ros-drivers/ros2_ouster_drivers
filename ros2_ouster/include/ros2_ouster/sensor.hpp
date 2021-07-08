@@ -22,6 +22,7 @@
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/client/client.h"
+#include "ros2_ouster/ros2_utils.hpp"
 
 namespace sensor
 {

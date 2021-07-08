@@ -46,18 +46,6 @@ OusterDriver::OusterDriver(
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
   this->declare_parameter("use_system_default_qos", false);
   this->declare_parameter("proc_mask", std::string("IMG|PCL|IMU|SCAN"));
-
-  // Declare parameters for configuring the _sensor_. These parameters are 
-  // retrieved in the sensor::onConfigure function. Note that all parameters in
-  // use by any variation of SensorInterface must be declared here.
-  this->declare_parameter("lidar_ip");
-  this->declare_parameter("computer_ip");
-  this->declare_parameter("imu_port", 7503);
-  this->declare_parameter("lidar_port", 7502);
-  this->declare_parameter("lidar_mode", std::string("512x10"));
-  this->declare_parameter("timestamp_mode", std::string("TIME_FROM_INTERNAL_OSC"));
-  this->declare_parameter("metadata_filepath");
-  this->declare_parameter("ethernet_device");
 }
 
 OusterDriver::~OusterDriver() = default;

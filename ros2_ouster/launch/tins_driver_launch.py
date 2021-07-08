@@ -40,13 +40,13 @@ def generate_launch_description():
     # Acquire the driver param file
     params_declare = DeclareLaunchArgument('params_file',
                                            default_value=os.path.join(
-                                               share_dir, 'params', 'sensor.yaml'),
+                                               share_dir, 'params', 'tins_config.yaml'),
                                            description='FPath to the ROS2 parameters file to use.')
   
     # Acquire the metadata param file
     metadata_declare = DeclareLaunchArgument('metadata_filepath',
                                              default_value=os.path.join(
-                                                share_dir, 'params', 'latest_metadata.json'),
+                                                share_dir, 'params', 'example_metadata.json'),
                                              description='File for reading/writing sensor metadata to.')
 
     driver_node = LifecycleNode(package='ros2_ouster',

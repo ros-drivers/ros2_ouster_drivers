@@ -44,6 +44,20 @@ void Sensor::configure(
   ros2_ouster::Configuration & config,
   rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
+  // Declare parameters for configuring the _sensor_
+  ros2_ouster::declare_parameter_if_not_declared(
+    node, "lidar_ip", rclcpp::ParameterValue("no_ip_address_configured"));
+  ros2_ouster::declare_parameter_if_not_declared(
+    node, "computer_ip", rclcpp::ParameterValue("no_ip_address_configured"));
+  ros2_ouster::declare_parameter_if_not_declared(
+    node, "imu_port", rclcpp::ParameterValue(7503));
+  ros2_ouster::declare_parameter_if_not_declared(
+    node, "lidar_port", rclcpp::ParameterValue(7502));
+  ros2_ouster::declare_parameter_if_not_declared(
+    node, "timestamp_mode", rclcpp::ParameterValue("TIME_FROM_INTERNAL_OSC"));
+  ros2_ouster::declare_parameter_if_not_declared(
+    node, "metadata_filepath", rclcpp::ParameterValue("no_metadata_filepath_configured"));
+
   // Get parameters for configuring the _sensor_
   try 
   {
