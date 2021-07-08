@@ -72,7 +72,7 @@ void Sensor::configure(
   catch (...) 
   {
     throw ros2_ouster::OusterDriverException(
-      "Failed to retrieve one or more sensor parameters");
+      "DefaultDriver failed to retrieve one or more sensor parameters");
     exit(-1);
   }
 

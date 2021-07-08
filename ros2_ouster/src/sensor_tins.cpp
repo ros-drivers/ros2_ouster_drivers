@@ -52,6 +52,8 @@ namespace sensor
     ros2_ouster::declare_parameter_if_not_declared(
       node, "lidar_port", rclcpp::ParameterValue(7502));
     ros2_ouster::declare_parameter_if_not_declared(
+      node, "lidar_mode", rclcpp::ParameterValue("512x10"));
+    ros2_ouster::declare_parameter_if_not_declared(
       node, "timestamp_mode", rclcpp::ParameterValue("TIME_FROM_INTERNAL_OSC"));
     ros2_ouster::declare_parameter_if_not_declared(
       node, "metadata_filepath", rclcpp::ParameterValue("no_metadata_filepath_configured"));
@@ -73,7 +75,7 @@ namespace sensor
     catch (...) 
     {
       throw ros2_ouster::OusterDriverException(
-        "Failed to retrieve one or more sensor parameters");
+        "TinsDriver failed to retrieve one or more sensor parameters");
       exit(-1);
     }
 
