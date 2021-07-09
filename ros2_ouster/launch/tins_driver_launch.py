@@ -46,7 +46,7 @@ def generate_launch_description():
     # Acquire the metadata param file
     metadata_declare = DeclareLaunchArgument('metadata_filepath',
                                              default_value=os.path.join(
-                                                share_dir, 'params', 'latest_metadata.json'),
+                                                share_dir, 'params', 'example_metadata.json'),
                                              description='File for reading/writing sensor metadata to.')
 
     driver_node = LifecycleNode(package='ros2_ouster',
@@ -56,7 +56,7 @@ def generate_launch_description():
                                 emulate_tty=True,
                                 parameters=[{'metadata_filepath':metadata_filepath},
                                             parameter_file],
-                                arguments=['--ros-args', '--log-level', 'INFO'],
+                                arguments=['--ros-args', '--log-level', 'DEBUG'],
                                 namespace='/',
                                 )
 
