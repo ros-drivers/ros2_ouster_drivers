@@ -22,6 +22,7 @@ namespace ros2_ouster
 /** 
  * @brief Declares static ROS2 parameter and sets it to a given value if it was 
  *        not already declared.
+ * @details This utility function is borrowed from the navigation2 package.
  *
  * @param[in] node_ptr A node in which given parameter to be declared
  * @param[in] param_name The name of parameter
@@ -40,6 +41,7 @@ void declare_parameter_if_not_declared(
 /** 
  * @brief Declares static ROS2 parameter and sets it to a given value if it was 
  *        not already declared.
+ * @details This utility function is borrowed from the navigation2 package.
  *
  * @param[in] node_ptr A node in which given parameter to be declared
  * @param[in] param_name The name of parameter
