@@ -197,18 +197,14 @@ void OusterDriver::processData()
 {
   try {
 
-    auto start = std::chrono::high_resolution_clock::now(); 
     ouster::sensor::client_state state = _sensor->get();
     _lidar_packet_data = _sensor->readLidarPacket(state);
     _imu_packet_data = _sensor->readImuPacket(state);
-    auto end = std::chrono::high_resolution_clock::now(); 
-    auto packet_retrieval_time_us = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     RCLCPP_DEBUG(
       this->get_logger(),
-      "Retrieved packet with state: %s in %s us",
-      ros2_ouster::toString(state).c_str(),
-      std::to_string(packet_retrieval_time_us.count()).c_str());
+      "Retrieved packet with state: %s",
+      ros2_ouster::toString(state).c_str());
 
     std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
 
