@@ -49,7 +49,7 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                                                          |
 | `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                                                              |
 | `metadata_filepath`      | String  | A filepath to save metadata to, or read metadata from. If empty, the driver will do neither. Defaults to `~/params/latest_metadata.json` and is set by the launch file, not the config file. If set to an empty string (""), then the driver will not attempt to save or read the metadata. Also note that this parameter is declared/set in the launch file(s) for this package, rather than the param file(s) |
-| `ethernet_device`        | String  | An ethernet device (e.g. eth0 or eno1) on which the Tins driver will listen for packets.                    |                              |
+| `ethernet_device`        | String  | An ethernet device (e.g. eth0 or eno1) on which the Tins driver will listen for packets. Note that this is only a parameter for the Tins driver.                    |                              |
 | `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`                                        |
 | `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`                                     |
 | `os1_proc_mask`          | String  | Mask encoding data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code>       |

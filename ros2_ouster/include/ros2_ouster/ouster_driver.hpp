@@ -59,7 +59,6 @@ public:
     std::unique_ptr<SensorInterface> sensor,
     const rclcpp::NodeOptions & options);
 
-
   /**
    * @brief A destructor for ros2_ouster::OusterDriver
    */
