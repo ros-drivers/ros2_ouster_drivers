@@ -44,38 +44,6 @@ void Sensor::configure(
   ros2_ouster::Configuration & config,
   rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
-  // Declare parameters for configuring the _sensor_
-  ros2_ouster::declare_parameter_if_not_declared(
-    node, "lidar_ip", rclcpp::ParameterValue("no_ip_address_configured"));
-  ros2_ouster::declare_parameter_if_not_declared(
-    node, "computer_ip", rclcpp::ParameterValue("no_ip_address_configured"));
-  ros2_ouster::declare_parameter_if_not_declared(
-    node, "imu_port", rclcpp::ParameterValue(7503));
-  ros2_ouster::declare_parameter_if_not_declared(
-    node, "lidar_port", rclcpp::ParameterValue(7502));
-  ros2_ouster::declare_parameter_if_not_declared(
-    node, "timestamp_mode", rclcpp::ParameterValue("TIME_FROM_INTERNAL_OSC"));
-  ros2_ouster::declare_parameter_if_not_declared(
-    node, "metadata_filepath", rclcpp::ParameterValue("no_metadata_filepath_configured"));
-
-  // Get parameters for configuring the _sensor_
-  try 
-  {
-    config.lidar_ip = node->get_parameter("lidar_ip").as_string();
-    config.computer_ip = node->get_parameter("computer_ip").as_string();
-    config.imu_port = node->get_parameter("imu_port").as_int();
-    config.lidar_port = node->get_parameter("lidar_port").as_int();
-    config.lidar_mode = node->get_parameter("lidar_mode").as_string();
-    config.timestamp_mode = node->get_parameter("timestamp_mode").as_string();
-    config.metadata_filepath = node->get_parameter("metadata_filepath").as_string();
-  } 
-  catch (...) 
-  {
-    throw ros2_ouster::OusterDriverException(
-      "DefaultDriver failed to retrieve one or more sensor parameters");
-    exit(-1);
-  }
-
   // Check the validity of some of the retrieved parameters
   if (!ouster::sensor::lidar_mode_of_string(config.lidar_mode)) {
     throw ros2_ouster::OusterDriverException(

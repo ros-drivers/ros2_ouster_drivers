@@ -46,6 +46,15 @@ OusterDriver::OusterDriver(
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
   this->declare_parameter("use_system_default_qos", false);
   this->declare_parameter("proc_mask", std::string("IMG|PCL|IMU|SCAN"));
+
+  // Declare parameters used across ALL _sensor_ implementations
+  this->declare_parameter("lidar_ip");
+  this->declare_parameter("computer_ip");
+  this->declare_parameter("imu_port", 7503);
+  this->declare_parameter("lidar_port", 7502);
+  this->declare_parameter("lidar_mode", std::string("512x10"));
+  this->declare_parameter("timestamp_mode", std::string("TIME_FROM_INTERNAL_OSC"));
+  this->declare_parameter("metadata_filepath");
 }
 
 OusterDriver::~OusterDriver() = default;
@@ -63,8 +72,17 @@ void OusterDriver::onConfigure()
   _use_system_default_qos = get_parameter("use_system_default_qos").as_bool();
   _proc_mask = ros2_ouster::toProcMask(get_parameter("proc_mask").as_string());
 
-  // Get parameters for configuring the _sensor_
+  // Get parameters used across ALL _sensor_ implementations
   ros2_ouster::Configuration lidar_config;
+  lidar_config.lidar_ip = this->get_parameter("lidar_ip").as_string();
+  lidar_config.computer_ip = this->get_parameter("computer_ip").as_string();
+  lidar_config.imu_port = this->get_parameter("imu_port").as_int();
+  lidar_config.lidar_port = this->get_parameter("lidar_port").as_int();
+  lidar_config.lidar_mode = this->get_parameter("lidar_mode").as_string();
+  lidar_config.timestamp_mode = this->get_parameter("timestamp_mode").as_string();
+  lidar_config.metadata_filepath = this->get_parameter("metadata_filepath").as_string();
+  
+  // Configure the driver and sensor
   try {
     _sensor->configure(lidar_config, shared_from_this());
   } catch (const OusterDriverException & e) {
