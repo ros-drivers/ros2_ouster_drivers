@@ -40,7 +40,7 @@ def generate_launch_description():
     # Acquire the driver param file
     params_declare = DeclareLaunchArgument('params_file',
                                            default_value=os.path.join(
-                                               share_dir, 'params', 'tins_config.yaml'),
+                                               share_dir, 'params', 'tins_driver_config.yaml'),
                                            description='FPath to the ROS2 parameters file to use.')
   
     # Acquire the metadata param file
