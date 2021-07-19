@@ -54,7 +54,6 @@ OusterDriver::OusterDriver(
   this->declare_parameter("lidar_port", 7502);
   this->declare_parameter("lidar_mode", std::string("512x10"));
   this->declare_parameter("timestamp_mode", std::string("TIME_FROM_INTERNAL_OSC"));
-  this->declare_parameter("metadata_filepath");
 }
 
 OusterDriver::~OusterDriver() = default;
@@ -80,7 +79,6 @@ void OusterDriver::onConfigure()
   lidar_config.lidar_port = this->get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = this->get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = this->get_parameter("timestamp_mode").as_string();
-  lidar_config.metadata_filepath = this->get_parameter("metadata_filepath").as_string();
   
   // Configure the driver and sensor
   try {
@@ -282,6 +280,30 @@ void OusterDriver::getMetadata(
     return;
   }
   response->metadata = toMsg(_sensor->getMetadata());
+
+  // Save the metadata to file ONLY if the user specifies a filepath
+  if (request->filepath != "")
+  {
+    std::string json_config = ouster::sensor::to_string(_sensor->getMetadata());
+    std::ofstream ofs;
+    ofs.open(request->filepath);
+    ofs << json_config << std::endl;
+    ofs.close();
+    if (!ofs)
+    {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "Failed to save metadata to: %s.",
+        request->filepath);
+    }
+    else
+    {
+      RCLCPP_INFO(
+        this->get_logger(),
+        "Saving metadata to a .json file specifed here: %s",
+        request->filepath);
+    }
+  }
 }
 
 }  // namespace ros2_ouster

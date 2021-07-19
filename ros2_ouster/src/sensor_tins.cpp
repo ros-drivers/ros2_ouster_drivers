@@ -45,11 +45,14 @@ namespace sensor
     // Declare parameters specific to the SensorTins implementation
     ros2_ouster::declare_parameter_if_not_declared(
       node, "ethernet_device", rclcpp::ParameterValue("no_ethernet_device_configured"));
+    ros2_ouster::declare_parameter_if_not_declared(
+      node, "metadata_filepath", rclcpp::ParameterValue("no_filepath_specified"));
 
     // Get parameters specific to the SensorTins implementation
     try 
     {
       config.ethernet_device = node->get_parameter("ethernet_device").as_string();
+      config.metadata_filepath = node->get_parameter("metadata_filepath").as_string();
     } 
     catch (...) 
     {

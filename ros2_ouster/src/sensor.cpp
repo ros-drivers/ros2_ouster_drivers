@@ -73,25 +73,6 @@ void Sensor::configure(
   setMetadata(config.lidar_port, config.imu_port, config.timestamp_mode);
   _lidar_packet.resize(this->getPacketFormat().lidar_packet_size + 1);
   _imu_packet.resize(this->getPacketFormat().imu_packet_size + 1);
-
-  // Assuming the sensor connection is successful, save the configuration to a 
-  // json metadata file so that it can be used for future use. If the metadata
-  // file is empty, it is assume that the user does not want to save the data,
-  // and has no need for it in the future.
-  if (config.metadata_filepath != "")
-  {
-    std::string json_config = ouster::sensor::to_string(_metadata);
-    std::ofstream ofs;
-    ofs.open(config.metadata_filepath);
-    ofs << json_config << std::endl;
-    ofs.close();
-    if (!ofs)
-    {
-      std::string error_msg = "Failed successfully write metadata to filepath: "
-                            + config.metadata_filepath;
-      throw ros2_ouster::OusterDriverException(error_msg);
-    }
-  }
 }
 
 ouster::sensor::client_state Sensor::get()

@@ -1,3 +1,4 @@
 
+string filepath
 ---
 ouster_msgs/Metadata metadata

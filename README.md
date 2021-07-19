@@ -300,20 +300,21 @@ avahi-browse -arlt
 
 Now that your connection is up (hopefully), you can view this information in RViz. Open an RViz session and subscribe to the points, images, and IMU topics in the laser frame.
 
-The default driver will automatically read the metadata parameters from the Ouster. However, if you wish to save these parameters and use them with captured data (see the next section) then you can save the data to a specific location by changing the `metadata_filepath` parameter when launching the driver:
+The default driver will automatically read the metadata parameters from the Ouster. However, if you wish to save these parameters and use them with captured data (see the next section) then you can save the data to a specific location using the `getMetadata` service that the driver offers. To use it, run the driver with a real Ouster LiDAR and then make the following service call:
 
 ```
-ros2 launch ros2_ouster driver_launch.py metadata_filepath:=/path/to/your/metadata.json
+ros2 service call /ouster_driver/get_metadata ouster_msgs/srv/GetMetadata "{filepath: "/path/to/your/metadata.json"}"
 ```
+
+The driver will then save all the required metadata to the specified file. You can call also call the service without a filepath. With or without the filepath, the service call will also return the metadata as a string and print it to the terminal. Copying this string and manually saving it to a .json file is also a valid way to generate a metadata file.  
 
 Have fun!
 
 ### Usage with Tins-based driver
 
-If you want to use the driver to read data from a pcap file, you can use the `Tins`-based driver. To do this, change these parameters as instructed:
+If you want to use the driver to read data from a pcap file, you can use the `Tins`-based driver. To do this, open the `tins_driver_config.yaml` file and edit the following parameter:
 
-* `metadata_filepath`: This is set to `~install/ros2_ouster/share/ros2_ouster/params/latest_metadata.json` by default and is set by the launch file rather than the parameter file. It will be automatically updated by running the default driver with a live Ouster sensor (see above). Provided the connection is successful, the driver will save the most recently used metadata values to this file. Alternatively you can change the metadata filepath as shown when running the default driver. This is highly recommended as the metadata file in the install directory will be overwritten every time you rebuild this package. Note that when replaying data from a .pcap file the metadata values must match those that the LiDAR was set to when the original data was collected.  
-* `ethernet_device`: Change this in the `~/params/sensor.yaml` file to a working ethernet device on your computer that you plan to replay data through (e.g. "eth1").
+* `ethernet_device`: Change this to a working ethernet device on your computer that you plan to replay data through (e.g. "eth1").
 
 You can now run the Tins driver with the command below. This will use the default `latest_metadata.json` file:
 
@@ -321,7 +322,7 @@ You can now run the Tins driver with the command below. This will use the defaul
 ros2 launch ros2_ouster tins_driver_launch.py
 ```
 
-Alternatively, you can change the metadata being used by specifying the metadata filepath as shown:
+Alternatively, you can change the metadata being used by specifying the metadata filepath as shown below. You can generate a metadata file using the `getMetadata` service as shown in the previous section.
 
 ```
 ros2 launch ros2_ouster tins_driver_launch.py metadata_filepath:=/path/to/metadata.json
