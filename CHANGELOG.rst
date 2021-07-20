@@ -2,6 +2,7 @@ Changelog
 =========
 
 [unreleased] Added a new SensorTins implementation (2021-06-23)
+-------------
 
 **General Changes**
 
@@ -32,11 +33,11 @@ Changelog
   * Ported `Optional` code: 
     * Optional header and license file are now present in their own folder: `include/ros2_ouster/client/optional-lite/`
     * Ported some mode-getting functions that use Optional to types.cpp
-  * Ported the `sensor_config` struct 
+  * Ported the `sensor_config` struct: 
     * Ported sensor_config struct to types.hpp
     * Ported the get/set_config functions for sensor_config to client.cpp/.hpp
   * Ported some documentation updates, and a != operator for LidarScan objects to lidar_scan.h.
-  * Ported/expanded data objects added by ouster_example #239  
+  * Ported/expanded data objects added by ouster_example #239:  
     * Ported several additional enumerated types (e.g. OperatingMode and MultipurposeIOMode) to types.h
     * Ported parsing functions for additional enumerated types to types.cpp
     * Ported ColumnWindow definition and added it as a parameter to data_format struct, which is the only existing struct changed.
@@ -46,7 +47,7 @@ Changelog
 * From [ouster_example #259](https://github.com/ouster-lidar/ouster_example/commit/b8b23c35d7b719d69341a438d386a801688aa6a4#diff-db793e44a91d87bc6e0d94870833d5d9eeb4420e2fbbec4e2468717a359a651f)
   * Increased default timeout time from 30 to 60 seconds for `init_client` and `read_imu_packet`
   * In netcompat.cpp, changed non_blocking_mode from off to on (0 to 1) if using Win32.
-  * Ported signal_multiplier parameter 
+  * Ported signal_multiplier parameter: 
     * Added parameter to `sensor_config` in types.h
     * Added signal_multiplier parameter setting to some functions in client.cpp and types.cpp
 * Updated changelog
