@@ -19,10 +19,31 @@
 namespace ros2_ouster
 {
 
+/**
+ * @brief The default Ouster driver for connecting to, configuring, and reading
+ *        data from a real Ouster LiDAR. 
+ */
 class Driver : public OusterDriver
 {
-public:
-  explicit Driver(rclcpp::NodeOptions options);
+  public:
+    explicit Driver(rclcpp::NodeOptions options);
+};
+
+
+/**
+ * @brief An alternative Ouster driver based on the open-source Tins library.
+ *        This driver listens to an ethernet interface for packets with 
+ *        matching metadata, so it can be used with data captured in a pcap file
+ *        and replayed after the fact. 
+ * @details This driver differs from the implementation of Driver only in
+ *          that it is initialized with, and uses the SensorTins class instead
+ *          of the Sensor class. The utilization of the data accumulators and 
+ *          processor classes is otherwise the same.
+ */
+class TinsDriver : public OusterDriver
+{
+  public:
+    explicit TinsDriver(rclcpp::NodeOptions options);
 };
 
 }  // namespace ros2_ouster

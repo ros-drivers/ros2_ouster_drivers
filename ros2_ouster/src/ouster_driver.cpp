@@ -24,6 +24,8 @@
 #include "ros2_ouster/ouster_driver.hpp"
 #include "ros2_ouster/processors/processor_factories.hpp"
 #include "ros2_ouster/client/types.h"
+#include "ros2_ouster/sensor.hpp"
+#include "ros2_ouster/sensor_tins.hpp"
 
 namespace ros2_ouster
 {
@@ -38,18 +40,20 @@ OusterDriver::OusterDriver(
   const rclcpp::NodeOptions & options)
 : LifecycleInterface("OusterDriver", options), _sensor{std::move(sensor)}
 {
-  this->declare_parameter("lidar_ip");
-  this->declare_parameter("computer_ip");
-  this->declare_parameter("imu_port", 7503);
-  this->declare_parameter("lidar_port", 7502);
-  this->declare_parameter("lidar_mode", std::string("512x10"));
-  this->declare_parameter(
-    "timestamp_mode", std::string("TIME_FROM_INTERNAL_OSC"));
+  // Declare parameters for configuring the _driver_
   this->declare_parameter("sensor_frame", std::string("laser_sensor_frame"));
   this->declare_parameter("laser_frame", std::string("laser_data_frame"));
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
   this->declare_parameter("use_system_default_qos", false);
   this->declare_parameter("proc_mask", std::string("IMG|PCL|IMU|SCAN"));
+
+  // Declare parameters used across ALL _sensor_ implementations
+  this->declare_parameter("lidar_ip");
+  this->declare_parameter("computer_ip");
+  this->declare_parameter("imu_port", 7503);
+  this->declare_parameter("lidar_port", 7502);
+  this->declare_parameter("lidar_mode", std::string("512x10"));
+  this->declare_parameter("timestamp_mode", std::string("TIME_FROM_INTERNAL_OSC"));
 }
 
 OusterDriver::~OusterDriver() = default;
@@ -60,22 +64,35 @@ void OusterDriver::onConfigure()
       this->get_logger(),
       "This driver is compatible with sensors running fw 2.x.");
 
+  // Get parameters for configuring the _driver_
+  _laser_sensor_frame = get_parameter("sensor_frame").as_string();
+  _laser_data_frame = get_parameter("laser_frame").as_string();
+  _imu_data_frame = get_parameter("imu_frame").as_string();
+  _use_system_default_qos = get_parameter("use_system_default_qos").as_bool();
+  _proc_mask = ros2_ouster::toProcMask(get_parameter("proc_mask").as_string());
+
+  // Get parameters used across ALL _sensor_ implementations
   ros2_ouster::Configuration lidar_config;
+  lidar_config.lidar_ip = this->get_parameter("lidar_ip").as_string();
+  lidar_config.computer_ip = this->get_parameter("computer_ip").as_string();
+  lidar_config.imu_port = this->get_parameter("imu_port").as_int();
+  lidar_config.lidar_port = this->get_parameter("lidar_port").as_int();
+  lidar_config.lidar_mode = this->get_parameter("lidar_mode").as_string();
+  lidar_config.timestamp_mode = this->get_parameter("timestamp_mode").as_string();
+  
+  // Configure the driver and sensor
   try {
-    lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
-    lidar_config.computer_ip = get_parameter("computer_ip").as_string();
-  } catch (...) {
-    RCLCPP_FATAL(
-      this->get_logger(),
-      "Failed to get lidar or IMU IP address or "
-      "hostname. An IP address for both are required!");
+    _sensor->configure(lidar_config, shared_from_this());
+  } catch (const OusterDriverException & e) {
+    RCLCPP_FATAL(this->get_logger(), "Exception thrown: (%s)", e.what());
     exit(-1);
   }
 
-  lidar_config.imu_port = get_parameter("imu_port").as_int();
-  lidar_config.lidar_port = get_parameter("lidar_port").as_int();
-  lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
-  lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Looking for packets from sensor IPv4 address %s to destination %s.", 
+    lidar_config.lidar_ip.c_str(),
+    lidar_config.computer_ip.c_str());
 
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
     RCLCPP_WARN(
@@ -88,32 +105,10 @@ void OusterDriver::onConfigure()
     _use_ros_time = false;
   }
 
-  _laser_sensor_frame = get_parameter("sensor_frame").as_string();
-  _laser_data_frame = get_parameter("laser_frame").as_string();
-  _imu_data_frame = get_parameter("imu_frame").as_string();
-  _use_system_default_qos = get_parameter("use_system_default_qos").as_bool();
-
-  _proc_mask =
-    ros2_ouster::toProcMask(get_parameter("proc_mask").as_string());
-
-  RCLCPP_INFO(
-    this->get_logger(),
-    "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());
-  RCLCPP_INFO(
-    this->get_logger(),
-    "Sending data from sensor to %s.", lidar_config.computer_ip.c_str());
-
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
   _metadata_srv = this->create_service<ouster_msgs::srv::GetMetadata>(
     "~/get_metadata", std::bind(&OusterDriver::getMetadata, this, _1, _2, _3));
-
-  try {
-    _sensor->configure(lidar_config);
-  } catch (const OusterDriverException & e) {
-    RCLCPP_FATAL(this->get_logger(), "Exception thrown: (%s)", e.what());
-    exit(-1);
-  }
 
   _full_rotation_accumulator = std::make_shared<sensor::FullRotationAccumulator>(
     _sensor->getMetadata(), _sensor->getPacketFormat());
@@ -203,14 +198,15 @@ void OusterDriver::broadcastStaticTransforms(
 void OusterDriver::processData()
 {
   try {
-    ouster::sensor::client_state state = _sensor->get();
-    RCLCPP_DEBUG(
-      this->get_logger(),
-      "Packet with state: %s",
-      ros2_ouster::toString(state).c_str());
 
+    ouster::sensor::client_state state = _sensor->get();
     _lidar_packet_data = _sensor->readLidarPacket(state);
     _imu_packet_data = _sensor->readImuPacket(state);
+
+    RCLCPP_DEBUG(
+      this->get_logger(),
+      "Retrieved packet with state: %s",
+      ros2_ouster::toString(state).c_str());
 
     std::pair<DataProcessorMapIt, DataProcessorMapIt> key_its;
 
@@ -258,7 +254,7 @@ void OusterDriver::resetService(
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
-  _sensor->reset(lidar_config);
+  _sensor->reset(lidar_config, shared_from_this());
 }
 
 void OusterDriver::getMetadata(
@@ -270,6 +266,30 @@ void OusterDriver::getMetadata(
     return;
   }
   response->metadata = toMsg(_sensor->getMetadata());
+
+  // Save the metadata to file ONLY if the user specifies a filepath
+  if (request->filepath != "")
+  {
+    std::string json_config = ouster::sensor::to_string(_sensor->getMetadata());
+    std::ofstream ofs;
+    ofs.open(request->filepath);
+    ofs << json_config << std::endl;
+    ofs.close();
+    if (!ofs)
+    {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "Failed to save metadata to: %s.",
+        request->filepath.c_str());
+    }
+    else
+    {
+      RCLCPP_INFO(
+        this->get_logger(),
+        "Saving metadata to a .json file specifed here: %s",
+        request->filepath.c_str());
+    }
+  }
 }
 
 }  // namespace ros2_ouster

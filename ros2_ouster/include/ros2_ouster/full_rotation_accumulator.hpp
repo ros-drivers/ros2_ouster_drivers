@@ -84,7 +84,10 @@ public:
   {
     if (_batchReady) {
       _batchReady = false;
+      _packets_accumulated = 0;
     }
+
+    _packets_accumulated++;
 
     if (_batch->operator()(data, *_ls)) {
       auto h = std::find_if(
@@ -98,12 +101,19 @@ public:
     }
   }
 
+  uint64_t getPacketsAccumulated()
+  {
+    return _packets_accumulated;
+  }
+
 private:
   bool _batchReady;
   std::chrono::nanoseconds _timestamp;
   std::unique_ptr<ouster::ScanBatcher> _batch;
   std::shared_ptr<ouster::LidarScan> _ls;
   ouster::sensor::packet_format _pf;
+
+  uint64_t _packets_accumulated = 0;
 };
 
 }  // namespace sensor

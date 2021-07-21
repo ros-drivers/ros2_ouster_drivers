@@ -48,9 +48,11 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `sensor_frame`           | String  | TF frame of sensor, default `laser_sensor_frame`                                                            |
 | `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                                                          |
 | `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                                                              |
+| `metadata_filepath`      | String  | A filepath to save metadata to, or read metadata from. If empty, the driver will do neither. Defaults to `~/params/latest_metadata.json` and is set by the launch file, not the config file. If set to an empty string (""), then the driver will not attempt to save or read the metadata. Also note that this parameter is declared/set in the launch file(s) for this package, rather than the param file(s) |
+| `ethernet_device`        | String  | An ethernet device (e.g. eth0 or eno1) on which the Tins driver will listen for packets. Note that this is only a parameter for the Tins driver.                    |                              |
 | `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`                                        |
 | `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`                                     |
-| `os1_proc_mask`          | String  | Mask encoding data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code> |
+| `os1_proc_mask`          | String  | Mask encoding data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code>       |
 
 </center>
 
@@ -254,16 +256,50 @@ ping 10.5.5.87
 
 and we're good to go!
 
-### ROS Connection
+### Usage with the default driver
 
 Now that we have a connection over the network, lets view some data. After building your colcon workspace with this package, source the install space. Run
 
 ```
-ros2 launch ros2_ouster os1_launch.py
+ros2 launch ros2_ouster driver_launch.py
 ```
 
 Make sure to update your parameters file if you don't use the default IPs (10.5.5.1, 10.5.5.87). You may also use the `.local` version of your ouster lidar. To find your IPs, see the `dnsmasq` output or check with `nmap -SP 10.5.5.*/24`.
 
 Now that your connection is up (hopefully), you can view this information in RViz. Open an RViz session and subscribe to the points, images, and IMU topics in the laser frame.
 
+The default driver will automatically read the metadata parameters from the Ouster. However, if you wish to save these parameters and use them with captured data (see the next section) then you can save the data to a specific location using the `getMetadata` service that the driver offers. To use it, run the driver with a real Ouster LiDAR and then make the following service call:
+
+```
+ros2 service call /ouster_driver/get_metadata ouster_msgs/srv/GetMetadata "{filepath: "/path/to/your/metadata.json"}"
+```
+
+The driver will then save all the required metadata to the specified file. You can call also call the service without a filepath. With or without the filepath, the service call will also return the metadata as a string and print it to the terminal. Copying this string and manually saving it to a .json file is also a valid way to generate a metadata file.  
+
 Have fun!
+
+### Usage with Tins-based driver
+
+If you want to use the driver to read data from a pcap file, you can use the `Tins`-based driver. To do this, open the `tins_driver_config.yaml` file and edit the following parameter:
+
+* `ethernet_device`: Change this to a working ethernet device on your computer that you plan to replay data through (e.g. "eth1").
+
+You can now run the Tins driver with the command below. This will use the default `latest_metadata.json` file:
+
+```
+ros2 launch ros2_ouster tins_driver_launch.py
+```
+
+Alternatively, you can change the metadata being used by specifying the metadata filepath as shown below. You can generate a metadata file using the `getMetadata` service as shown in the previous section.
+
+```
+ros2 launch ros2_ouster tins_driver_launch.py metadata_filepath:=/path/to/metadata.json
+```
+
+After launching the driver, in a new terminal, you can replay a pcap file of recorded ouster data using the following command (as an example):
+
+```
+sudo tcpreplay --intf1=eth1 saved_ouster_data.pcap 
+```
+
+Note that this driver version will also work with a live Ouster sensor, provided the data is coming into the correct ethernet device, and the parameters in the metadata file match those of the sensor. However it is recommended that you run the default drive with a real sensor, as this will guarantee that the metadata settings are correct.

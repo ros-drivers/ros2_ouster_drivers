@@ -54,14 +54,20 @@ public:
   /**
    * @brief Reset lidar sensor
    * @param configuration file to use
+   * @param node pointer to the driver node, which provides access to ROS params
    */
-  virtual void reset(const ros2_ouster::Configuration & config) = 0;
+  virtual void reset(
+    ros2_ouster::Configuration & config,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr node) = 0;
 
   /**
    * @brief Configure lidar sensor
    * @param configuration file to use
+   * @param node pointer to the driver node, which provides access to ROS params
    */
-  virtual void configure(const ros2_ouster::Configuration & config) = 0;
+  virtual void configure(
+    ros2_ouster::Configuration & config,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr node) = 0;
 
   /**
    * @brief Ask sensor to get its current state for data collection

@@ -22,6 +22,7 @@
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/interfaces/sensor_interface.hpp"
 #include "ros2_ouster/client/client.h"
+#include "ros2_ouster/ros2_utils.hpp"
 
 namespace sensor
 {
@@ -36,14 +37,20 @@ public:
   /**
    * @brief Reset lidar sensor
    * @param configuration file to use
+   * @param node pointer to the driver node, which provides access to ROS params
    */
-  void reset(const ros2_ouster::Configuration & config) override;
+  void reset(
+    ros2_ouster::Configuration & config,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr node) override;
 
   /**
    * @brief Configure lidar sensor
    * @param configuration file to use
+   * @param node pointer to the driver node, which provides access to ROS params
    */
-  void configure(const ros2_ouster::Configuration & config) override;
+  void configure(
+    ros2_ouster::Configuration & config,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr node) override;
 
   /**
    * @brief Get lidar sensor's metadata

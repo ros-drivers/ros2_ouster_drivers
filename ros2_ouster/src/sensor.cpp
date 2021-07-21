@@ -12,7 +12,8 @@
 // limitations under the License.
 
 #include <string>
-
+#include <fstream>
+#include <sstream>
 #include "ros2_ouster/client/client.h"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
@@ -31,14 +32,19 @@ Sensor::~Sensor()
   _imu_packet.clear();
 }
 
-void Sensor::reset(const ros2_ouster::Configuration & config)
+void Sensor::reset(
+  ros2_ouster::Configuration & config,
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
   _ouster_client.reset();
-  configure(config);
+  configure(config, node);
 }
 
-void Sensor::configure(const ros2_ouster::Configuration & config)
+void Sensor::configure(
+  ros2_ouster::Configuration & config,
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
+  // Check the validity of some of the retrieved parameters
   if (!ouster::sensor::lidar_mode_of_string(config.lidar_mode)) {
     throw ros2_ouster::OusterDriverException(
             "Invalid lidar mode: " + config.lidar_mode);
