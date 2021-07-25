@@ -36,7 +36,7 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | Service           | Type                    | Description                       |
 |-------------------|-------------------------|-----------------------------------|
 | `reset`           | std_srvs/Empty          | Reset the sensor's connection     |
-| `GetMetadata`     | ouster_msgs/GetMetadata | Get information about the sensor  |
+| `GetMetadata`     | ouster_msgs/GetMetadata | Get information about the sensor. A optional filepath can be specified to save the metadata to a local file.  |
 
 | Parameter                | Type    | Description                                                                                                 |
 |--------------------------|---------|-------------------------------------------------------------------------------------------------------------|
@@ -48,8 +48,7 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `sensor_frame`           | String  | TF frame of sensor, default `laser_sensor_frame`                                                            |
 | `laser_frame`            | String  | TF frame of laser data, default `laser_data_frame`                                                          |
 | `imu_frame`              | String  | TF frame of imu data, default `imu_data_frame`                                                              |
-| `metadata_filepath`      | String  | A filepath to save metadata to, or read metadata from. If empty, the driver will do neither. Defaults to `~/params/latest_metadata.json` and is set by the launch file, not the config file. If set to an empty string (""), then the driver will not attempt to save or read the metadata. Also note that this parameter is declared/set in the launch file(s) for this package, rather than the param file(s) |
-| `ethernet_device`        | String  | An ethernet device (e.g. eth0 or eno1) on which the Tins driver will listen for packets. Note that this is only a parameter for the Tins driver.                    |                              |
+| `ethernet_device`        | String  | An ethernet device (e.g. eth0 or eno1) on which the Tins driver will listen for packets. Note that this is only a parameter for the Tins driver, and is only specified in the config file for that driver. |                              |
 | `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`                                        |
 | `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`                                     |
 | `os1_proc_mask`          | String  | Mask encoding data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code>       |
@@ -303,7 +302,7 @@ Now that your connection is up (hopefully), you can view this information in RVi
 The default driver will automatically read the metadata parameters from the Ouster. However, if you wish to save these parameters and use them with captured data (see the next section) then you can save the data to a specific location using the `getMetadata` service that the driver offers. To use it, run the driver with a real Ouster LiDAR and then make the following service call:
 
 ```
-ros2 service call /ouster_driver/get_metadata ouster_msgs/srv/GetMetadata "{filepath: "/path/to/your/metadata.json"}"
+ros2 service call /ouster_driver/get_metadata ouster_msgs/srv/GetMetadata "{metadata_filepath: "/path/to/your/metadata.json"}"
 ```
 
 The driver will then save all the required metadata to the specified file. You can call also call the service without a filepath. With or without the filepath, the service call will also return the metadata as a string and print it to the terminal. Copying this string and manually saving it to a .json file is also a valid way to generate a metadata file.  
@@ -316,13 +315,13 @@ If you want to use the driver to read data from a pcap file, you can use the `Ti
 
 * `ethernet_device`: Change this to a working ethernet device on your computer that you plan to replay data through (e.g. "eth1").
 
-You can now run the Tins driver with the command below. This will use the default `latest_metadata.json` file:
+You can now run the Tins driver with the command below. This will use the default `ouster_os0128_1024_metadata.json` file:
 
 ```
 ros2 launch ros2_ouster tins_driver_launch.py
 ```
 
-Alternatively, you can change the metadata being used by specifying the metadata filepath as shown below. You can generate a metadata file using the `getMetadata` service as shown in the previous section.
+Alternatively, you can change the metadata being used by specifying the metadata filepath as shown below. You can generate a metadata file using the `getMetadata` service as shown in the previous section. Or you can use one of the example metadata files provided, which come from an Ouster OS0-128 in either 1024x10 or 2048x10 mode.
 
 ```
 ros2 launch ros2_ouster tins_driver_launch.py metadata_filepath:=/path/to/metadata.json
