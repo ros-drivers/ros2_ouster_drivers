@@ -176,7 +176,7 @@ class SensorTins : public ros2_ouster::SensorInterface
     ouster::sensor::client_state _inferred_state;
 
     /** Tins sniffer object for listening to packets */
-    Tins::Sniffer *_tins_sniffer_pointer;
+    std::unique_ptr<Tins::Sniffer> _tins_sniffer_pointer;
 
     /** Tins reassembler for reconstructing fragmented packets */
     Tins::IPv4Reassembler _tins_ipv4_reassembler;

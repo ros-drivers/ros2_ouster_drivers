@@ -57,7 +57,7 @@ namespace sensor
     catch (...) 
     {
       throw ros2_ouster::OusterDriverException(
-        "TinsDriver failed to retrieve the ethernet device parameter");
+        "TinsDriver failed to retrieve the ethernet_device or metadata_filepath parameter");
       exit(-1);
     }
 
@@ -191,7 +191,7 @@ namespace sensor
     std::string filter_string = "ip src " + _driver_config.lidar_ip;
     _sniffer_config.set_filter(filter_string);
 
-    _tins_sniffer_pointer = new Tins::Sniffer(eth_device, _sniffer_config);
+    _tins_sniffer_pointer = std::make_unique<Tins::Sniffer>(eth_device, _sniffer_config);
   }
 
   bool SensorTins::sniffOnePacket(Tins::Packet& packet)

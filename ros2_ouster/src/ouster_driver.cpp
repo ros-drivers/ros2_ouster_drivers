@@ -71,7 +71,9 @@ void OusterDriver::onConfigure()
   _use_system_default_qos = get_parameter("use_system_default_qos").as_bool();
   _proc_mask = ros2_ouster::toProcMask(get_parameter("proc_mask").as_string());
 
-  // Get parameters used across ALL _sensor_ implementations
+  // Get parameters used across ALL _sensor_ implementations. Parameters unique
+  // a specific Sensor implementation are "getted" in the configure() function
+  // for that sensor.
   ros2_ouster::Configuration lidar_config;
   lidar_config.lidar_ip = this->get_parameter("lidar_ip").as_string();
   lidar_config.computer_ip = this->get_parameter("computer_ip").as_string();
@@ -282,11 +284,11 @@ void OusterDriver::getMetadata(
   response->metadata = toMsg(_sensor->getMetadata());
 
   // Save the metadata to file ONLY if the user specifies a filepath
-  if (request->filepath != "")
+  if (request->metadata_filepath != "")
   {
     std::string json_config = ouster::sensor::to_string(_sensor->getMetadata());
     std::ofstream ofs;
-    ofs.open(request->filepath);
+    ofs.open(request->metadata_filepath);
     ofs << json_config << std::endl;
     ofs.close();
     if (!ofs)
@@ -294,14 +296,14 @@ void OusterDriver::getMetadata(
       RCLCPP_ERROR(
         this->get_logger(),
         "Failed to save metadata to: %s.",
-        request->filepath.c_str());
+        request->metadata_filepath.c_str());
     }
     else
     {
       RCLCPP_INFO(
         this->get_logger(),
         "Saving metadata to a .json file specifed here: %s",
-        request->filepath.c_str());
+        request->metadata_filepath.c_str());
     }
   }
 }
