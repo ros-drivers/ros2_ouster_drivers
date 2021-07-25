@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(ros2_ouster)
 
+# Default to compiling in Release mode. If not compiled in Release mode the 
+# driver WILL fail to hit its desired output publish rate.
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -24,7 +26,6 @@ find_package(jsoncpp REQUIRED)
 include_directories(
   include
   ${PCL_INCLUDE_DIRS}
-  /usr/include/tins
 )
 
 # Create separate executables for the default and Tins drivers.
