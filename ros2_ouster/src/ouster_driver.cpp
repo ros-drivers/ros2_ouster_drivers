@@ -75,27 +75,29 @@ void OusterDriver::onConfigure()
   // a specific Sensor implementation are "getted" in the configure() function
   // for that sensor.
   ros2_ouster::Configuration lidar_config;
-  lidar_config.lidar_ip = this->get_parameter("lidar_ip").as_string();
-  lidar_config.computer_ip = this->get_parameter("computer_ip").as_string();
   lidar_config.imu_port = this->get_parameter("imu_port").as_int();
   lidar_config.lidar_port = this->get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = this->get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = this->get_parameter("timestamp_mode").as_string();
-  
-  // Configure the driver and sensor
+
+  // Deliberately retrieve the IP parameters in a try block without defaults, as
+  // we cannot estimate a reasonable default IP address for the LiDAR/computer.
   try {
-    _sensor->configure(lidar_config, shared_from_this());
-  } catch (const OusterDriverException & e) {
-    RCLCPP_FATAL(this->get_logger(), "Exception thrown: (%s)", e.what());
+    lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
+    lidar_config.computer_ip = get_parameter("computer_ip").as_string();
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Looking for packets from sensor IPv4 address %s to destination %s.", 
+      lidar_config.lidar_ip.c_str(),
+      lidar_config.computer_ip.c_str());
+  } catch (...) {
+    RCLCPP_FATAL(
+      this->get_logger(),
+      "Failed to get lidar or IMU IP address or "
+      "hostname. An IP address for both are required!");
     exit(-1);
   }
-
-  RCLCPP_INFO(
-    this->get_logger(),
-    "Looking for packets from sensor IPv4 address %s to destination %s.", 
-    lidar_config.lidar_ip.c_str(),
-    lidar_config.computer_ip.c_str());
-
+  
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
     RCLCPP_WARN(
       this->get_logger(),
@@ -121,6 +123,14 @@ void OusterDriver::onConfigure()
       "Sending data from sensor to %s.", lidar_config.computer_ip.c_str());
   }
   
+  // Configure the driver and sensor
+  try {
+    _sensor->configure(lidar_config, shared_from_this());
+  } catch (const OusterDriverException & e) {
+    RCLCPP_FATAL(this->get_logger(), "Exception thrown: (%s)", e.what());
+    exit(-1);
+  }
+
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
   _metadata_srv = this->create_service<ouster_msgs::srv::GetMetadata>(
