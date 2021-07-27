@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 
 #include "ros2_ouster/processors/processor_factories.hpp"
 

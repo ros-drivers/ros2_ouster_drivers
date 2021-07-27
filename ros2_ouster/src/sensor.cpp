@@ -90,7 +90,6 @@ ouster::sensor::client_state Sensor::get()
               "Failed to get valid sensor data "
               "information from lidar, returned error!"));
   }
-
   return state;
 }
 

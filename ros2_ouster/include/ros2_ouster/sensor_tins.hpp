@@ -14,14 +14,6 @@
 #ifndef ROS2_OUSTER__SENSOR_TINS_HPP_
 #define ROS2_OUSTER__SENSOR_TINS_HPP_
 
-#include <memory>
-#include <vector>
-#include "ros2_ouster/processors/processor_factories.hpp"
-#include "ros2_ouster/interfaces/data_processor_interface.hpp"
-#include "ros2_ouster/interfaces/sensor_interface.hpp"
-#include "ros2_ouster/client/client.h"
-#include "ros2_ouster/ros2_utils.hpp"
-
 // Libtins includes
 #include <tins/packet.h>
 #include <tins/rawpdu.h>
@@ -30,6 +22,14 @@
 #include <tins/udp.h>
 #include <tins/ip_reassembler.h>
 
+#include <memory>
+#include <vector>
+#include <string>
+#include "ros2_ouster/processors/processor_factories.hpp"
+#include "ros2_ouster/interfaces/data_processor_interface.hpp"
+#include "ros2_ouster/interfaces/sensor_interface.hpp"
+#include "ros2_ouster/client/client.h"
+#include "ros2_ouster/ros2_utils.hpp"
 
 namespace sensor
 {
@@ -37,7 +37,6 @@ namespace sensor
 class SensorTins : public ros2_ouster::SensorInterface
 {
   public:
-
     /**
      * @brief Default constructor
      */
@@ -100,7 +99,7 @@ class SensorTins : public ros2_ouster::SensorInterface
      * @param imu_port
      */
     void setMetadata(
-      int lidar_port, 
+      int lidar_port,
       int imu_port,
       const std::string & timestamp_mode);
 
@@ -150,7 +149,6 @@ class SensorTins : public ros2_ouster::SensorInterface
     bool sniffOnePacket(Tins::Packet& packet);
 
   private:
-
     /** 
      * the client is here because it needs to be, but is not actually used 
      * in this implementation of the SensorInterface class.

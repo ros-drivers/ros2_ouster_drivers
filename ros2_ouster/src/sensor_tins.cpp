@@ -12,6 +12,7 @@
 // limitations under the License.
 
 #include <string>
+#include <memory>
 #include "ros2_ouster/client/client.h"
 #include "ros2_ouster/exception.hpp"
 #include "ros2_ouster/interfaces/metadata.hpp"
@@ -49,12 +50,12 @@ namespace sensor
       node, "metadata_filepath", rclcpp::ParameterValue("no_filepath_specified"));
 
     // Get parameters specific to the SensorTins implementation
-    try 
+    try
     {
       config.ethernet_device = node->get_parameter("ethernet_device").as_string();
       config.metadata_filepath = node->get_parameter("metadata_filepath").as_string();
-    } 
-    catch (...) 
+    }
+    catch (...)
     {
       throw ros2_ouster::OusterDriverException(
         "TinsDriver failed to retrieve the ethernet_device or metadata_filepath parameter");
@@ -62,31 +63,31 @@ namespace sensor
     }
 
     // Check the validity of some of the retrieved parameters
-    if (!ouster::sensor::lidar_mode_of_string(config.lidar_mode)) 
+    if (!ouster::sensor::lidar_mode_of_string(config.lidar_mode))
     {
       throw ros2_ouster::OusterDriverException(
         "Invalid lidar mode: " + config.lidar_mode);
       exit(-1);
     }
 
-    if (!ouster::sensor::timestamp_mode_of_string(config.timestamp_mode)) 
+    if (!ouster::sensor::timestamp_mode_of_string(config.timestamp_mode))
     {
       throw ros2_ouster::OusterDriverException(
         "Invalid timestamp mode: " + config.timestamp_mode);
       exit(-1);
     }
 
-    // The driver config is saved internally b/c some parameters are needed for 
+    // The driver config is saved internally b/c some parameters are needed for
     // the Tins sniffer
     _driver_config = config;
 
     // Read sensor metadata from file
     loadSensorInfoFromJsonFile(
         _driver_config.metadata_filepath,
-        _metadata);  
+        _metadata);
 
-    // loadSensorInfoFromJsonFile actually returns a sensor_info object, so 
-    // fill in the params specific to the ros2_ouster::Metadata object, that 
+    // loadSensorInfoFromJsonFile actually returns a sensor_info object, so
+    // fill in the params specific to the ros2_ouster::Metadata object, that
     // aren't normally supplied in the metadata file.
     _metadata.imu_port = _driver_config.imu_port;
     _metadata.lidar_port = _driver_config.lidar_port;
@@ -108,7 +109,7 @@ namespace sensor
         "Failed to configure Tins sniffer. Check that the entered ethernet device "
         + _driver_config.ethernet_device + " is valid.");
       exit(-1);
-    } 
+    }
   }
 
   ouster::sensor::client_state SensorTins::get()
@@ -126,24 +127,18 @@ namespace sensor
 
   uint8_t * SensorTins::readLidarPacket(const ouster::sensor::client_state & state)
   {
-    if (state == ouster::sensor::client_state::LIDAR_DATA)
-    {
+    if (state == ouster::sensor::client_state::LIDAR_DATA) {
       return _lidar_packet.data();
-    }
-    else
-    {
+    } else {
       return nullptr;
     }
   }
 
   uint8_t * SensorTins::readImuPacket(const ouster::sensor::client_state & state)
   {
-    if (state == ouster::sensor::client_state::IMU_DATA)
-    {
+    if (state == ouster::sensor::client_state::IMU_DATA) {
       return _imu_packet.data();
-    }
-    else
-    {
+    } else {
       return nullptr;
     }
   }
@@ -176,10 +171,10 @@ namespace sensor
     catch(const std::exception& e)
     {
       throw ros2_ouster::OusterDriverException(
-        "Failed to read metadata from file: " + filepath_to_read + 
+        "Failed to read metadata from file: " + filepath_to_read +
         " with exception " + e.what());
       exit(-1);
-    }    
+    }
   }
 
   void SensorTins::initializeSniffer(const std::string eth_device)
@@ -199,10 +194,10 @@ namespace sensor
     auto &pdu_to_process = *packet.pdu();
 
     // Reassemble the packet if it's fragmented
-    if (_tins_ipv4_reassembler.process(pdu_to_process) != 
+    if (_tins_ipv4_reassembler.process(pdu_to_process) !=
           Tins::IPv4Reassembler::FRAGMENTED)
     {
-      // Reject the packet if it's not a IP>UDP>RawPDU packet 
+      // Reject the packet if it's not a IP>UDP>RawPDU packet
       const Tins::IP *ip = pdu_to_process.find_pdu<Tins::IP>();
       if (!ip)
       {
@@ -242,9 +237,9 @@ namespace sensor
       }
     }
 
-    // The packet is valid but from neither the IMU or LiDAR. Return true to 
+    // The packet is valid but from neither the IMU or LiDAR. Return true to
     // keep sniffing.
     return true;
   }
 
-} // namespace sensor
+}  // namespace sensor

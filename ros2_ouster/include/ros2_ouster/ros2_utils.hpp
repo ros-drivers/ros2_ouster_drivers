@@ -15,6 +15,7 @@
 #ifndef ROS2_OUSTER__ROS2_UTILS_HPP_
 #define ROS2_OUSTER__ROS2_UTILS_HPP_
 
+#include <string>
 #include "rclcpp/rclcpp.hpp"
 
 namespace ros2_ouster
@@ -62,6 +63,6 @@ void declare_parameter_if_not_declared(
   }
 }
 
-} // namespace ros2_ouster
+}  // namespace ros2_ouster
 
 #endif  // ROS2_OUSTER__ROS2_UTILS_HPP_

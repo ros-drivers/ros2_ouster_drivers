@@ -87,7 +87,7 @@ void OusterDriver::onConfigure()
     lidar_config.computer_ip = get_parameter("computer_ip").as_string();
     RCLCPP_INFO(
       this->get_logger(),
-      "Looking for packets from sensor IPv4 address %s to destination %s.", 
+      "Looking for packets from sensor IPv4 address %s to destination %s.",
       lidar_config.lidar_ip.c_str(),
       lidar_config.computer_ip.c_str());
   } catch (...) {
@@ -97,7 +97,7 @@ void OusterDriver::onConfigure()
       "hostname. An IP address for both are required!");
     exit(-1);
   }
-  
+
   if (lidar_config.timestamp_mode == "TIME_FROM_ROS_RECEPTION") {
     RCLCPP_WARN(
       this->get_logger(),
@@ -224,7 +224,6 @@ void OusterDriver::broadcastStaticTransforms(
 void OusterDriver::processData()
 {
   try {
-
     ouster::sensor::client_state state = _sensor->get();
     _lidar_packet_data = _sensor->readLidarPacket(state);
     _imu_packet_data = _sensor->readImuPacket(state);
@@ -256,7 +255,6 @@ void OusterDriver::processData()
         it->second->process(_imu_packet_data, override_ts);
       }
     }
-
   } catch (const OusterDriverException & e) {
     RCLCPP_WARN(
       this->get_logger(),
@@ -307,9 +305,7 @@ void OusterDriver::getMetadata(
         this->get_logger(),
         "Failed to save metadata to: %s.",
         request->metadata_filepath.c_str());
-    }
-    else
-    {
+    } else {
       RCLCPP_INFO(
         this->get_logger(),
         "Saving metadata to a .json file specifed here: %s",
