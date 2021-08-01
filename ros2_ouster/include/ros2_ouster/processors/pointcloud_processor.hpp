@@ -97,7 +97,7 @@ public:
       *_fullRotationAccumulator->getLidarScan(), *_cloud);
 
     if (_filter_zero_points) {
-      _cloud_filtered->points.resize(0);
+      _cloud_filtered->points.clear();
 
       for (const auto & p : _cloud->points) {
         if (p.x == 0.0 && p.y == 0.0 && p.z == 0.0) {
