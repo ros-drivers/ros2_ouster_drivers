@@ -41,7 +41,7 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | Parameter                | Type    | Description                                                                                                 |
 |--------------------------|---------|-------------------------------------------------------------------------------------------------------------|
 | `lidar_ip`               | String  | IP or hostname of lidar (ex. 10.5.5.87, os1-serialno.local)                                                 |
-| `computer_ip`            | String  | IP or hostname of computer to get data (ex. 10.5.5.1) or broadcast (ex. 255.255.255.255) or "" for automatic detection                   |
+| `computer_ip`            | String  | IP or hostname of computer to get data (ex. 10.5.5.1) or broadcast (ex. 255.255.255.255) or if using the default driver, "" for automatic detection                   |
 | `lidar_mode`             | String  | Mode of data capture, default `512x10`                                                                      |
 | `imu_port`               | int     | Port of IMU data, default 7503                                                                              |
 | `lidar_port`             | int     | Port of laser data, default 7502                                                                            |
@@ -283,6 +283,8 @@ To use link local addressing with IPv6, the standard way to add a scope ID is ap
 lidar_ip: "fe80::be0f:a7ff:fe00:2861%eth2"
 computer_ip: ""
 ```
+
+Note that this feature is only available with the default driver version, configured by `driver_config.yaml`. When running the Tins-based driver (see the following sections), both the LiDAR and computer IP address must be specified in `tins)driver_config.yaml`.
 
 ### ROS Connection
 
