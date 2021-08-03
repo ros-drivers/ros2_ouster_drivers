@@ -61,8 +61,8 @@ OusterDriver::~OusterDriver() = default;
 void OusterDriver::onConfigure()
 {
   RCLCPP_INFO(
-      this->get_logger(),
-      "This driver is compatible with sensors running fw 2.x.");
+    this->get_logger(),
+    "This driver is compatible with sensors running fw 2.x.");
 
   // Get parameters for configuring the _driver_
   _laser_sensor_frame = get_parameter("sensor_frame").as_string();
@@ -292,15 +292,13 @@ void OusterDriver::getMetadata(
   response->metadata = toMsg(_sensor->getMetadata());
 
   // Save the metadata to file ONLY if the user specifies a filepath
-  if (request->metadata_filepath != "")
-  {
+  if (request->metadata_filepath != "") {
     std::string json_config = ouster::sensor::to_string(_sensor->getMetadata());
     std::ofstream ofs;
     ofs.open(request->metadata_filepath);
     ofs << json_config << std::endl;
     ofs.close();
-    if (!ofs)
-    {
+    if (!ofs) {
       RCLCPP_ERROR(
         this->get_logger(),
         "Failed to save metadata to: %s.",
