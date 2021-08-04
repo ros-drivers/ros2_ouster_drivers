@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(ros2_ouster)
 
+# Default to compiling in Release mode. If not compiled in Release mode the 
+# driver WILL fail to hit its desired output publish rate.
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -19,7 +21,6 @@ find_package(tf2_ros REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(ouster_msgs REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common)
-
 find_package(jsoncpp REQUIRED)
 
 include_directories(
@@ -27,7 +28,11 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
+# Create separate executables for the default and Tins drivers.
 set(executable_name ouster_driver)
+set(tins_executable_name ouster_tins_driver)
+
+# Create a single library target to use for both default and Tins driver.
 set(library_name ${executable_name}_core)
 
 set(dependencies
@@ -50,6 +55,7 @@ add_library(${library_name} SHARED
   src/ouster_driver.cpp
   src/lifecycle_interface.cpp
   src/sensor.cpp
+  src/sensor_tins.cpp
   src/client/client.cpp
   src/client/lidar_scan.cpp
   src/client/netcompat.cpp
@@ -62,19 +68,27 @@ ament_target_dependencies(${library_name}
 
 target_link_libraries(${library_name}
   jsoncpp_lib
+  tins
   ${PCL_LIBRARIES}
 )
 
 add_executable(${executable_name}
   src/main.cpp
 )
+add_executable(${tins_executable_name}
+  src/main_tins.cpp
+)
 
 target_link_libraries(${executable_name} ${library_name})
+target_link_libraries(${tins_executable_name} ${library_name})
 
-rclcpp_components_register_nodes(ouster_driver_core "${PROJECT_NAME}::Driver")
+rclcpp_components_register_nodes(${library_name} "${PROJECT_NAME}::Driver")
+rclcpp_components_register_nodes(${library_name} "${PROJECT_NAME}::TinsDriver")
+
 set(node_plugins "${node_plugins}${PROJECT_NAME}::Driver;$<TARGET_FILE:ouster_driver>\n")
+set(node_plugins "${node_plugins}${PROJECT_NAME}::TinsDriver;$<TARGET_FILE:ouster_driver>\n")
 
-install(TARGETS ${executable_name} ${library_name}
+install(TARGETS ${executable_name} ${tins_executable_name} ${library_name}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}

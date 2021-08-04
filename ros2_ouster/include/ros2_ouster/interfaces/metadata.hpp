@@ -16,10 +16,10 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 #include "ros2_ouster/client/types.h"
 #include "ros2_ouster/client/version.h"
 #include "ros2_ouster/client/client.h"
-#include <iostream>
 
 namespace ros2_ouster
 {

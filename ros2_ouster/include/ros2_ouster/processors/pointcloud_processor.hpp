@@ -95,6 +95,11 @@ public:
         _fullRotationAccumulator->getTimestamp(),
         _frame, override_ts));
 
+    RCLCPP_DEBUG(
+      _node->get_logger(),
+      "\n\nCloud published with %s packets\n",
+      std::to_string(_fullRotationAccumulator->getPacketsAccumulated()).c_str());
+
     return true;
   }
 

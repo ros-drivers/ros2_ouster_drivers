@@ -27,7 +27,6 @@ LifecycleInterface::LifecycleInterface(
 
 CallbackReturn LifecycleInterface::on_configure(const rclcpp_lifecycle::State & state)
 {
-  RCLCPP_INFO(this->get_logger(), "Configuring Ouster driver node.");
   onConfigure();
   return CallbackReturn::SUCCESS;
 }

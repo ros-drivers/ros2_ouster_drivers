@@ -17,6 +17,8 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <fstream>
+#include <sstream>
 
 #include "ros2_ouster/conversions.hpp"
 

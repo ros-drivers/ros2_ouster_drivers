@@ -11,13 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_OUSTER__PROCESSOR_FACTORIES_HPP_
-#define ROS2_OUSTER__PROCESSOR_FACTORIES_HPP_
+#ifndef ROS2_OUSTER__PROCESSORS__PROCESSOR_FACTORIES_HPP_
+#define ROS2_OUSTER__PROCESSORS__PROCESSOR_FACTORIES_HPP_
 
 #include <cstdint>
 #include <string>
 #include <map>
 #include <utility>
+#include <memory>
 
 #include "image_processor.hpp"
 #include "imu_processor.hpp"
@@ -193,4 +194,4 @@ inline std::multimap<ouster::sensor::client_state,
 
 }  // namespace ros2_ouster
 
-#endif  // ROS2_OUSTER__PROCESSOR_FACTORIES_HPP_
+#endif  // ROS2_OUSTER__PROCESSORS__PROCESSOR_FACTORIES_HPP_

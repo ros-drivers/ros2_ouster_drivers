@@ -19,6 +19,7 @@
 #include <string>
 #include <utility>
 #include <algorithm>
+#include <limits>
 
 #include "rclcpp/qos.hpp"
 
@@ -128,7 +129,6 @@ public:
 
     for (size_t u = 0; u < _height; u++) {
       for (size_t v = 0; v < _width; v++) {
-
         const size_t vv = (v + _width - _px_offset[u]) % _width;
         const size_t index = u * _width + vv;
 
@@ -220,7 +220,8 @@ private:
   size_t _bit_depth = 8 * sizeof(uint8_t);
   const ouster::sensor::packet_format & _pf;
   const size_t _pixel_value_max = std::numeric_limits<uint8_t>::max();
-  double _range_multiplier = ouster::sensor::range_unit * (1.0 / 200.0);  // assuming 200 m range typical
+  // assuming 200 m range typical
+  double _range_multiplier = ouster::sensor::range_unit * (1.0 / 200.0);
   viz::AutoExposure _ambient_ae, _intensity_ae;
   viz::BeamUniformityCorrector _ambient_buc;
   ouster::LidarScan _ls;
