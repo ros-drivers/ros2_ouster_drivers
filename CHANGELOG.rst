@@ -9,12 +9,11 @@ Changelog
 * Added example metadata files for OS0-128 in 1024x10 and 2048x10 mode.
 * Added/exposed the functions for loading and saving metadata to a json file.
 * Added metadatat file saving to ``getMetadata`` service.
-* Shifted sensor parameter declaration and getting from the driver implementation, to the ``::onConfigure()`` function of each sensor implementation.  
 * Contibutors: Matthew Young (Trimble Inc).
 
 **TinsDriver**
 
-* Added a new SensorImplementation called SensorTins, and a Driver implementation that uses it called TinsDriver. This implementation uses the Tins library to find LiDAR and IMU packets, so it works with real data as well as data replayed from a pcap file. 
+* Added a new SensorImplementation called SensorTins, and a Driver implementation that uses it called TinsDriver. This implementation uses the Tins library to find LiDAR and IMU packets, and is intended to be used with replayed pcap files rather than a real LiDAR. 
 * Added a new driver called TinsDriver which utilizes the existing OusterDriver class with the SensorTins class.
 * Added an new set of launch, param and main files for the TinsDriver.
 * Updated readme and parameter file to explain usage of the TinsDriver implementation.
