@@ -44,6 +44,10 @@ void SensorTins::configure(
   ros2_ouster::Configuration & config,
   rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
+  RCLCPP_INFO(
+    node->get_logger(), 
+    "Configuring Tins-based Ouster driver node.");
+
   // Declare parameters specific to the SensorTins implementation
   ros2_ouster::declare_parameter_if_not_declared(
     node, "ethernet_device", rclcpp::ParameterValue("no_ethernet_device_configured"));
@@ -72,6 +76,12 @@ void SensorTins::configure(
             "Invalid timestamp mode: " + config.timestamp_mode);
     exit(-1);
   }
+
+  RCLCPP_INFO(
+    node->get_logger(),
+    "Looking for packets from sensor IPv4 address %s to destination %s.",
+    config.lidar_ip.c_str(),
+    config.computer_ip.c_str());
 
   // The driver config is saved internally b/c some parameters are needed for
   // the Tins sniffer

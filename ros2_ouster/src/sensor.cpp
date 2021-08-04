@@ -44,6 +44,10 @@ void Sensor::configure(
   ros2_ouster::Configuration & config,
   rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
+  RCLCPP_INFO(
+    node->get_logger(), 
+    "Configuring Ouster driver node.");
+
   // Check the validity of some of the retrieved parameters
   if (!ouster::sensor::lidar_mode_of_string(config.lidar_mode)) {
     throw ros2_ouster::OusterDriverException(
@@ -55,6 +59,21 @@ void Sensor::configure(
     throw ros2_ouster::OusterDriverException(
             "Invalid timestamp mode: " + config.timestamp_mode);
     exit(-1);
+  }
+
+  // Report to the user whether automatic address detection is being used, and 
+  // what the source / destination IPs are
+  RCLCPP_INFO(
+    node->get_logger(),
+    "Connecting to sensor at %s.", config.lidar_ip.c_str());
+  if (config.computer_ip == "") {
+    RCLCPP_INFO(
+      node->get_logger(),
+      "Sending data from sensor to computer using automatic address detection");
+  }  else {
+    RCLCPP_INFO(
+      node->get_logger(),
+      "Sending data from sensor to %s.", config.computer_ip.c_str());
   }
 
   _ouster_client = ouster::sensor::init_client(

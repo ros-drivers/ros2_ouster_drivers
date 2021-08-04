@@ -60,10 +60,6 @@ OusterDriver::~OusterDriver() = default;
 
 void OusterDriver::onConfigure()
 {
-  RCLCPP_INFO(
-    this->get_logger(),
-    "This driver is compatible with sensors running fw 2.x.");
-
   // Get parameters for configuring the _driver_
   _laser_sensor_frame = get_parameter("sensor_frame").as_string();
   _laser_data_frame = get_parameter("laser_frame").as_string();
@@ -85,11 +81,6 @@ void OusterDriver::onConfigure()
   try {
     lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
     lidar_config.computer_ip = get_parameter("computer_ip").as_string();
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Looking for packets from sensor IPv4 address %s to destination %s.",
-      lidar_config.lidar_ip.c_str(),
-      lidar_config.computer_ip.c_str());
   } catch (...) {
     RCLCPP_FATAL(
       this->get_logger(),
@@ -109,20 +100,6 @@ void OusterDriver::onConfigure()
     _use_ros_time = false;
   }
 
-  RCLCPP_INFO(
-    this->get_logger(),
-    "Connecting to sensor at %s.", lidar_config.lidar_ip.c_str());
-
-  if (lidar_config.computer_ip == "") {
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Sending data from sensor to computer using automatic address detection");
-  }  else {
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Sending data from sensor to %s.", lidar_config.computer_ip.c_str());
-  }
-  
   // Configure the driver and sensor
   try {
     _sensor->configure(lidar_config, shared_from_this());
@@ -130,6 +107,10 @@ void OusterDriver::onConfigure()
     RCLCPP_FATAL(this->get_logger(), "Exception thrown: (%s)", e.what());
     exit(-1);
   }
+
+  RCLCPP_INFO(
+    this->get_logger(),
+    "This driver is compatible with sensors running fw 2.x.");
 
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
