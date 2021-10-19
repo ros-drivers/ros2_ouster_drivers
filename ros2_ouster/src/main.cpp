@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,11 +16,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "ros2_ouster/driver_types.hpp"
 
-int main(int argc, char ** argv)
-{
+int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
   auto options = rclcpp::NodeOptions();
-  auto node = std::make_shared<ros2_ouster::OS1Driver>(options);
+  auto node = std::make_shared<ros2_ouster::Driver>(options);
 
   rclcpp::spin(node->get_node_base_interface());
 

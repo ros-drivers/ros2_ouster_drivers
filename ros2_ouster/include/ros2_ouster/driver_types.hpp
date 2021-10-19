@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,16 +16,13 @@
 
 #include "ros2_ouster/ouster_driver.hpp"
 
-namespace ros2_ouster
-{
+namespace ros2_ouster {
 
-class OS1Driver : public OusterDriver
-{
+class Driver : public OusterDriver {
 public:
-  explicit OS1Driver(rclcpp::NodeOptions options);
+  explicit Driver(rclcpp::NodeOptions options);
 };
 
-}  // namespace ros2_ouster
+} // namespace ros2_ouster
 
-
-#endif  // ROS2_OUSTER__DRIVER_TYPES_HPP_
+#endif // ROS2_OUSTER__DRIVER_TYPES_HPP_

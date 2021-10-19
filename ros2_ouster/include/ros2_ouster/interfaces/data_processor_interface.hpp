@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -17,12 +17,11 @@
 #include <memory>
 #include <string>
 
-#include "ros2_ouster/interfaces/metadata.hpp"
-#include "ros2_ouster/interfaces/configuration.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "ros2_ouster/interfaces/configuration.hpp"
+#include "ros2_ouster/interfaces/metadata.hpp"
 
-namespace ros2_ouster
-{
+namespace ros2_ouster {
 /**
  * @class ros2_ouster::DataProcessorInterface
  * @brief An interface for data processors using a
@@ -30,8 +29,7 @@ namespace ros2_ouster
  * like pointclouds, images, or directly publishing
  * packets or IMU data.
  */
-class DataProcessorInterface
-{
+class DataProcessorInterface {
 public:
   /**
    * @brief Constructor of the data processor interface
@@ -49,7 +47,7 @@ public:
    * @param override_ts Timestamp in nanos to use to override the ts in the
    *                    packet data. To use the packet data, pass as 0.
    */
-  virtual bool process(uint8_t * data, uint64_t override_ts = 0) = 0;
+  virtual bool process(const uint8_t *data, uint64_t override_ts = 0) = 0;
 
   /**
    * @brief Activating processor from lifecycle state transitions
@@ -62,6 +60,6 @@ public:
   virtual void onDeactivate() = 0;
 };
 
-}  // namespace ros2_ouster
+} // namespace ros2_ouster
 
-#endif  // ROS2_OUSTER__INTERFACES__DATA_PROCESSOR_INTERFACE_HPP_
+#endif // ROS2_OUSTER__INTERFACES__DATA_PROCESSOR_INTERFACE_HPP_

@@ -1,4 +1,4 @@
-// Copyright 2020, Steve Macenski
+// Copyright 2021, Steve Macenski
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,13 +16,11 @@
 
 #include <string>
 
-namespace ros2_ouster
-{
+namespace ros2_ouster {
 /**
  * @brief Configuration parameters to send to Ouster lidar
  */
-struct Configuration
-{
+struct Configuration {
   std::string lidar_ip;
   std::string computer_ip;
   int imu_port;
@@ -31,6 +29,6 @@ struct Configuration
   std::string timestamp_mode;
 };
 
-}  // namespace ros2_ouster
+} // namespace ros2_ouster
 
-#endif  // ROS2_OUSTER__INTERFACES__CONFIGURATION_HPP_
+#endif // ROS2_OUSTER__INTERFACES__CONFIGURATION_HPP_
