@@ -231,6 +231,7 @@ inline sensor_msgs::msg::LaserScan toMsg(
     msg.intensities.push_back(
       static_cast<float>((ls.field(ouster::LidarScan::INTENSITY)(i)))
     );
+    if (i == 0) break; // Fix #90
   }
 
   return msg;
