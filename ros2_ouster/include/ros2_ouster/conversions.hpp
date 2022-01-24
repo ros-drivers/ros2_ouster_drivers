@@ -224,14 +224,13 @@ inline sensor_msgs::msg::LaserScan toMsg(
     ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
   msg.angle_increment = 2 * M_PI / ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
 
-  for (size_t i = ls.w * ring_to_use + ls.w - 1; i >= ls.w * ring_to_use; i--) {
+  for (size_t i = ls.w * ring_to_use + ls.w; i-- > ls.w * ring_to_use;) {
     msg.ranges.push_back(
       static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i) * ouster::sensor::range_unit))
     );
     msg.intensities.push_back(
       static_cast<float>((ls.field(ouster::LidarScan::INTENSITY)(i)))
     );
-    if (i == 0) break; // Fix #90
   }
 
   return msg;
