@@ -224,7 +224,10 @@ inline sensor_msgs::msg::LaserScan toMsg(
     ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
   msg.angle_increment = 2 * M_PI / ouster::sensor::n_cols_of_lidar_mode(mdata.mode);
 
-  for (size_t i = ls.w * ring_to_use + ls.w - 1; i >= ls.w * ring_to_use; i--) {
+  // Fix #90 (PR #92) - The iterator is in the loop condition to prevent overflow by
+  // decrementing unsigned variable 'i' bellow 0. This happened when ring 0 was selected
+  // due to the condition being reduced to i >= 0
+  for (size_t i = ls.w * ring_to_use + ls.w; i-- > ls.w * ring_to_use;) {
     msg.ranges.push_back(
       static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i) * ouster::sensor::range_unit))
     );
