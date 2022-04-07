@@ -259,6 +259,7 @@ void OusterDriver::resetService(
   lidar_config.lidar_port = get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
+  lidar_config.azimuth_window = get_parameter("azimuth_window").as_string();
   _sensor->reset(lidar_config, shared_from_this());
 }
 

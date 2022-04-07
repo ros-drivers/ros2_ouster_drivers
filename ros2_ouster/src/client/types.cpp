@@ -419,6 +419,15 @@ optional<NMEABaudRate> nmea_baud_rate_of_string(const std::string& s)
   return res == end ? nullopt : make_optional<NMEABaudRate>(res->first);
 }
 
+optional<AzimuthWindow> azimuth_window_of_string(const std::string& s) 
+{
+  AzimuthWindow p;
+  
+  int res = sscanf(s.c_str(),"[%i,%i]",&p.first,&p.second);
+
+  return res == 2 ? p : nullopt;
+}
+
 std::string to_string(AzimuthWindow azimuth_window) 
 {
   std::stringstream ss;

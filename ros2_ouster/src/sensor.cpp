@@ -61,6 +61,12 @@ void Sensor::configure(
     exit(-1);
   }
 
+  if (!ouster::sensor::azimuth_window_of_string(config.azimuth_window)) {
+    throw ros2_ouster::OusterDriverException(
+            "Invalid timestamp mode: " + config.azimuth_window);
+    exit(-1);
+  }
+
   // Report to the user whether automatic address detection is being used, and 
   // what the source / destination IPs are
   RCLCPP_INFO(
@@ -81,6 +87,7 @@ void Sensor::configure(
     config.computer_ip,
     ouster::sensor::lidar_mode_of_string(config.lidar_mode),
     ouster::sensor::timestamp_mode_of_string(config.timestamp_mode),
+    ouster::sensor::azimuth_window_of_string(config.azimuth_window),
     config.lidar_port,
     config.imu_port);
 

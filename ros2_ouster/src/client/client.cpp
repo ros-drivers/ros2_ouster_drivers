@@ -547,6 +547,7 @@ std::shared_ptr<client> init_client(
   const std::string & hostname,
   const std::string & udp_dest_host,
   lidar_mode mode, timestamp_mode ts_mode,
+  AzimuthWindow azimuth_window,
   int lidar_port, int imu_port,
   int timeout_sec)
 {
@@ -601,6 +602,15 @@ std::shared_ptr<client> init_client(
   if (ts_mode) {
     success &= do_tcp_cmd(
       sock_fd, {"set_config_param", "timestamp_mode", to_string(ts_mode)},
+      res);
+    success &= res == "set_config_param";
+  }
+
+  // Setup Azimuth Window
+  if (azimuth_window) {
+    success &= do_tcp_cmd(
+      sock_fd,
+      {"set_config_param", "azimuth_window", to_string(azimuth_window)},
       res);
     success &= res == "set_config_param";
   }

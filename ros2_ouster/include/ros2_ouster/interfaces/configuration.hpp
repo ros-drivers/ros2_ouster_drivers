@@ -28,6 +28,7 @@ struct Configuration
   int imu_port;
   int lidar_port;
   std::string lidar_mode;
+  std::string azimuth_window;
   std::string timestamp_mode;
   std::string metadata_filepath;
   std::string ethernet_device;
