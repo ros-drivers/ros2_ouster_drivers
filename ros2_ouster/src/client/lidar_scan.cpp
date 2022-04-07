@@ -82,10 +82,6 @@ ScanBatcher::ScanBatcher(size_t w, const sensor::packet_format & pf)
 
 bool ScanBatcher::operator()(const uint8_t * packet_buf, LidarScan & ls)
 {
-  using row_view_t =
-    Eigen::Map<Eigen::Array<LidarScan::raw_t, Eigen::Dynamic,
-      Eigen::Dynamic, Eigen::RowMajor>>;
-
   if (ls.w != w || ls.h != h) {
     throw std::invalid_argument("unexpected scan dimensions");
   }
@@ -107,29 +103,14 @@ bool ScanBatcher::operator()(const uint8_t * packet_buf, LidarScan & ls)
     if (ls_write.frame_id != f_id) {
       // if not initializing with first packet
       if (ls_write.frame_id != -1) {
-        // zero out remaining missing columns
-        auto rows = h * LidarScan::N_FIELDS;
-        row_view_t{ls_write.data.data(), rows, w}
-        .block(0, next_m_id, rows, w - next_m_id)
-        .setZero();
-
         // finish the scan and notify callback
         std::swap(ls, ls_write);
         swapped = true;
+
+        ls_write.data.setZero();
       }
-
       // start new frame
-      next_m_id = 0;
       ls_write.frame_id = f_id;
-    }
-
-    // zero out missing columns if we jumped forward
-    if (m_id >= next_m_id) {
-      auto rows = h * LidarScan::N_FIELDS;
-      row_view_t{ls_write.data.data(), rows, w}
-      .block(0, next_m_id, rows, m_id - next_m_id)
-      .setZero();
-      next_m_id = m_id + 1;
     }
 
     ls_write.header(m_id) = {ts, encoder, status};
