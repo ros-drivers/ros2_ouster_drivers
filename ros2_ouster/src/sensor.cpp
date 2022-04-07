@@ -87,7 +87,7 @@ void Sensor::configure(
     config.computer_ip,
     ouster::sensor::lidar_mode_of_string(config.lidar_mode),
     ouster::sensor::timestamp_mode_of_string(config.timestamp_mode),
-    ouster::sensor::azimuth_window_of_string(config.azimuth_window),
+    *ouster::sensor::azimuth_window_of_string(config.azimuth_window),
     config.lidar_port,
     config.imu_port);
 

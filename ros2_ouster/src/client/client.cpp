@@ -607,13 +607,11 @@ std::shared_ptr<client> init_client(
   }
 
   // Setup Azimuth Window
-  if (azimuth_window) {
-    success &= do_tcp_cmd(
-      sock_fd,
-      {"set_config_param", "azimuth_window", to_string(azimuth_window)},
-      res);
-    success &= res == "set_config_param";
-  }
+  success &= do_tcp_cmd(
+    sock_fd,
+    {"set_config_param", "azimuth_window", to_string(azimuth_window)},
+    res);
+  success &= res == "set_config_param";
 
   // wake up from STANDBY, if necessary
   success &= do_tcp_cmd(
