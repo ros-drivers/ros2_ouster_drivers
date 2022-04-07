@@ -3,7 +3,7 @@ ouster_driver:
     lidar_ip: 10.5.5.96 
     computer_ip: 10.5.5.1   
     lidar_mode: "1024x10"
-    azimuth_window: "[70000,290000]"
+    azimuth_window: "[0,360000]"
     imu_port: 7503
     lidar_port: 7502
     sensor_frame: laser_sensor_frame
