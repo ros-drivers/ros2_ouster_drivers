@@ -106,7 +106,7 @@ private:
   /**
   * @brief Timer callback to process the UDP socket
   */
-  void processData();
+  void receiveData();
 
   /**
    * @brief Create TF2 frames for the lidar sensor
@@ -135,13 +135,14 @@ private:
     const std::shared_ptr<ouster_msgs::srv::GetMetadata::Request> request,
     std::shared_ptr<ouster_msgs::srv::GetMetadata::Response> response);
 
+  void processData();
+
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
   rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
 
   std::unique_ptr<SensorInterface> _sensor;
   std::multimap<ouster::sensor::client_state,
     std::unique_ptr<ros2_ouster::DataProcessorInterface>> _data_processors;
-  rclcpp::TimerBase::SharedPtr _process_timer;
 
   std::shared_ptr<sensor::FullRotationAccumulator> _full_rotation_accumulator;
 
@@ -153,8 +154,19 @@ private:
 
   std::uint32_t _proc_mask;
 
-  uint8_t * _lidar_packet_data;
-  uint8_t * _imu_packet_data;
+  // Ringbuffer for raw received lidar and imu packets
+  std::vector<uint8_t> _lidar_packet_buf;
+  std::atomic<int> _lidar_packet_head; std::atomic<int> _lidar_packet_tail;
+  std::vector<uint8_t> _imu_packet_buf;
+  std::atomic<int> _imu_packet_head; std::atomic<int> _imu_packet_tail;
+  int _packet_buf_sz = 1024;
+
+  // Threads and synchronization primitives for receiving and processing data
+  std::thread _recv_thread;
+  std::thread _process_thread;
+  std::condition_variable _process_cond;
+  std::mutex _ringbuffer_mutex;
+  bool _processing_active;
 };
 
 }  // namespace ros2_ouster

@@ -78,16 +78,18 @@ public:
   /**
    * @brief reading a lidar packet
    * @param state of the sensor
-   * @return the packet of data
+   * @param buf pointer to a buffer to hold the packet data. Must hold getPacketFormat().lidar_packet_size bytes.
+   * @return true if a packet was recieved, false otherwise
    */
-  virtual uint8_t * readLidarPacket(const ouster::sensor::client_state & state) = 0;
+  virtual bool readLidarPacket(const ouster::sensor::client_state & state, uint8_t * buf) = 0;
 
   /**
    * @brief reading an imu packet
    * @param state of the sensor
-   * @return the packet of data
+   * @param buf pointer to a buffer to hold the packet data. Must hold getPacketFormat().imu_packet_size bytes.
+   * @return true if a packet was recieved, false otherwise
    */
-  virtual uint8_t * readImuPacket(const ouster::sensor::client_state & state) = 0;
+  virtual bool readImuPacket(const ouster::sensor::client_state & state, uint8_t * buf) = 0;
 
   /**
    * @brief Get lidar sensor's metadata
