@@ -425,7 +425,7 @@ optional<AzimuthWindow> azimuth_window_of_string(const std::string& s)
   
   int res = sscanf(s.c_str(),"[%i,%i]",&p.first,&p.second);
 
-  return res == 2 ? p : nullopt;
+  return res == 2 ? make_optional<AzimuthWindow>(p) : nullopt;
 }
 
 std::string to_string(AzimuthWindow azimuth_window) 
