@@ -63,7 +63,7 @@ void Sensor::configure(
 
   if (!ouster::sensor::azimuth_window_of_string(config.azimuth_window)) {
     throw ros2_ouster::OusterDriverException(
-            "Invalid timestamp mode: " + config.azimuth_window);
+            "Invalid azimuth mode: " + config.azimuth_window);
     exit(-1);
   }
 
