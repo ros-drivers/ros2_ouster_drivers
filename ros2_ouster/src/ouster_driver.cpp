@@ -54,6 +54,7 @@ OusterDriver::OusterDriver(
   this->declare_parameter("lidar_port", 7502);
   this->declare_parameter("lidar_mode", std::string("512x10"));
   this->declare_parameter("timestamp_mode", std::string("TIME_FROM_INTERNAL_OSC"));
+  this->declare_parameter("azimuth_window", std::string("[0,360000]"));
 }
 
 OusterDriver::~OusterDriver() = default;
@@ -75,6 +76,7 @@ void OusterDriver::onConfigure()
   lidar_config.lidar_port = this->get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = this->get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = this->get_parameter("timestamp_mode").as_string();
+  lidar_config.azimuth_window = get_parameter("azimuth_window").as_string();
 
   // Deliberately retrieve the IP parameters in a try block without defaults, as
   // we cannot estimate a reasonable default IP address for the LiDAR/computer.
