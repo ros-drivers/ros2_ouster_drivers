@@ -48,8 +48,8 @@ OusterDriver::OusterDriver(
   this->declare_parameter("proc_mask", std::string("IMG|PCL|IMU|SCAN"));
 
   // Declare parameters used across ALL _sensor_ implementations
-  this->declare_parameter("lidar_ip", std::string(""));
-  this->declare_parameter("computer_ip", std::string(""));
+  this->declare_parameter<std::string>("lidar_ip");
+  this->declare_parameter<std::string>("computer_ip");
   this->declare_parameter("imu_port", 7503);
   this->declare_parameter("lidar_port", 7502);
   this->declare_parameter("lidar_mode", std::string("512x10"));
