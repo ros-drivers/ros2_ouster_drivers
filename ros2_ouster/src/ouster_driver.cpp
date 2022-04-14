@@ -236,29 +236,37 @@ void OusterDriver::processData() {
               || (_imu_packet_head != _imu_packet_tail)
               || !_processing_active);
     });
+
+    // If we have data in the buffer, get a pointer to it and update the buffer head
+    uint8_t *lidar_data = nullptr;
+    if(_lidar_packet_head != _lidar_packet_tail) {
+      lidar_data = _lidar_packet_buf.data() + _lidar_packet_head * pf.lidar_packet_size;
+      _lidar_packet_head = (_lidar_packet_head + 1) % _packet_buf_sz;
+    }
+
+    uint8_t *imu_data = nullptr;
+    if(_imu_packet_head != _imu_packet_tail) {
+      imu_data = _imu_packet_buf.data() + _imu_packet_head * pf.imu_packet_size;
+      _imu_packet_head = (_imu_packet_head + 1) % _packet_buf_sz;
+    }
+    // We are only locking against modification of the buffer head here, so we can check for overruns in receiveData()
     ringbuffer_guard.unlock();
+
     uint64_t override_ts =
         this->_use_ros_time ? this->now().nanoseconds() : 0;
 
     // If we have data in the lidar buffer, process it
-    if(_lidar_packet_head != _lidar_packet_tail && _processing_active) {
-      uint8_t *data = _lidar_packet_buf.data() + _lidar_packet_head * pf.lidar_packet_size;
-      _lidar_packet_head = (_lidar_packet_head + 1) % _packet_buf_sz;
-
-      _full_rotation_accumulator->accumulate(data, override_ts);
+    if(lidar_data != nullptr && _processing_active) {
+      _full_rotation_accumulator->accumulate(lidar_data, override_ts);
       for (DataProcessorMapIt it = key_lidar_its.first; it != key_lidar_its.second; it++) {
-        it->second->process(data, override_ts);
+        it->second->process(lidar_data, override_ts);
       }
     }
 
     // If we have data in the imu buffer, process it
-    if(_imu_packet_head != _imu_packet_tail && _processing_active) {
-      uint8_t *data = _imu_packet_buf.data() + _imu_packet_head * pf.imu_packet_size;
-      _imu_packet_head = (_imu_packet_head + 1) % _packet_buf_sz;
-      key_imu_its = _data_processors.equal_range(ouster::sensor::client_state::IMU_DATA);
-
+    if(imu_data != nullptr && _processing_active) {
       for (DataProcessorMapIt it = key_imu_its.first; it != key_imu_its.second; it++) {
-        it->second->process(data, override_ts);
+        it->second->process(imu_data, override_ts);
       }
     }
 
