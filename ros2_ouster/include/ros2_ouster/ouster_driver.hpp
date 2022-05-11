@@ -36,6 +36,8 @@
 #include "ros2_ouster/interfaces/data_processor_interface.hpp"
 #include "ros2_ouster/full_rotation_accumulator.hpp"
 
+#include "ros2_ouster/ringbuffer.hpp"
+
 namespace ros2_ouster
 {
 
@@ -154,12 +156,9 @@ private:
 
   std::uint32_t _proc_mask;
 
-  // Ringbuffer for raw received lidar and imu packets
-  std::vector<uint8_t> _lidar_packet_buf;
-  std::atomic<int> _lidar_packet_head; std::atomic<int> _lidar_packet_tail;
-  std::vector<uint8_t> _imu_packet_buf;
-  std::atomic<int> _imu_packet_head; std::atomic<int> _imu_packet_tail;
-  int _packet_buf_sz = 1024;
+  // Ringbuffers for raw received lidar and imu packets
+  std::unique_ptr<RingBuffer> _lidar_packet_buf;
+  std::unique_ptr<RingBuffer> _imu_packet_buf;
 
   // Threads and synchronization primitives for receiving and processing data
   std::thread _recv_thread;

@@ -136,9 +136,6 @@ void OusterDriver::onConfigure()
   _tf_b = std::make_unique<tf2_ros::StaticTransformBroadcaster>(
     shared_from_this());
   broadcastStaticTransforms(_sensor->getMetadata());
-
-  _lidar_packet_buf.resize(_sensor->getPacketFormat().lidar_packet_size * _packet_buf_sz);
-  _imu_packet_buf.resize(_sensor->getPacketFormat().imu_packet_size * _packet_buf_sz);
 }
 
 void OusterDriver::onActivate()
@@ -148,10 +145,8 @@ void OusterDriver::onActivate()
     it->second->onActivate();
   }
 
-  _lidar_packet_head = 0;
-  _lidar_packet_tail = 0;
-  _imu_packet_head = 0;
-  _imu_packet_tail = 0;
+  _lidar_packet_buf = std::make_unique<RingBuffer>(_sensor->getPacketFormat().lidar_packet_size, 1024);
+  _imu_packet_buf = std::make_unique<RingBuffer>(_sensor->getPacketFormat().imu_packet_size, 1024);
 
   _processing_active = true;
   _process_thread = std::thread(std::bind(&OusterDriver::processData, this));
@@ -226,48 +221,35 @@ void OusterDriver::processData() {
             = _data_processors.equal_range(ouster::sensor::client_state::LIDAR_DATA);
   std::pair<DataProcessorMapIt, DataProcessorMapIt> key_imu_its
       = _data_processors.equal_range(ouster::sensor::client_state::IMU_DATA);
-  auto pf = _sensor->getPacketFormat();
 
   std::unique_lock<std::mutex> ringbuffer_guard(_ringbuffer_mutex);
   while(_processing_active) {
     // Wait for data in either the lidar or imu ringbuffer
     _process_cond.wait(ringbuffer_guard, [this] (){
-      return (  (_lidar_packet_head != _lidar_packet_tail)
-              || (_imu_packet_head != _imu_packet_tail)
+      return (  (!_lidar_packet_buf->empty())
+              || (!_imu_packet_buf->empty())
               || !_processing_active);
     });
-
-    // If we have data in the buffer, get a pointer to it and update the buffer head
-    uint8_t *lidar_data = nullptr;
-    if(_lidar_packet_head != _lidar_packet_tail) {
-      lidar_data = _lidar_packet_buf.data() + _lidar_packet_head * pf.lidar_packet_size;
-      _lidar_packet_head = (_lidar_packet_head + 1) % _packet_buf_sz;
-    }
-
-    uint8_t *imu_data = nullptr;
-    if(_imu_packet_head != _imu_packet_tail) {
-      imu_data = _imu_packet_buf.data() + _imu_packet_head * pf.imu_packet_size;
-      _imu_packet_head = (_imu_packet_head + 1) % _packet_buf_sz;
-    }
-    // We are only locking against modification of the buffer head here, so we can check for overruns in receiveData()
     ringbuffer_guard.unlock();
 
     uint64_t override_ts =
         this->_use_ros_time ? this->now().nanoseconds() : 0;
 
     // If we have data in the lidar buffer, process it
-    if(lidar_data != nullptr && _processing_active) {
-      _full_rotation_accumulator->accumulate(lidar_data, override_ts);
+    if(!_lidar_packet_buf->empty() && _processing_active) {
+      _full_rotation_accumulator->accumulate(_lidar_packet_buf->head(), override_ts);
       for (DataProcessorMapIt it = key_lidar_its.first; it != key_lidar_its.second; it++) {
-        it->second->process(lidar_data, override_ts);
+        it->second->process(_lidar_packet_buf->head(), override_ts);
       }
+      _lidar_packet_buf->pop();
     }
 
     // If we have data in the imu buffer, process it
-    if(imu_data != nullptr && _processing_active) {
+    if(!_imu_packet_buf->empty() && _processing_active) {
       for (DataProcessorMapIt it = key_imu_its.first; it != key_imu_its.second; it++) {
-        it->second->process(imu_data, override_ts);
+        it->second->process(_imu_packet_buf->head(), override_ts);
       }
+        _imu_packet_buf->pop();
     }
 
     ringbuffer_guard.lock();
@@ -276,30 +258,28 @@ void OusterDriver::processData() {
 
 void OusterDriver::receiveData()
 {
-  auto pf = _sensor->getPacketFormat();
   while(_processing_active) {
     try {
       // Receive raw sensor data from the network. This blocks for some time until either data is received or timeout
       ouster::sensor::client_state state = _sensor->get();
-      bool got_lidar = _sensor->readLidarPacket(state,
-                                                _lidar_packet_buf.data() + _lidar_packet_tail * pf.lidar_packet_size);
-      bool got_imu = _sensor->readImuPacket(state, _imu_packet_buf.data() + _imu_packet_tail * pf.imu_packet_size);
+      bool got_lidar = _sensor->readLidarPacket(state, _lidar_packet_buf->tail());
+      bool got_imu = _sensor->readImuPacket(state, _imu_packet_buf->tail());
 
-      // If we got some data, update ringbuffer indices and signal processing thread
+      // If we got some data, push to ringbuffer and signal processing thread
       if (got_lidar || got_imu) {
-        _ringbuffer_mutex.lock();
         if (got_lidar) {
-          _lidar_packet_tail = (_lidar_packet_tail + 1) % _packet_buf_sz;
-          if (_lidar_packet_tail == _lidar_packet_head)
-            RCLCPP_WARN(this->get_logger(), "Lidar buffer overrun!");
+          // If the ringbuffer is full, this means the processing thread is running too slow to process all frames
+          // Therefore, we push to it anyway, discarding all (old) data in the buffer and emit a warning.
+          if(_lidar_packet_buf->full())
+              RCLCPP_WARN(this->get_logger(), "Lidar buffer overrun!");
+          _lidar_packet_buf->push();
         }
 
         if (got_imu) {
-          _imu_packet_tail = (_imu_packet_tail + 1) % _packet_buf_sz;
-          if (_imu_packet_tail == _imu_packet_head)
+          if (_imu_packet_buf->full())
             RCLCPP_WARN(this->get_logger(), "IMU buffer overrun!");
+          _imu_packet_buf->push();
         }
-        _ringbuffer_mutex.unlock();
         _process_cond.notify_all();
       }
 
