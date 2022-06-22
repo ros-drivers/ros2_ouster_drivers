@@ -51,7 +51,9 @@ See design doc in `design/*` directory [here](ros2_ouster/design/design_doc.md).
 | `ethernet_device`        | String  | An ethernet device (e.g. eth0 or eno1) on which the Tins driver will listen for packets. Note that this is only a parameter for the Tins driver, and is only specified in the config file for that driver. |                              |
 | `use_system_default_qos` | bool    | Publish data with default QoS for rosbag2 recording, default `False`                                        |
 | `timestamp_mode`         | String  | Method used to timestamp measurements, default `TIME_FROM_INTERNAL_OSC`                                     |
-| `os1_proc_mask`          | String  | Mask encoding data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code>       |
+| `os1_proc_mask`          | String  | Mask encoding data processors to activate, default <code>IMG &#124; PCL &#124; IMU &#124; SCAN</code> |
+| `pointcloud_filter_zero_points` | bool | Reduce pointcloud size by omitting (0, 0, 0) points, default `False`. If used, will make the PC2 unstructured.     |
+
 
 </center>
 
