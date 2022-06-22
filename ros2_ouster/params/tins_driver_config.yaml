@@ -1,18 +1,22 @@
 ouster_driver:
   ros__parameters:
-    lidar_ip: 10.5.5.96
-    computer_ip: 10.5.5.1
-    lidar_mode: "512x10"
+    lidar_ip: 10.5.5.96 
+    computer_ip: 10.5.5.1   
+    lidar_mode: "1024x10"
     imu_port: 7503
     lidar_port: 7502
     sensor_frame: laser_sensor_frame
     laser_frame: laser_data_frame
     imu_frame: imu_data_frame
+    
+    # The ethernet device the packets are being broadcast through. Only used
+    # by the "tins" driver type.
+    ethernet_device: eth1
 
     # if False, data are published with sensor data QoS. This is preferrable
     # for production but default QoS is needed for rosbag.
     # See: https://github.com/ros2/rosbag2/issues/125
-    use_system_default_qos: False
+    use_system_default_qos: True
 
     # Set the method used to timestamp measurements.
     # Valid modes are:
