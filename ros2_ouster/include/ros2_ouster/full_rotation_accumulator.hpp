@@ -35,7 +35,7 @@ public:
   FullRotationAccumulator(
     const ouster::sensor::sensor_info & mdata,
     const ouster::sensor::packet_format & pf)
-  : _pf(pf)
+  : _batchReady(false), _pf(pf), _packets_accumulated(0)
   {
     _batch = std::make_unique<ouster::ScanBatcher>(mdata.format.columns_per_frame, _pf);
     _ls = std::make_shared<ouster::LidarScan>(
