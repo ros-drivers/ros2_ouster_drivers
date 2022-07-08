@@ -145,8 +145,10 @@ void OusterDriver::onActivate()
     it->second->onActivate();
   }
 
-  _lidar_packet_buf = std::make_unique<RingBuffer>(_sensor->getPacketFormat().lidar_packet_size, 1024);
-  _imu_packet_buf = std::make_unique<RingBuffer>(_sensor->getPacketFormat().imu_packet_size, 1024);
+  _lidar_packet_buf = std::make_unique<RingBuffer>(
+    _sensor->getPacketFormat().lidar_packet_size, 1024);
+  _imu_packet_buf = std::make_unique<RingBuffer>(
+    _sensor->getPacketFormat().imu_packet_size, 1024);
 
   _processing_active = true;
   _process_thread = std::thread(std::bind(&OusterDriver::processData, this));
@@ -161,12 +163,14 @@ void OusterDriver::onDeactivate()
 {
   _processing_active = false;
 
-  if(_recv_thread.joinable())
+  if (_recv_thread.joinable()) {
     _recv_thread.join();
+  }
 
   _process_cond.notify_all();
-  if(_process_thread.joinable())
+  if (_process_thread.joinable()) {
     _process_thread.join();
+  }
 
   DataProcessorMapIt it;
   for (it = _data_processors.begin(); it != _data_processors.end(); ++it) {
@@ -185,15 +189,6 @@ void OusterDriver::onCleanup()
 void OusterDriver::onShutdown()
 {
   _tf_b.reset();
-
-  _processing_active = false;
-
-  if(_recv_thread.joinable())
-    _recv_thread.join();
-
-  _process_cond.notify_all();
-  if(_process_thread.joinable())
-    _process_thread.join();
 
   DataProcessorMapIt it;
   _data_processors.clear();
@@ -217,26 +212,26 @@ void OusterDriver::broadcastStaticTransforms(
 }
 
 void OusterDriver::processData() {
-  std::pair<DataProcessorMapIt, DataProcessorMapIt> key_lidar_its
-            = _data_processors.equal_range(ouster::sensor::client_state::LIDAR_DATA);
-  std::pair<DataProcessorMapIt, DataProcessorMapIt> key_imu_its
-      = _data_processors.equal_range(ouster::sensor::client_state::IMU_DATA);
+  std::pair<DataProcessorMapIt, DataProcessorMapIt> key_lidar_its =
+    _data_processors.equal_range(ouster::sensor::client_state::LIDAR_DATA);
+  std::pair<DataProcessorMapIt, DataProcessorMapIt> key_imu_its =
+    _data_processors.equal_range(ouster::sensor::client_state::IMU_DATA);
 
   std::unique_lock<std::mutex> ringbuffer_guard(_ringbuffer_mutex);
-  while(_processing_active) {
+  while (_processing_active) {
     // Wait for data in either the lidar or imu ringbuffer
-    _process_cond.wait(ringbuffer_guard, [this] (){
-      return (  (!_lidar_packet_buf->empty())
-              || (!_imu_packet_buf->empty())
-              || !_processing_active);
+    _process_cond.wait(
+      ringbuffer_guard, [this] () {
+        return (!_lidar_packet_buf->empty() ||
+                !_imu_packet_buf->empty() ||
+                !_processing_active);
     });
     ringbuffer_guard.unlock();
 
-    uint64_t override_ts =
-        this->_use_ros_time ? this->now().nanoseconds() : 0;
+    uint64_t override_ts = this->_use_ros_time ? this->now().nanoseconds() : 0;
 
     // If we have data in the lidar buffer, process it
-    if(!_lidar_packet_buf->empty() && _processing_active) {
+    if (!_lidar_packet_buf->empty() && _processing_active) {
       _full_rotation_accumulator->accumulate(_lidar_packet_buf->head(), override_ts);
       for (DataProcessorMapIt it = key_lidar_its.first; it != key_lidar_its.second; it++) {
         it->second->process(_lidar_packet_buf->head(), override_ts);
@@ -245,11 +240,11 @@ void OusterDriver::processData() {
     }
 
     // If we have data in the imu buffer, process it
-    if(!_imu_packet_buf->empty() && _processing_active) {
+    if (!_imu_packet_buf->empty() && _processing_active) {
       for (DataProcessorMapIt it = key_imu_its.first; it != key_imu_its.second; it++) {
         it->second->process(_imu_packet_buf->head(), override_ts);
       }
-        _imu_packet_buf->pop();
+      _imu_packet_buf->pop();
     }
 
     ringbuffer_guard.lock();
@@ -258,9 +253,10 @@ void OusterDriver::processData() {
 
 void OusterDriver::receiveData()
 {
-  while(_processing_active) {
+  while (_processing_active) {
     try {
-      // Receive raw sensor data from the network. This blocks for some time until either data is received or timeout
+      // Receive raw sensor data from the network.
+      // This blocks for some time until either data is received or timeout
       ouster::sensor::client_state state = _sensor->get();
       bool got_lidar = _sensor->readLidarPacket(state, _lidar_packet_buf->tail());
       bool got_imu = _sensor->readImuPacket(state, _imu_packet_buf->tail());
@@ -268,30 +264,32 @@ void OusterDriver::receiveData()
       // If we got some data, push to ringbuffer and signal processing thread
       if (got_lidar || got_imu) {
         if (got_lidar) {
-          // If the ringbuffer is full, this means the processing thread is running too slow to process all frames
-          // Therefore, we push to it anyway, discarding all (old) data in the buffer and emit a warning.
-          if(_lidar_packet_buf->full())
-              RCLCPP_WARN(this->get_logger(), "Lidar buffer overrun!");
+          // If the ringbuffer is full, this means the processing thread is running too slow to
+          // process all frames. Therefore, we push to it anyway, discarding all (old) data
+          // in the buffer and emit a warning.
+          if (_lidar_packet_buf->full()) {
+            RCLCPP_WARN(this->get_logger(), "Lidar buffer overrun!");
+          }
           _lidar_packet_buf->push();
         }
 
         if (got_imu) {
-          if (_imu_packet_buf->full())
+          if (_imu_packet_buf->full()) {
             RCLCPP_WARN(this->get_logger(), "IMU buffer overrun!");
+          }
           _imu_packet_buf->push();
         }
         _process_cond.notify_all();
       }
 
-
       RCLCPP_DEBUG(
-          this->get_logger(),
-          "Retrieved packet with state: %s",
-          ros2_ouster::toString(state).c_str());
-    } catch (const OusterDriverException &e) {
+        this->get_logger(),
+        "Retrieved packet with state: %s",
+        ros2_ouster::toString(state).c_str());
+    } catch (const OusterDriverException & e) {
       RCLCPP_WARN(
-          this->get_logger(),
-          "Failed to process packet with exception %s.", e.what());
+        this->get_logger(),
+        "Failed to process packet with exception %s.", e.what());
     }
   }
 }

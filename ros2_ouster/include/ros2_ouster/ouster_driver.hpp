@@ -106,7 +106,7 @@ public:
 
 private:
   /**
-  * @brief Timer callback to process the UDP socket
+  * @brief Thread function to process data from the UDP socket
   */
   void receiveData();
 
@@ -137,6 +137,9 @@ private:
     const std::shared_ptr<ouster_msgs::srv::GetMetadata::Request> request,
     std::shared_ptr<ouster_msgs::srv::GetMetadata::Response> response);
 
+  /**
+  * @brief Thread function to process buffered packets that have been received from the sensor
+  */
   void processData();
 
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
