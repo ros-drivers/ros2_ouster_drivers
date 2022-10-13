@@ -559,7 +559,7 @@ sensor_config parse_config(const Json::Value& root)
     config.phase_lock_offset = root["phase_lock_offset"].asInt();
 
     // deprecated params from 1.13. set 2.0 configs appropriately
-  if (!root["udp_ip"].empty()) config.udp_dest = root["udp_ip"].asString();
+  if (!root["udp_dest"].empty()) config.udp_dest = root["udp_dest"].asString();
   if (!root["auto_start_flag"].empty())
     config.operating_mode = root["auto_start_flag"].asBool()
                                 ? sensor::OPERATING_NORMAL

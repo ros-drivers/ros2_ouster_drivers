@@ -330,7 +330,7 @@ bool set_config_helper(
   };
 
   // set params
-  if (config.udp_dest && !set_param("udp_ip", config.udp_dest.value()))
+  if (config.udp_dest && !set_param("udp_dest", config.udp_dest.value()))
       return false;
 
   if (config.udp_port_lidar &&
@@ -570,7 +570,7 @@ std::shared_ptr<client> init_client(
   if (udp_dest_host != "")
   {
     success &=
-      do_tcp_cmd(sock_fd, {"set_config_param", "udp_ip", udp_dest_host}, res);
+      do_tcp_cmd(sock_fd, {"set_config_param", "udp_dest", udp_dest_host}, res);
     success &= res == "set_config_param";
   }
   else
