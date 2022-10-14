@@ -560,10 +560,11 @@ sensor_config parse_config(const Json::Value& root)
 
     // deprecated params from 1.13. set 2.0 configs appropriately
   if (!root["udp_dest"].empty()) config.udp_dest = root["udp_dest"].asString();
-  if (!root["auto_start_flag"].empty())
-    config.operating_mode = root["auto_start_flag"].asBool()
+  if (!root["operating_mode"].empty())
+    config.operating_mode = root["operating_mode"].asBool()
                                 ? sensor::OPERATING_NORMAL
                                 : sensor::OPERATING_STANDBY;
+
 
   return config;
 }

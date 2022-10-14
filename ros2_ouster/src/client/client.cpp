@@ -296,8 +296,8 @@ bool collect_metadata(client & cli, SOCKET sock_fd, chrono::seconds timeout)
 // (deprecated in 1.13)
 const std::array<std::pair<OperatingMode, std::string>, 2> auto_start_strings =
   {{
-    {OPERATING_NORMAL, "1"}, 
-    {OPERATING_STANDBY, "0"}
+    {OPERATING_NORMAL, "NORMAL"}, 
+    {OPERATING_STANDBY, "STANDBY"}
   }};
 
 static std::string auto_start_string(OperatingMode mode) 
@@ -353,8 +353,8 @@ bool set_config_helper(
   // "operating_mode" introduced in fw 2.0. use deprecated 'auto_start_flag'
   // to support 1.13
   if (config.operating_mode &&
-      !set_param("auto_start_flag",
-                  auto_start_string(config.operating_mode.value())))
+      !set_param("operating_mode",
+                  to_string(config.operating_mode.value())))
       return false;
 
   if (config.multipurpose_io_mode &&
@@ -607,7 +607,7 @@ std::shared_ptr<client> init_client(
 
   // wake up from STANDBY, if necessary
   success &= do_tcp_cmd(
-    sock_fd, {"set_config_param", "auto_start_flag", "1"}, res);
+    sock_fd, {"set_config_param", "operating_mode", "NORMAL"}, res);
   success &= res == "set_config_param";
 
   // reinitialize to activate new settings
