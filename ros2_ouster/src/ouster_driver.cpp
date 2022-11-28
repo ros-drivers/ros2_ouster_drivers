@@ -110,7 +110,7 @@ void OusterDriver::onConfigure()
 
   RCLCPP_INFO(
     this->get_logger(),
-    "This driver is compatible with sensors running fw 2.x.");
+    "This driver is compatible with sensors running fw 2.2-2.4");
 
   _reset_srv = this->create_service<std_srvs::srv::Empty>(
     "~/reset", std::bind(&OusterDriver::resetService, this, _1, _2, _3));
