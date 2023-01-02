@@ -93,7 +93,6 @@ public:
     _range_image.step = _width;
     _range_image.encoding = "mono8";
     _range_image.header.frame_id = _frame;
-    _range_image.data.resize(_width * _height);
     _range_image.data.resize(
       _width * _height * _bit_depth /
       (8 * sizeof(*_range_image.data.data())));
