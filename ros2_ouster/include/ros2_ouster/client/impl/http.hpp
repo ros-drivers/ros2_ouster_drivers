@@ -44,15 +44,13 @@
 
 namespace ouster
 {
-namespace sensor
-{
 namespace impl
 {
 
 /**
  * An implementation of the sensor http interface
  */
-class HttpImpl : public util::ClientInterface
+class HttpImpl : public sensor::util::ClientInterface
 {
   public:
   /**
@@ -230,7 +228,6 @@ class HttpImpl : public util::ClientInterface
 };
 
 }// namespace impl
-}// namespace sensor
 }// namespace ouster
 
 #endif// ROS2_OUSTER__CLIENT__IMPL_HTTP_HPP_

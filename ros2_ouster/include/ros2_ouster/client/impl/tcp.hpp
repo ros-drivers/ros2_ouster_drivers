@@ -43,12 +43,10 @@
 
 namespace ouster
 {
-namespace sensor
-{
 namespace impl
 {
 
-class TcpImpl : public util::ClientInterface
+class TcpImpl : public sensor::util::ClientInterface
 {
   public:
   // timeout for reading from a TCP socket during config
@@ -361,7 +359,6 @@ class TcpImpl : public util::ClientInterface
 };
 
 }// namespace impl
-}// namespace sensor
 }// namespace ouster
 
 #endif// ROS2_OUSTER__CLIENT__IMPL_TCP_HPP_

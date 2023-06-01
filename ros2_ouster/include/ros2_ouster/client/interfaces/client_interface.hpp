@@ -11,7 +11,7 @@
 #define ROS2_OUSTER__CLIENT__INTERFACES_CLIENT_INTERFACE_HPP_
 
 #include <json/json.h>
-#include <ros2_ouster/client/interfaces/curl_client.hpp>
+#include <ros2_ouster/client/impl/curl_client.hpp>
 #include <ros2_ouster/client/version.h>
 
 #include <memory>
@@ -132,8 +132,8 @@ class ClientInterface
   inline static std::string
   firmware_version_string(const std::string & hostname)
   {
-    auto http_client = std::make_unique<CurlClient>("http://" + hostname);
-    return http_client->get("api/v1/system/firmware");
+    auto net_client = std::make_unique<ouster::util::CurlClient>("http://" + hostname);
+    return net_client->get("api/v1/system/firmware");
   }
 
   /**

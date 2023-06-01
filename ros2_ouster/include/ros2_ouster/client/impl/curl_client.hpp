@@ -8,8 +8,6 @@
 
 namespace ouster
 {
-namespace sensor
-{
 namespace util
 {
 
@@ -113,7 +111,6 @@ class CurlClient
 };
 
 }// namespace util
-}// namespace sensor
 }// namespace ouster
 
 #endif//ROS2_OUSTER__CLIENT__INTERFACES__CURL_CLIENT_HPP_

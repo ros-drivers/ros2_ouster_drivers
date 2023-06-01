@@ -17,13 +17,14 @@ namespace ouster {
 
     struct client;
 
+    /** Returned by poll_client. */
     enum client_state
     {
-      TIMEOUT = 0,
-      CLIENT_ERROR = 1,
-      LIDAR_DATA = 2,
-      IMU_DATA = 4,
-      EXIT = 8
+      TIMEOUT = 0,     ///< Client has timed out
+      CLIENT_ERROR = 1,///< Client has reported an error
+      LIDAR_DATA = 2,  ///< New lidar data available
+      IMU_DATA = 4,    ///< New IMU data available
+      EXIT = 8         ///< Client has exited
     };
 
     /** Minimum supported version. */
@@ -96,40 +97,69 @@ namespace ouster {
     bool read_imu_packet(const client & cli, uint8_t * buf, const packet_format & pf);
 
     /**
-     * Get metadata text blob from the sensor.
-     *
-     * Will attempt to fetch from the network if not already populated.
-     *
-     * @param cli client returned by init_client associated with the connection
-     * @param timeout_sec how long to wait for the sensor to initialize
-     * @return a text blob of metadata parseable into a sensor_info struct
-     */
-    std::string get_metadata(client & cli, int timeout_sec = 60);
+ * Get metadata text blob from the sensor.
+ *
+ * Will attempt to fetch from the network if not already populated.
+ *
+ * @throw runtime_error if the sensor is in ERROR state, the firmware version
+ * used to initialize the HTTP or TCP client is invalid, the metadata could
+ * not be retrieved from the sensor, or the response could not be parsed.
+ *
+ * @param[in] cli client returned by init_client associated with the connection.
+ * @param[in] timeout_sec how long to wait for the sensor to initialize.
+ * @param[in] legacy_format whether to use legacy format of metadata output.
+ *
+ * @return a text blob of metadata parseable into a sensor_info struct.
+ */
+    std::string get_metadata(client& cli, int timeout_sec = 60,
+                             bool legacy_format = false);
 
     /**
-     * Get sensor config from the sensor
-     *
-     * Populates passed in config with the results of get_config
-     *
-     * @param hostname sensor hostname
-     * @param config sensor config to populate
-     * @param active whether to pull active or passive configs
-     * @return true if sensor config successfully populated
-     */
+ * Get sensor config from the sensor.
+ *
+ * Populates passed in config with the results of get_config.
+ *
+ * @param[in] hostname sensor hostname.
+ * @param[out] config sensor config to populate.
+ * @param[in] active whether to pull active or passive configs.
+ *
+ * @return true if sensor config successfully populated.
+ */
     bool get_config(const std::string& hostname, sensor_config& config,
                     bool active = true);
 
     /**
-     * Set sensor config on sensor
-     *
-     * @param hostname sensor hostname
-     * @param sensor config
-     * @param flags flags to pass in
-     * @return true if config params successfuly set on sensor
-     */
+ * Set sensor config on sensor.
+ *
+ * @throw runtime_error on failure to communcate with the sensor.
+ * @throw invalid_argument when config parameters fail validation.
+ *
+ * @param[in] hostname sensor hostname.
+ * @param[in] config sensor config.
+ * @param[in] config_flags flags to pass in.
+ *
+ * @return true if config params successfuly set on sensor.
+ */
     bool set_config(const std::string& hostname, const sensor_config& config,
                     uint8_t config_flags = 0);
 
+    /**
+ * Return the port used to listen for lidar UDP data.
+ *
+ * @param[in] cli client returned by init_client associated with the connection.
+ *
+ * @return the port number.
+ */
+    int get_lidar_port(client& cli);
+
+    /**
+ * Return the port used to listen for imu UDP data.
+ *
+ * @param[in] cli client returned by init_client associated with the connection.
+ *
+ * @return the port number.
+ */
+    int get_imu_port(client& cli);
 
   } // namespace sensor
 }  // namespace ouster

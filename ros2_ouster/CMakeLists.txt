@@ -22,6 +22,7 @@ find_package(pcl_conversions REQUIRED)
 find_package(ouster_msgs REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common)
 find_package(jsoncpp REQUIRED)
+find_package(CURL REQUIRED)
 
 include_directories(
   include
@@ -69,6 +70,7 @@ ament_target_dependencies(${library_name}
 target_link_libraries(${library_name}
   jsoncpp_lib
   tins
+  CURL::libcurl
   ${PCL_LIBRARIES}
 )
 
