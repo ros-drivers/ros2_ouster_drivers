@@ -93,8 +93,8 @@ public:
     }
 
     ros2_ouster::toCloud(
-      _xyz_lut, _fullRotationAccumulator->getTimestamp(),
-      *_fullRotationAccumulator->getLidarScan(), *_cloud);
+      _xyz_lut, _fullRotationAccumulator->getTimestamp().count(),
+      *_fullRotationAccumulator->getLidarScan(), *_cloud, 0);
 
     if (_filter_zero_points) {
       _cloud_filtered->points.clear();
