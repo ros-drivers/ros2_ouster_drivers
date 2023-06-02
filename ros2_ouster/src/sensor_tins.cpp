@@ -100,7 +100,7 @@ void SensorTins::configure(
   _metadata.timestamp_mode = _driver_config.timestamp_mode;
 
   // Fill anything missing with defaults and resize the packet containers
-  ros2_ouster::populate_missing_metadata_defaults(_metadata);
+  ros2_ouster::populate_missing_metadata_defaults(_metadata, ouster::sensor::MODE_UNSPEC);
   _lidar_packet.resize(getPacketFormat().lidar_packet_size + 1);
   _imu_packet.resize(getPacketFormat().imu_packet_size + 1);
 

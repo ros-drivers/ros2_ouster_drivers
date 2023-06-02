@@ -662,6 +662,7 @@ namespace ouster {
  */
     std::string to_string(ChanFieldType ft);
 
+    //TODO(packet-format): refactor according new latest sdk?
     /**
      * Table of accessors for extracting data from imu and lidar packets.
      *

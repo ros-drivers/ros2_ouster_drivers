@@ -14,6 +14,7 @@
 #ifndef ROS2_OUSTER__INTERFACES__METADATA_HPP_
 #define ROS2_OUSTER__INTERFACES__METADATA_HPP_
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -48,10 +49,10 @@ struct Metadata : ouster::sensor::sensor_info
   }
   Metadata(
     const ouster::sensor::sensor_info & info, int _imu_port,
-    int _lidar_port, const std::string & _timestamp_mode)
+    int _lidar_port, std::string  _timestamp_mode)
   : imu_port(_imu_port),
     lidar_port(_lidar_port),
-    timestamp_mode(_timestamp_mode)
+    timestamp_mode(std::move(_timestamp_mode))
   {
     name = info.name;
     sn = info.sn;
@@ -75,7 +76,8 @@ struct Metadata : ouster::sensor::sensor_info
 /**
  * @brief fill in values that could not be parsed from metadata.
  */
-inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & info)
+inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & info,
+                                               ouster::sensor::lidar_mode specified_lidar_mode)
 {
   if (info.name.empty()) {
     info.name = "UNKNOWN";
@@ -85,8 +87,20 @@ inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & inf
     info.sn = "UNKNOWN";
   }
 
+  ouster::util::version v = ouster::util::version_of_string(info.fw_rev);
+  if (v == ouster::util::invalid_version) {
+    std::cerr << "Unknown sensor firmware version; output may not be reliable"
+              << std::endl;
+  }
+  else if (v < ouster::sensor::min_version) {
+    std::cerr << "Firmware < " << to_string(ouster::sensor::min_version).c_str()
+              << " not supported; output may not be reliable" << std::endl;
+  }
+
   if (!info.mode) {
-    info.mode = ouster::sensor::MODE_UNSPEC;
+    std::cerr << "Lidar mode not found in metadata; output may not be reliable"
+              << std::endl;
+    info.mode = specified_lidar_mode;
   }
 
   if (info.prod_line.empty()) {
@@ -94,6 +108,8 @@ inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & inf
   }
 
   if (info.beam_azimuth_angles.empty() || info.beam_altitude_angles.empty()) {
+    std::cerr << "Beam angles not found in metadata; using design values"
+              << std::endl;
     info.beam_azimuth_angles = ouster::sensor::gen1_azimuth_angles;
     info.beam_altitude_angles = ouster::sensor::gen1_altitude_angles;
   }
