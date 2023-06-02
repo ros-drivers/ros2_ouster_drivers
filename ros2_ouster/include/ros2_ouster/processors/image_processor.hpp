@@ -71,9 +71,9 @@ public:
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", qos);
     _intensity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "intensity_image", qos);
+      "signal_image", qos);
     _ambient_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "ambient_image", qos);
+      "nearir_image", qos);
   }
 
   /**
