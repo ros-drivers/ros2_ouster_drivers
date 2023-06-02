@@ -53,16 +53,16 @@ public:
   PointcloudProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
-    const std::string & frame,
+    std::string  frame,
     const rclcpp::QoS & qos,
     const ouster::sensor::packet_format & pf,
     std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator)
-  : DataProcessorInterface(), _node(node), _frame(frame)
+  : DataProcessorInterface(), _node(node), _frame(std::move(frame))
   {
     _node->declare_parameter("pointcloud_filter_zero_points", false);
     _node->get_parameter("pointcloud_filter_zero_points", _filter_zero_points);
 
-    _fullRotationAccumulator = fullRotationAccumulator;
+    _fullRotationAccumulator = std::move(fullRotationAccumulator);
     _height = mdata.format.pixels_per_column;
     _width = mdata.format.columns_per_frame;
     _xyz_lut = ouster::make_xyz_lut(mdata);
@@ -77,7 +77,7 @@ public:
   /**
    * @brief A destructor clearing memory allocated
    */
-  ~PointcloudProcessor()
+  ~PointcloudProcessor() override
   {
     _pub.reset();
   }
@@ -143,7 +143,7 @@ public:
 private:
   std::unique_ptr<Cloud> _cloud;
   std::unique_ptr<Cloud> _cloud_filtered;
-  bool _filter_zero_points;
+  bool _filter_zero_points{};
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pub;
   rclcpp_lifecycle::LifecycleNode::SharedPtr _node;
   ouster::XYZLut _xyz_lut;

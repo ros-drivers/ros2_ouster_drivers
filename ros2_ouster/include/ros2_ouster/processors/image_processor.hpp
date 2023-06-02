@@ -56,18 +56,19 @@ public:
   ImageProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
-    const std::string & frame,
+    std::string  frame,
     const rclcpp::QoS & qos,
     const ouster::sensor::packet_format & pf,
     std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator)
-  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
+  : DataProcessorInterface(), _node(node), _frame(std::move(frame)), _pf(pf)
   {
-    _fullRotationAccumulator = fullRotationAccumulator;
+    _fullRotationAccumulator = std::move(fullRotationAccumulator);
     _height = mdata.format.pixels_per_column;
     _width = mdata.format.columns_per_frame;
     _px_offset = mdata.format.pixel_shift_by_row;
     _ls = ouster::LidarScan{_width, _height};
 
+    //TODO(images): figure out if the processors are still valid, add reflectivity
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", qos);
     _intensity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
@@ -79,7 +80,7 @@ public:
   /**
   * @brief A destructor clearing memory allocated
   */
-  ~ImageProcessor()
+  ~ImageProcessor() override
   {
     _range_image_pub.reset();
     _ambient_image_pub.reset();

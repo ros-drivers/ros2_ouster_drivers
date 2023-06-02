@@ -48,13 +48,13 @@ public:
   ScanProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
-    const std::string & frame,
+    std::string  frame,
     const rclcpp::QoS & qos,
-    const ouster::sensor::packet_format & pf,
+    ouster::sensor::packet_format  pf,
     std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator)
-  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
+  : DataProcessorInterface(), _node(node), _frame(std::move(frame)), _pf(std::move(pf))
   {
-    _fullRotationAccumulator = fullRotationAccumulator;
+    _fullRotationAccumulator = std::move(fullRotationAccumulator);
     _mdata = mdata;
     _pub = _node->create_publisher<sensor_msgs::msg::LaserScan>("scan", qos);
 
@@ -71,7 +71,7 @@ public:
   /**
    * @brief A destructor clearing memory allocated
    */
-  ~ScanProcessor()
+  ~ScanProcessor() override
   {
     _pub.reset();
   }

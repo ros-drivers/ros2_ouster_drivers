@@ -19,16 +19,15 @@
 #include <vector>
 #include <algorithm>
 
-#include "pcl/point_cloud.h"
-#include "pcl/point_types.h"
-#include "pcl_conversions/pcl_conversions.h"
-#include "ros2_ouster/client/point.h"
-#include "ros2_ouster/interfaces/metadata.hpp"
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
-#include "geometry_msgs/msg/transform_stamped.hpp"
-#include "sensor_msgs/msg/imu.hpp"
-#include "sensor_msgs/msg/laser_scan.hpp"
-#include "tf2/LinearMath/Transform.h"
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2_eigen/tf2_eigen.h>
 #ifdef TF2_CPP_HEADERS
   #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #else
@@ -38,6 +37,8 @@
 #include "ouster_msgs/msg/metadata.hpp"
 
 #include "ros2_ouster/client/client.h"
+#include "ros2_ouster/client/point.h"
+#include "ros2_ouster/interfaces/metadata.hpp"
 
 namespace ros2_ouster
 {
@@ -244,26 +245,17 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
  * @brief Convert transformation to message format
  */
 inline geometry_msgs::msg::TransformStamped toMsg(
-  const Eigen::Matrix<double, 4, 4, Eigen::DontAlign> & mat, const std::string & frame,
-  const std::string & child_frame, const rclcpp::Time & time)
+  const ouster::mat4d & mat, const std::string & frame,
+  const std::string & child_frame, const rclcpp::Time & timestamp)
 {
-  assert(mat.size() == 16);
+  Eigen::Affine3d aff;
+  aff.linear() = mat.block<3, 3>(0, 0);
+  aff.translation() = mat.block<3, 1>(0, 3) * 1e-3;
 
-  tf2::Transform tf;
-
-  tf.setOrigin({mat(3) / 1e3, mat(7) / 1e3, mat(11) / 1e3});
-  tf.setBasis(
-    {
-      mat(0), mat(1), mat(2),
-      mat(4), mat(5), mat(6),
-      mat(8), mat(9), mat(10)
-    });
-
-  geometry_msgs::msg::TransformStamped msg;
-  msg.header.stamp = time;
+  geometry_msgs::msg::TransformStamped msg = tf2::eigenToTransform(aff);
+  msg.header.stamp = timestamp;
   msg.header.frame_id = frame;
   msg.child_frame_id = child_frame;
-  msg.transform = tf2::toMsg(tf);
 
   return msg;
 }
@@ -285,7 +277,7 @@ inline sensor_msgs::msg::Imu toMsg(
   m.orientation.x = 0;
   m.orientation.y = 0;
   m.orientation.z = 0;
-  m.orientation.w = 1;
+  m.orientation.w = 0;
 
   m.header.stamp = override_ts == 0 ? rclcpp::Time(pf.imu_gyro_ts(buf)) : rclcpp::Time(override_ts);
   m.header.frame_id = frame;
