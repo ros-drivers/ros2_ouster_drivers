@@ -25,7 +25,7 @@ ouster_driver:
     # (See this project's README and/or the Ouster Software Guide for more
     # information).
     #
-    lidar_udp_profile: LEGACY
+    lidar_udp_profile: RNG19_RFL8_SIG16_NIR16
 
     # Set the method used to timestamp measurements.
     # Valid modes are:
@@ -38,7 +38,7 @@ ouster_driver:
     # (See this project's README and/or the Ouster Software Guide for more
     # information).
     #
-    timestamp_mode: TIME_FROM_INTERNAL_OSC
+    timestamp_mode: TIME_FROM_PTP_1588
 
     # Mask-like-string used to define the data processors that should be
     # activated upon startup of the driver. This will determine the topics

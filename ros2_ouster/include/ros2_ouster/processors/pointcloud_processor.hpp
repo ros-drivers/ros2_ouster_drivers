@@ -92,6 +92,7 @@ public:
       return true;
     }
 
+    //TODO(dual-packet-format): add support for publishing from the dual packet mode
     ros2_ouster::toCloud(
       _xyz_lut, _fullRotationAccumulator->getTimestamp().count(),
       *_fullRotationAccumulator->getLidarScan(), *_cloud, 0);

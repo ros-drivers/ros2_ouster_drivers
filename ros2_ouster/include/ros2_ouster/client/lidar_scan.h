@@ -13,6 +13,9 @@
 
 #include "ros2_ouster/client/types.h"
 
+//FIXME(debug): remove this
+#include <iostream>
+
 namespace ouster {
 
 namespace impl {
@@ -103,7 +106,7 @@ struct FieldSlot {
     tag = other.tag;
   }
 
-  FieldSlot(FieldSlot&& other) { set_from(other); }
+  FieldSlot(FieldSlot&& other)  noexcept { set_from(other); }
 
   FieldSlot& operator=(FieldSlot other) {
     clear();
@@ -500,6 +503,8 @@ public:
     template <typename T = uint32_t,
              typename std::enable_if<std::is_unsigned<T>::value, T>::type = 0>
     inline Eigen::Ref<img_t<T>> field(sensor::ChanField f) {
+      //FIXME(debug): remove this
+//      std::cout << "in field" << std::endl;
       return fields_.at(f).get<T>();
     }
 
@@ -507,6 +512,8 @@ public:
     template <typename T = uint32_t,
              typename std::enable_if<std::is_unsigned<T>::value, T>::type = 0>
     inline Eigen::Ref<const img_t<T>> field(sensor::ChanField f) const {
+      //FIXME(debug): remove this
+//      std::cout << "in field const" << std::endl;
       return fields_.at(f).get<T>();
     }
 
@@ -518,6 +525,8 @@ public:
      * @return the type tag associated with the field.
      */
     sensor::ChanFieldType field_type(sensor::ChanField f) const {
+      //FIXME(debug): remove this
+//      std::cout << "in field_type const" << std::endl;
       return fields_.count(f) ? fields_.at(f).tag : sensor::ChanFieldType::VOID;
     }
 

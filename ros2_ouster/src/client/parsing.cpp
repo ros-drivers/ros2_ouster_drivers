@@ -17,6 +17,9 @@
 
 #include "ros2_ouster/client/types.h"
 
+//FIXME(debug): remove this
+#include <iostream>
+
 namespace ouster {
 namespace sensor {
 
@@ -187,7 +190,7 @@ packet_format::packet_format(const sensor_info& info)
      col_size{impl_->col_size},
      packet_footer_size{impl_->packet_footer_size} {
  for (const auto& kv : impl_->fields) {
-   field_types_.push_back({kv.first, kv.second.ty_tag});
+   field_types_.emplace_back(kv.first, kv.second.ty_tag);
  }
 }
 
@@ -215,6 +218,8 @@ template <typename T,
         typename std::enable_if<std::is_unsigned<T>::value, T>::type>
 void packet_format::col_field(const uint8_t* col_buf, ChanField i, T* dst,
                              int dst_stride) const {
+ //FIXME(debug): remove this
+// std::cout << "in enable_if" << std::endl;
  const auto& f = impl_->fields.at(i);
 
  switch (f.ty_tag) {
@@ -254,6 +259,8 @@ template void packet_format::col_field(const uint8_t*, ChanField, uint64_t*,
                                       int) const;
 
 ChanFieldType packet_format::field_type(ChanField f) const {
+ //FIXME(debug): remove this
+// std::cout << "in filed_type" << std::endl;
  return impl_->fields.count(f) ? impl_->fields.at(f).ty_tag
                                : ChanFieldType::VOID;
 }
@@ -406,6 +413,8 @@ const uint8_t* packet_format::nth_px(int n, const uint8_t* col_buf) const {
 
 template <typename T>
 T packet_format::px_field(const uint8_t* px_buf, ChanField i) const {
+ //FIXME(debug): remove this
+// std::cout << "in px_field" << std::endl;
  const auto& f = impl_->fields.at(i);
 
  if (sizeof(T) < field_type_size(f.ty_tag))
@@ -504,6 +513,8 @@ const packet_format& get_format(const sensor_info& info) {
    cache[k] = std::make_unique<packet_format>(info);
  }
 
+ //FIXME(debug): remove this
+// std::cout << "in get_format" << std::endl;
  return *cache.at(k);
 }
 
