@@ -230,12 +230,13 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
   msg.timestamp_mode = mdata.timestamp_mode;
   msg.beam_azimuth_angles = mdata.beam_azimuth_angles;
   msg.beam_altitude_angles = mdata.beam_altitude_angles;
+  msg.beam_to_lidar_transform = ros2_ouster::toVector(mdata.beam_to_lidar_transform);
   msg.imu_to_sensor_transform = ros2_ouster::toVector(mdata.imu_to_sensor_transform);
   msg.lidar_to_sensor_transform = ros2_ouster::toVector(mdata.lidar_to_sensor_transform);
   msg.serial_no = mdata.sn;
   msg.firmware_rev = mdata.fw_rev;
-  msg.imu_port = mdata.imu_port;
-  msg.lidar_port = mdata.lidar_port;
+  msg.imu_port = mdata.udp_port_imu;
+  msg.lidar_port = mdata.udp_port_lidar;
   return msg;
 }
 
@@ -375,10 +376,10 @@ inline sensor_msgs::msg::LaserScan toMsg(
   // due to the condition being reduced to i >= 0
   for (size_t i = ls.w * ring_to_use + ls.w; i-- > ls.w * ring_to_use;) {
     msg.ranges.push_back(
-      static_cast<float>((ls.field(ouster::sensor::RANGE).data()[i] * ouster::sensor::range_unit))
+      static_cast<float>((ls.field(ouster::sensor::ChanField::RANGE).data()[i] * ouster::sensor::range_unit))
     );
     msg.intensities.push_back(
-      static_cast<float>((ls.field(ouster::sensor::INTENSITY).data()[i]))
+      static_cast<float>((ls.field(ouster::sensor::ChanField::SIGNAL).data()[i]))
     );
   }
 

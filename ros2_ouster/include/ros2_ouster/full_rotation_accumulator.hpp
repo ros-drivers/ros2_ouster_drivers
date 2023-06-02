@@ -123,7 +123,7 @@ private:
     return static_cast<uint64_t>(rounded_value);
     }
 
-    uint64_t linear_interpolate(int x0, uint64_t y0, int x1, uint64_t y1, int x) {
+    static uint64_t linear_interpolate(int x0, uint64_t y0, int x1, uint64_t y1, int x) {
     uint64_t min_v, max_v;
     double sign;
     if (y1 > y0) {
@@ -210,18 +210,18 @@ private:
     }
 
   bool _batchReady;
-  std::chrono::nanoseconds _timestamp;
+  std::chrono::nanoseconds _timestamp{};
   std::unique_ptr<ouster::ScanBatcher> _batch;
   std::shared_ptr<ouster::LidarScan> _ls;
   ouster::sensor::packet_format _pf;
 
   uint64_t _packets_accumulated = 0;
 
-  int _last_scan_last_nonzero_idx = -1;
-  uint64_t _last_scan_last_nonzero_value = 0;
   std::function<uint64_t(const ouster::LidarScan::Header<uint64_t>&)>
           _compute_scan_ts;
-  double _scan_col_ts_spacing_ns;  // interval or spacing between columns of a
+  int _last_scan_last_nonzero_idx = -1;
+  uint64_t _last_scan_last_nonzero_value = 0;
+  double _scan_col_ts_spacing_ns{};  // interval or spacing between columns of a
                                 // scan
 };
 

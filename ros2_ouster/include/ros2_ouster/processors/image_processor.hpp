@@ -131,7 +131,7 @@ public:
         const size_t vv = (v + _width - _px_offset[u]) % _width;
         const size_t index = u * _width + vv;
 
-        if (_ls.field(ouster::sensor::RANGE).data()[index] == 0) {
+        if (_ls.field(ouster::sensor::ChanField::RANGE).data()[index] == 0) {
           reinterpret_cast<uint8_t *>(
             _range_image.data.data())[u * _width + v] = 0;
         } else {
@@ -139,11 +139,11 @@ public:
             _range_image.data.data())[u * _width + v] =
             _pixel_value_max -
             std::min(
-            std::round(_ls.field(ouster::sensor::RANGE).data()[index] * _range_multiplier),
+            std::round(_ls.field(ouster::sensor::ChanField::RANGE).data()[index] * _range_multiplier),
             static_cast<double>(_pixel_value_max));
         }
-        ambient_image_eigen(u, v) = _ls.field(ouster::sensor::AMBIENT).data()[index];
-        intensity_image_eigen(u, v) = _ls.field(ouster::sensor::INTENSITY).data()[index];
+        ambient_image_eigen(u, v) = _ls.field(ouster::sensor::ChanField::NEAR_IR).data()[index];
+        intensity_image_eigen(u, v) = _ls.field(ouster::sensor::ChanField::SIGNAL).data()[index];
       }
     }
 

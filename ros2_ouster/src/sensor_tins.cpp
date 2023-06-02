@@ -95,8 +95,6 @@ void SensorTins::configure(
   // loadSensorInfoFromJsonFile actually returns a sensor_info object, so
   // fill in the params specific to the ros2_ouster::Metadata object, that
   // aren't normally supplied in the metadata file.
-  _metadata.imu_port = _driver_config.imu_port;
-  _metadata.lidar_port = _driver_config.lidar_port;
   _metadata.timestamp_mode = _driver_config.timestamp_mode;
 
   // Fill anything missing with defaults and resize the packet containers

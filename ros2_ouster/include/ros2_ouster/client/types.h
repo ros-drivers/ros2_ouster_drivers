@@ -163,14 +163,12 @@ namespace ouster {
     enum ChanField {
       RANGE = 1,            ///< 1st return range in mm
       RANGE2 = 2,           ///< 2nd return range in mm
-      INTENSITY = 3,        ///< @deprecated Use SIGNAL instead
       SIGNAL = 3,           ///< 1st return signal in photons
       SIGNAL2 = 4,          ///< 2nd return signal in photons
       REFLECTIVITY = 5,     ///< 1st return reflectivity, calibrated by range and sensor
                           ///< sensitivity in FW 2.1+. See sensor docs for more details
       REFLECTIVITY2 = 6,    ///< 2nd return reflectivity, calibrated by range and sensor
                           ///< sensitivity in FW 2.1+. See sensor docs for more details
-      AMBIENT = 7,          ///< @deprecated Use NEAR_IR instead
       NEAR_IR = 7,          ///< near_ir in photons
       FLAGS = 8,            ///< 1st return flags
       FLAGS2 = 9,           ///< 2nd return flags
@@ -700,7 +698,6 @@ namespace ouster {
       const size_t imu_packet_size;  ///< imu packet size
       const int columns_per_packet;  ///< columns per lidar packet
       const int pixels_per_column;   ///< pixels per column for lidar
-      [[deprecated]] const int encoder_ticks_per_rev;///< @deprecated
 
       const size_t packet_header_size{};
       const size_t col_header_size{};
@@ -848,11 +845,6 @@ namespace ouster {
      */
       uint32_t col_status(const uint8_t *col_buf) const;
 
-      [[deprecated("Use col_measurement_id instead")]] uint32_t
-      col_encoder(const uint8_t *col_buf)
-              const;///< @deprecated Encoder count is deprecated as it is redundant
-                    ///< with measurement id, barring a multiplication factor which
-                    ///< varies by lidar mode. Use col_measurement_id instead
       [[deprecated("Use frame_id instead")]] uint16_t col_frame_id(
               const uint8_t *col_buf) const;///< @deprecated Use frame_id instead
 
@@ -927,7 +919,7 @@ namespace ouster {
      *
      * @return sys ts from imu pacet buffer.
      */
-      uint64_t imu_sys_ts(const uint8_t *imu_buf) const;
+      static uint64_t imu_sys_ts(const uint8_t *imu_buf) ;
 
       /**
      * Read acceleration timestamp.
@@ -936,7 +928,7 @@ namespace ouster {
      *
      * @return acceleration ts from imu packet buffer.
      */
-      uint64_t imu_accel_ts(const uint8_t *imu_buf) const;
+      static uint64_t imu_accel_ts(const uint8_t *imu_buf) ;
 
       /**
      * Read gyro timestamp.
@@ -945,7 +937,7 @@ namespace ouster {
      *
      * @return gyro ts from imu packet buffer.
      */
-      uint64_t imu_gyro_ts(const uint8_t *imu_buf) const;
+      static uint64_t imu_gyro_ts(const uint8_t *imu_buf) ;
 
       /**
      * Read acceleration in x.
@@ -954,7 +946,7 @@ namespace ouster {
      *
      * @return acceleration in x.
      */
-      float imu_la_x(const uint8_t *imu_buf) const;
+      static float imu_la_x(const uint8_t *imu_buf) ;
 
       /**
      * Read acceleration in y.
@@ -963,7 +955,7 @@ namespace ouster {
      *
      * @return acceleration in y.
      */
-      float imu_la_y(const uint8_t *imu_buf) const;
+      static float imu_la_y(const uint8_t *imu_buf) ;
 
       /**
      * Read acceleration in z.
@@ -972,7 +964,7 @@ namespace ouster {
      *
      * @return acceleration in z.
      */
-      float imu_la_z(const uint8_t *imu_buf) const;
+      static float imu_la_z(const uint8_t *imu_buf) ;
 
       /**
      * Read angular velocity in x.
@@ -981,7 +973,7 @@ namespace ouster {
      *
      * @return angular velocity in x.
      */
-      float imu_av_x(const uint8_t *imu_buf) const;
+      static float imu_av_x(const uint8_t *imu_buf) ;
 
       /**
      * Read angular velocity in y.
@@ -990,7 +982,7 @@ namespace ouster {
      *
      * @return angular velocity in y.
      */
-      float imu_av_y(const uint8_t *imu_buf) const;
+      static float imu_av_y(const uint8_t *imu_buf) ;
 
       /**
      * Read angular velocity in z.
@@ -999,7 +991,7 @@ namespace ouster {
      *
      * @return angular velocity in z.
      */
-      float imu_av_z(const uint8_t *imu_buf) const;
+      static float imu_av_z(const uint8_t *imu_buf) ;
 
       /** Declare get_format as friend. */
       friend const packet_format &get_format(const sensor_info &);

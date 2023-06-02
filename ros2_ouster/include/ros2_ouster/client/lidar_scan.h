@@ -804,7 +804,7 @@ public:
      *
      * @param[in] info sensor metadata returned from the client.
      */
-    ScanBatcher(const sensor::sensor_info& info)
+    explicit ScanBatcher(const sensor::sensor_info& info)
         : ScanBatcher(info.format.columns_per_frame, sensor::get_format(info)) {}
 
     /**

@@ -40,19 +40,19 @@ struct Metadata : ouster::sensor::sensor_info
     beam_azimuth_angles = {};
     beam_altitude_angles = {};
     lidar_origin_to_beam_origin_mm = 0.;
+    beam_to_lidar_transform = {};
     imu_to_sensor_transform = {};
     lidar_to_sensor_transform = {};
     extrinsic = {};
+    init_id = 0;
+    udp_port_lidar = 0;
+    udp_port_imu = 0;
     timestamp_mode = "UNKNOWN";
-    imu_port = 0;
-    lidar_port = 0;
   }
   Metadata(
     const ouster::sensor::sensor_info & info, int _imu_port,
-    int _lidar_port, std::string  _timestamp_mode)
-  : imu_port(_imu_port),
-    lidar_port(_lidar_port),
-    timestamp_mode(std::move(_timestamp_mode))
+    int _lidar_port, std::string _timestamp_mode)
+      : timestamp_mode(std::move(_timestamp_mode))
   {
     name = info.name;
     sn = info.sn;
@@ -63,13 +63,15 @@ struct Metadata : ouster::sensor::sensor_info
     beam_azimuth_angles = info.beam_azimuth_angles;
     beam_altitude_angles = info.beam_altitude_angles;
     lidar_origin_to_beam_origin_mm = info.lidar_origin_to_beam_origin_mm;
+    beam_to_lidar_transform = info.beam_to_lidar_transform;
     imu_to_sensor_transform = info.imu_to_sensor_transform;
     lidar_to_sensor_transform = info.lidar_to_sensor_transform;
     extrinsic = info.extrinsic;
+    udp_port_lidar = _lidar_port;
+    udp_port_imu = _imu_port;
   }
+
   std::string timestamp_mode;
-  int imu_port;
-  int lidar_port;
 };
 
 

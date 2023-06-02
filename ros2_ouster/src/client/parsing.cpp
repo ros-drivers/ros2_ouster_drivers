@@ -9,11 +9,11 @@
 #include <cstdint>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include <memory>
 
 #include "ros2_ouster/client/types.h"
 
@@ -181,7 +181,6 @@ packet_format::packet_format(const sensor_info& info)
      imu_packet_size{impl::imu_packet_size},
      columns_per_packet(info.format.columns_per_packet),
      pixels_per_column(info.format.pixels_per_column),
-     encoder_ticks_per_rev{impl::encoder_ticks_per_rev},
      packet_header_size{impl_->packet_header_size},
      col_header_size{impl_->col_header_size},
      col_footer_size{impl_->col_footer_size},
@@ -389,16 +388,6 @@ uint16_t packet_format::col_measurement_id(const uint8_t* col_buf) const {
  return res;
 }
 
-uint32_t packet_format::col_encoder(const uint8_t* col_buf) const {
- if (udp_profile_lidar == UDPProfileLidar::PROFILE_LIDAR_LEGACY) {
-   uint32_t res;
-   std::memcpy(&res, col_buf + 12, sizeof(uint32_t));
-   return res;
- } else {
-   return 0;
- }
-}
-
 uint16_t packet_format::col_frame_id(const uint8_t* col_buf) const {
  if (udp_profile_lidar == UDPProfileLidar::PROFILE_LIDAR_LEGACY) {
    uint16_t res;
@@ -448,55 +437,55 @@ uint16_t packet_format::px_ambient(const uint8_t* px_buf) const {
 
 /* IMU packet parsing */
 
-uint64_t packet_format::imu_sys_ts(const uint8_t* imu_buf) const {
+uint64_t packet_format::imu_sys_ts(const uint8_t* imu_buf) {
  uint64_t res;
  std::memcpy(&res, imu_buf, sizeof(uint64_t));
  return res;
 }
 
-uint64_t packet_format::imu_accel_ts(const uint8_t* imu_buf) const {
+uint64_t packet_format::imu_accel_ts(const uint8_t* imu_buf) {
  uint64_t res;
  std::memcpy(&res, imu_buf + 8, sizeof(uint64_t));
  return res;
 }
 
-uint64_t packet_format::imu_gyro_ts(const uint8_t* imu_buf) const {
+uint64_t packet_format::imu_gyro_ts(const uint8_t* imu_buf) {
  uint64_t res;
  std::memcpy(&res, imu_buf + 16, sizeof(uint64_t));
  return res;
 }
 
-float packet_format::imu_la_x(const uint8_t* imu_buf) const {
+float packet_format::imu_la_x(const uint8_t* imu_buf) {
  float res;
  std::memcpy(&res, imu_buf + 24, sizeof(float));
  return res;
 }
 
-float packet_format::imu_la_y(const uint8_t* imu_buf) const {
+float packet_format::imu_la_y(const uint8_t* imu_buf) {
  float res;
  std::memcpy(&res, imu_buf + 28, sizeof(float));
  return res;
 }
 
-float packet_format::imu_la_z(const uint8_t* imu_buf) const {
+float packet_format::imu_la_z(const uint8_t* imu_buf) {
  float res;
  std::memcpy(&res, imu_buf + 32, sizeof(float));
  return res;
 }
 
-float packet_format::imu_av_x(const uint8_t* imu_buf) const {
+float packet_format::imu_av_x(const uint8_t* imu_buf) {
  float res;
  std::memcpy(&res, imu_buf + 36, sizeof(float));
  return res;
 }
 
-float packet_format::imu_av_y(const uint8_t* imu_buf) const {
+float packet_format::imu_av_y(const uint8_t* imu_buf) {
  float res;
  std::memcpy(&res, imu_buf + 40, sizeof(float));
  return res;
 }
 
-float packet_format::imu_av_z(const uint8_t* imu_buf) const {
+float packet_format::imu_av_z(const uint8_t* imu_buf) {
  float res;
  std::memcpy(&res, imu_buf + 44, sizeof(float));
  return res;
