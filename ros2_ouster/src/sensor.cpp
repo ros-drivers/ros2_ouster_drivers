@@ -12,7 +12,6 @@
 // limitations under the License.
 
 #include <string>
-#include <fstream>
 #include <sstream>
 #include "ros2_ouster/client/client.h"
 #include "ros2_ouster/exception.hpp"
@@ -90,7 +89,7 @@ void Sensor::configure(
 
 bool Sensor::shouldReset(const ouster::sensor::client_state & state, const uint8_t * packet)
 {
-  return (state == ouster::sensor::client_state::LIDAR_DATA) &&
+  return (state & ouster::sensor::client_state::LIDAR_DATA) &&
          is_non_legacy_lidar_profile(getMetadata()) &&
          init_id_changed(getPacketFormat(), packet);
 }
@@ -115,13 +114,6 @@ std::shared_ptr<ouster::sensor::client> Sensor::configure_and_initialize_sensor(
   std::cout << "Sensor " << config.lidar_ip
             << " configured successfully, initializing client" << std::endl;
 
-  _ouster_client = ouster::sensor::init_client(
-          config.lidar_ip,
-          config.computer_ip,
-          ouster::sensor::lidar_mode_of_string(config.lidar_mode),
-          ouster::sensor::timestamp_mode_of_string(config.timestamp_mode),
-          config.lidar_port,
-          config.imu_port);
   return ouster::sensor::init_client(config.lidar_ip, sensor_config.udp_dest.value(),
                           sensor_config.ld_mode.value(),
                           sensor_config.ts_mode.value(),

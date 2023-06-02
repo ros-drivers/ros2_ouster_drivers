@@ -115,6 +115,11 @@ void SensorTins::configure(
   }
 }
 
+bool SensorTins::shouldReset(const ouster::sensor::client_state & state, const uint8_t * packet)
+{
+  return false;
+}
+
 ouster::sensor::client_state SensorTins::get()
 {
   // Start a sniff loop to look for a valid LiDAR or IMU packet

@@ -314,8 +314,11 @@ void OusterDriver::handlePollError() {
   }
 }
 
-bool OusterDriver::handleLidarPacket(const ouster::sensor::client_state & state) {
-  if (state != ouster::sensor::client_state::LIDAR_DATA) return false;
+bool OusterDriver::handleLidarPacket(const ouster::sensor::client_state & state)
+{
+  if (!(state & ouster::sensor::client_state::LIDAR_DATA)) {
+    return false;
+  }
 
   if (!_sensor->readLidarPacket(state, _lidar_packet_buf->tail())) {
     if (++_lidar_packet_error_count > _max_lidar_packet_error_count) {
@@ -363,8 +366,9 @@ bool OusterDriver::handleLidarPacket(const ouster::sensor::client_state & state)
   return true;
 }
 
-bool OusterDriver::handleImuPacket(const ouster::sensor::client_state & state) {
-  if (state != ouster::sensor::client_state::IMU_DATA) return false;
+bool OusterDriver::handleImuPacket(const ouster::sensor::client_state & state)
+{
+  if (!(state & ouster::sensor::client_state::IMU_DATA)) return false;
 
   if (!_sensor->readImuPacket(state, _imu_packet_buf->tail())) {
     if (++_imu_packet_error_count > _max_imu_packet_error_count) {

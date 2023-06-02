@@ -12,7 +12,6 @@
 #include <utility>
 
 #include "ros2_ouster/client/types.h"
-#include "ros2_ouster/client/impl/parsing.h"
 #include "ros2_ouster/client/version.h"
 
 // Declare namespaces from optional-lite
@@ -284,28 +283,6 @@ sensor_info default_sensor_info(lidar_mode mode) {
                              0,
                              0,
                              0};
-}
-
-constexpr packet_format packet_1_13 = impl::packet_2_0<64>();
-constexpr packet_format packet_2_0_16 = impl::packet_2_0<16>();
-constexpr packet_format packet_2_0_32 = impl::packet_2_0<32>();
-constexpr packet_format packet_2_0_64 = impl::packet_2_0<64>();
-constexpr packet_format packet_2_0_128 = impl::packet_2_0<128>();
-
-const packet_format & get_format(const sensor_info & info)
-{
-  switch (info.format.pixels_per_column) {
-    case 16:
-      return packet_2_0_16;
-    case 32:
-      return packet_2_0_32;
-    case 64:
-      return packet_2_0_64;
-    case 128:
-      return packet_2_0_128;
-    default:
-      return packet_1_13;
-  }
 }
 
 template <typename K, typename V, size_t N>

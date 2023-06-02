@@ -2,7 +2,7 @@ ouster_driver:
   ros__parameters:
     lidar_ip: 10.0.21.219
     computer_ip: 10.0.21.220
-    lidar_mode: "1024x10"
+    lidar_mode: "4096x5"
     imu_port: 7503
     lidar_port: 7502
     sensor_frame: laser_sensor_frame
@@ -13,6 +13,19 @@ ouster_driver:
     # for production but default QoS is needed for rosbag.
     # See: https://github.com/ros2/rosbag2/issues/125
     use_system_default_qos: False
+
+    # Set the lidar packet data format.
+    # Valid modes are:
+    #
+    #   LEGACY
+    #   RNG19_RFL8_SIG16_NIR16
+    #   RNG19_RFL8_SIG16_NIR16_DUAL
+    #   RNG15_RFL8_NIR8
+    #
+    # (See this project's README and/or the Ouster Software Guide for more
+    # information).
+    #
+    lidar_udp_profile: LEGACY
 
     # Set the method used to timestamp measurements.
     # Valid modes are:

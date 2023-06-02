@@ -61,6 +61,7 @@ add_library(${library_name} SHARED
   src/client/lidar_scan.cpp
   src/client/netcompat.cpp
   src/client/types.cpp
+  src/client/parsing.cpp
 )
 
 ament_target_dependencies(${library_name}

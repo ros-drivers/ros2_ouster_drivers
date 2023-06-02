@@ -112,6 +112,12 @@ public:
   ouster::sensor::packet_format getPacketFormat() override;
 
   /**
+   * @brief Indicate whether a reactivation operation is required
+   * @return sensor metadata struct
+   */
+  bool shouldReset(const ouster::sensor::client_state & state, const uint8_t * packet) override;
+
+  /**
    * @brief Load metadata from a file.
    * @details Some important notes about this function: This populates an
    *          ouster::sensor::sensor_info object, but the more commonly used
