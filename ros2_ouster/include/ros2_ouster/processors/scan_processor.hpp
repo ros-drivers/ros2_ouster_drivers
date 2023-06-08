@@ -86,11 +86,12 @@ public:
       return true;
     }
 
+    //TODO(dual-packet-format): add support for publishing from the dual packet mode
     _pub->publish(
       ros2_ouster::toMsg(
         *_fullRotationAccumulator->getLidarScan(),
         _fullRotationAccumulator->getTimestamp(),
-        _frame, _mdata, _ring, override_ts));
+        _frame, _mdata, _ring, override_ts, 0));
     return true;
   }
 

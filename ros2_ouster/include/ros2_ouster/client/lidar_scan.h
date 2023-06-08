@@ -13,9 +13,6 @@
 
 #include "ros2_ouster/client/types.h"
 
-//FIXME(debug): remove this
-#include <iostream>
-
 namespace ouster {
 
 namespace impl {
@@ -503,8 +500,6 @@ public:
     template <typename T = uint32_t,
              typename std::enable_if<std::is_unsigned<T>::value, T>::type = 0>
     inline Eigen::Ref<img_t<T>> field(sensor::ChanField f) {
-      //FIXME(debug): remove this
-//      std::cout << "in field" << std::endl;
       return fields_.at(f).get<T>();
     }
 
@@ -512,8 +507,6 @@ public:
     template <typename T = uint32_t,
              typename std::enable_if<std::is_unsigned<T>::value, T>::type = 0>
     inline Eigen::Ref<const img_t<T>> field(sensor::ChanField f) const {
-      //FIXME(debug): remove this
-//      std::cout << "in field const" << std::endl;
       return fields_.at(f).get<T>();
     }
 
@@ -524,9 +517,7 @@ public:
      *
      * @return the type tag associated with the field.
      */
-    sensor::ChanFieldType field_type(sensor::ChanField f) const {
-      //FIXME(debug): remove this
-//      std::cout << "in field_type const" << std::endl;
+    inline sensor::ChanFieldType field_type(sensor::ChanField f) const {
       return fields_.count(f) ? fields_.at(f).tag : sensor::ChanFieldType::VOID;
     }
 
@@ -804,9 +795,11 @@ public:
      *
      * @param w number of columns in the lidar scan. One of 512, 1024, or 2048
      * @param pf expected format of the incoming packets used for parsing
+     * @param profile expected profile of the incoming packets used for parsing
      */
     ScanBatcher(size_t w, const sensor::packet_format & pf)
-        : w(w), h(pf.pixels_per_column), next_valid_m_id(0), next_headers_m_id(0), ls_write(w, h), pf(pf) {}
+        : w(w), h(pf.pixels_per_column), next_valid_m_id(0), next_headers_m_id(0), pf(pf),
+          ls_write(w, h, pf.udp_profile_lidar) {}
 
     /**
      * Create a batcher given information about the scan and packet format.

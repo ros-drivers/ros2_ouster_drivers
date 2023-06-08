@@ -84,6 +84,16 @@ static std::vector<std::pair<ChanField, ChanFieldType>> lookup_scan_fields(
 
 }  // namespace impl
 
+// explicitly instantiate for each supported field type
+template Eigen::Ref<img_t<uint8_t>> LidarScan::field(sensor::ChanField f);
+template Eigen::Ref<img_t<uint16_t>> LidarScan::field(sensor::ChanField f);
+template Eigen::Ref<img_t<uint32_t>> LidarScan::field(sensor::ChanField f);
+template Eigen::Ref<img_t<uint64_t>> LidarScan::field(sensor::ChanField f);
+template Eigen::Ref<const img_t<uint8_t>> LidarScan::field(sensor::ChanField f) const;
+template Eigen::Ref<const img_t<uint16_t>> LidarScan::field(sensor::ChanField f) const;
+template Eigen::Ref<const img_t<uint32_t>> LidarScan::field(sensor::ChanField f) const;
+template Eigen::Ref<const img_t<uint64_t>> LidarScan::field(sensor::ChanField f) const;
+
 std::string to_string(const LidarScanFieldTypes& field_types) {
   std::stringstream ss;
   ss << "(";

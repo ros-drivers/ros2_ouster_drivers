@@ -347,8 +347,19 @@ inline sensor_msgs::msg::LaserScan toMsg(
   const std::string & frame,
   const ouster::sensor::sensor_info & mdata,
   const uint8_t ring_to_use,
-  const uint64_t override_ts)
+  const uint64_t override_ts,
+  int return_index)
 {
+  const bool second = (return_index == 1);
+
+  // across supported lidar profiles range is always 32-bit
+  auto range_channel_field =
+          second ? ouster::sensor::ChanField::RANGE2 : ouster::sensor::ChanField::RANGE;
+  ouster::img_t<uint32_t> range = ls.field<uint32_t>(range_channel_field);
+
+  ouster::img_t<uint32_t> signal = util::get_or_fill_zero<uint32_t>(
+          util::suitable_return(ouster::sensor::ChanField::SIGNAL, second), ls);
+
   sensor_msgs::msg::LaserScan msg;
   rclcpp::Time t(timestamp.count());
   msg.header.stamp = override_ts == 0 ? t : rclcpp::Time(override_ts);
@@ -368,10 +379,10 @@ inline sensor_msgs::msg::LaserScan toMsg(
   // due to the condition being reduced to i >= 0
   for (size_t i = ls.w * ring_to_use + ls.w; i-- > ls.w * ring_to_use;) {
     msg.ranges.push_back(
-      static_cast<float>((ls.field(ouster::sensor::ChanField::RANGE).data()[i] * ouster::sensor::range_unit))
+      static_cast<float>((range.data()[i] * ouster::sensor::range_unit))
     );
     msg.intensities.push_back(
-      static_cast<float>((ls.field(ouster::sensor::ChanField::SIGNAL).data()[i]))
+      static_cast<float>((signal.data()[i]))
     );
   }
 
@@ -388,7 +399,7 @@ inline sensor_msgs::msg::LaserScan toMsg(
 inline void toCloud(const ouster::XYZLut & xyz_lut, uint64_t scan_ts,
              const ouster::LidarScan& ls, Cloud& cloud,
              int return_index) {
-  bool second = (return_index == 1);
+  const bool second = (return_index == 1);
 
   assert(cloud.width == static_cast<std::uint32_t>(ls.w) &&
          cloud.height == static_cast<std::uint32_t>(ls.h) &&

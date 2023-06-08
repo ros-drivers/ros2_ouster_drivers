@@ -37,10 +37,10 @@ public:
     ouster::sensor::packet_format  pf)
   : _batchReady(false), _pf(std::move(pf)), _packets_accumulated(0)
   {
-    _batch = std::make_unique<ouster::ScanBatcher>(mdata.format.columns_per_frame, _pf);
+    _batch = std::make_unique<ouster::ScanBatcher>(mdata);
     _ls = std::make_shared<ouster::LidarScan>(
       ouster::LidarScan{mdata.format.columns_per_frame,
-        mdata.format.pixels_per_column});
+        mdata.format.pixels_per_column, mdata.format.udp_profile_lidar});
 
     _compute_scan_ts = [this](const auto& ts_v) {
       return compute_scan_ts_0(ts_v);
