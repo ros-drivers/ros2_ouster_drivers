@@ -22,6 +22,8 @@ find_package(pcl_conversions REQUIRED)
 find_package(ouster_msgs REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common)
 find_package(jsoncpp REQUIRED)
+find_package(CURL REQUIRED)
+find_package(tf2_eigen REQUIRED)
 
 include_directories(
   include
@@ -48,6 +50,7 @@ set(dependencies
   ouster_msgs
   tf2_geometry_msgs
   pcl_conversions
+  tf2_eigen
 )
 
 add_library(${library_name} SHARED
@@ -60,6 +63,7 @@ add_library(${library_name} SHARED
   src/client/lidar_scan.cpp
   src/client/netcompat.cpp
   src/client/types.cpp
+  src/client/parsing.cpp
 )
 
 ament_target_dependencies(${library_name}
@@ -69,6 +73,7 @@ ament_target_dependencies(${library_name}
 target_link_libraries(${library_name}
   jsoncpp_lib
   tins
+  CURL::libcurl
   ${PCL_LIBRARIES}
 )
 

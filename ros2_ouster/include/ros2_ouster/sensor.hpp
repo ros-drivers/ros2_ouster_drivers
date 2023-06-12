@@ -96,9 +96,52 @@ public:
    */
   ouster::sensor::packet_format getPacketFormat() override;
 
+  /**
+   * @brief Indicate whether a reactivation operation is required
+   * @return sensor metadata struct
+   */
+  bool shouldReset(const ouster::sensor::client_state & state, const uint8_t * packet) override;
+
+  void reset_sensor(bool force_reinit, bool init_id_reset = false);
+  void reactivate_sensor(bool init_id_reset = false);
+
 private:
+    [[nodiscard]] std::shared_ptr<ouster::sensor::client>
+    configure_and_initialize_sensor(const ros2_ouster::Configuration & config);
+
+    uint8_t compose_config_flags(const ouster::sensor::sensor_config & config);
+
+    inline bool init_id_changed(const ouster::sensor::packet_format & pf,
+                                const uint8_t * lidar_buf)
+    {
+    uint32_t current_init_id = pf.init_id(lidar_buf);
+    if (!last_init_id_initialized) {
+      last_init_id = current_init_id + 1;
+      last_init_id_initialized = true;
+    }
+    if (reset_last_init_id && last_init_id != current_init_id) {
+      last_init_id = current_init_id;
+      reset_last_init_id = false;
+      return false;
+    }
+    if (last_init_id == current_init_id) return false;
+    last_init_id = current_init_id;
+    return true;
+    }
+
+    inline static bool is_non_legacy_lidar_profile(const ouster::sensor::sensor_info & info)
+    {
+    return info.format.udp_profile_lidar !=
+           ouster::sensor::UDPProfileLidar::PROFILE_LIDAR_LEGACY;
+    }
+
   std::shared_ptr<ouster::sensor::client> _ouster_client;
   ros2_ouster::Metadata _metadata{};
+
+  bool force_sensor_reinit = false;
+  bool reset_last_init_id = true;
+  bool last_init_id_initialized = false;
+  uint32_t last_init_id{};
 };
 
 }  // namespace sensor

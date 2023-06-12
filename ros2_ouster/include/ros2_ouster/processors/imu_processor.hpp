@@ -14,6 +14,7 @@
 #ifndef ROS2_OUSTER__PROCESSORS__IMU_PROCESSOR_HPP_
 #define ROS2_OUSTER__PROCESSORS__IMU_PROCESSOR_HPP_
 
+#include <utility>
 #include <vector>
 #include <memory>
 #include <string>
@@ -47,10 +48,10 @@ public:
   IMUProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
-    const std::string & frame,
+    std::string  frame,
     const rclcpp::QoS & qos,
-    const ouster::sensor::packet_format & pf)
-  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
+    ouster::sensor::packet_format  pf)
+  : DataProcessorInterface(), _node(node), _frame(std::move(frame)), _pf(std::move(pf))
   {
     _pub = node->create_publisher<sensor_msgs::msg::Imu>("imu", qos);
   }
@@ -58,7 +59,7 @@ public:
   /**
    * @brief A destructor clearing memory allocated
    */
-  ~IMUProcessor()
+  ~IMUProcessor() override
   {
     _pub.reset();
   }

@@ -22,11 +22,13 @@
 namespace ros2_ouster
 {
 ros2_ouster::Driver::Driver(rclcpp::NodeOptions options)
-: OusterDriver{std::make_unique<sensor::Sensor>(), options} {}
+    : OusterDriver{std::make_unique<sensor::Sensor>(), options}
+{}
 
 ros2_ouster::TinsDriver::TinsDriver(rclcpp::NodeOptions options)
-: OusterDriver{std::make_unique<sensor::SensorTins>(), options} {}
-}
+    : OusterDriver{std::make_unique<sensor::SensorTins>(), options}
+{}
+}// namespace ros2_ouster
 
 RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::Driver)
 RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ouster::TinsDriver)

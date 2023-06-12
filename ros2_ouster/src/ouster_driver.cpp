@@ -11,9 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>
-#include <memory>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -46,6 +43,7 @@ OusterDriver::OusterDriver(
   this->declare_parameter("imu_frame", std::string("imu_data_frame"));
   this->declare_parameter("use_system_default_qos", false);
   this->declare_parameter("proc_mask", std::string("IMG|PCL|IMU|SCAN"));
+  this->declare_parameter("lidar_udp_profile", std::string("RNG19_RFL8_SIG16_NIR16"));
 
   // Declare parameters used across ALL _sensor_ implementations
   this->declare_parameter<std::string>("lidar_ip","10.5.5.96");
@@ -75,6 +73,7 @@ void OusterDriver::onConfigure()
   lidar_config.lidar_port = this->get_parameter("lidar_port").as_int();
   lidar_config.lidar_mode = this->get_parameter("lidar_mode").as_string();
   lidar_config.timestamp_mode = this->get_parameter("timestamp_mode").as_string();
+  lidar_config.lidar_udp_profile = get_parameter("lidar_udp_profile").as_string();
 
   // Deliberately retrieve the IP parameters in a try block without defaults, as
   // we cannot estimate a reasonable default IP address for the LiDAR/computer.
@@ -258,8 +257,14 @@ void OusterDriver::receiveData()
       // Receive raw sensor data from the network.
       // This blocks for some time until either data is received or timeout
       ouster::sensor::client_state state = _sensor->get();
-      bool got_lidar = _sensor->readLidarPacket(state, _lidar_packet_buf->tail());
-      bool got_imu = _sensor->readImuPacket(state, _imu_packet_buf->tail());
+
+      if (state == ouster::sensor::client_state::EXIT) {
+        handlePollError();
+        return;
+      }
+
+      bool got_lidar = handleLidarPacket(state);
+      bool got_imu = handleImuPacket(state);
 
       // If we got some data, push to ringbuffer and signal processing thread
       if (got_lidar || got_imu) {
@@ -294,6 +299,104 @@ void OusterDriver::receiveData()
   }
 }
 
+void OusterDriver::handlePollError() {
+  RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 100,
+                       "sensor::poll_client()) returned error");
+  // in case error continues for a while attempt to recover by
+  // performing sensor reset
+  if (++_poll_error_count > _max_poll_error_count) {
+    RCLCPP_ERROR_STREAM(
+            get_logger(),
+            "maximum number of allowed errors from "
+            "sensor::poll_client() reached, performing self reset...");
+    _poll_error_count = 0;
+    _reset_srv.reset();
+  }
+}
+
+bool OusterDriver::handleLidarPacket(const ouster::sensor::client_state & state)
+{
+  if (!(state & ouster::sensor::client_state::LIDAR_DATA)) {
+    return false;
+  }
+
+  if (!_sensor->readLidarPacket(state, _lidar_packet_buf->tail())) {
+    if (++_lidar_packet_error_count > _max_lidar_packet_error_count) {
+      RCLCPP_ERROR_STREAM(
+              get_logger(),
+              "maximum number of allowed errors from "
+              "sensor::read_lidar_packet() reached, reactivating...");
+      _lidar_packet_error_count = 0;
+      //TODO(reset): perform only a reactivation instead of a full reset
+      _reset_srv.reset();
+
+//      reactivate_sensor(true);
+      ros2_ouster::Configuration lidar_config;
+      lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
+      lidar_config.computer_ip = get_parameter("computer_ip").as_string();
+      lidar_config.imu_port = get_parameter("imu_port").as_int();
+      lidar_config.lidar_port = get_parameter("lidar_port").as_int();
+      lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
+      lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
+      _sensor->reset(lidar_config, shared_from_this());
+    }
+    return false;
+  }
+
+  _lidar_packet_error_count = 0;
+  if (_sensor->shouldReset(state, _lidar_packet_buf->tail())) {
+    // TODO: short circut reset if no breaking changes occured?
+    RCLCPP_WARN(get_logger(),
+                "sensor init_id has changed! reactivating..");
+    //TODO(reset): perform only a reactivation instead of a full reset
+    _reset_srv.reset();
+
+//    reactivate_sensor(false);
+    ros2_ouster::Configuration lidar_config;
+    lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
+    lidar_config.computer_ip = get_parameter("computer_ip").as_string();
+    lidar_config.imu_port = get_parameter("imu_port").as_int();
+    lidar_config.lidar_port = get_parameter("lidar_port").as_int();
+    lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
+    lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
+    _sensor->reset(lidar_config, shared_from_this());
+    return false;
+  }
+
+  return true;
+}
+
+bool OusterDriver::handleImuPacket(const ouster::sensor::client_state & state)
+{
+  if (!(state & ouster::sensor::client_state::IMU_DATA)) return false;
+
+  if (!_sensor->readImuPacket(state, _imu_packet_buf->tail())) {
+    if (++_imu_packet_error_count > _max_imu_packet_error_count) {
+      RCLCPP_ERROR_STREAM(
+              get_logger(),
+              "maximum number of allowed errors from "
+              "sensor::read_lidar_packet() reached, reactivating...");
+      _imu_packet_error_count = 0;
+      //TODO(reset): perform only a reactivation instead of a full reset
+      _reset_srv.reset();
+
+//      reactivate_sensor(true);
+      ros2_ouster::Configuration lidar_config;
+      lidar_config.lidar_ip = get_parameter("lidar_ip").as_string();
+      lidar_config.computer_ip = get_parameter("computer_ip").as_string();
+      lidar_config.imu_port = get_parameter("imu_port").as_int();
+      lidar_config.lidar_port = get_parameter("lidar_port").as_int();
+      lidar_config.lidar_mode = get_parameter("lidar_mode").as_string();
+      lidar_config.timestamp_mode = get_parameter("timestamp_mode").as_string();
+      _sensor->reset(lidar_config, shared_from_this());
+    }
+    return false;
+  }
+
+  _imu_packet_error_count = 0;
+  return true;
+}
+
 void OusterDriver::resetService(
   const std::shared_ptr<rmw_request_id_t>/*request_header*/,
   const std::shared_ptr<std_srvs::srv::Empty::Request> request,
@@ -324,7 +427,7 @@ void OusterDriver::getMetadata(
   response->metadata = toMsg(_sensor->getMetadata());
 
   // Save the metadata to file ONLY if the user specifies a filepath
-  if (request->metadata_filepath != "") {
+  if (!request->metadata_filepath.empty()) {
     std::string json_config = ouster::sensor::to_string(_sensor->getMetadata());
     std::ofstream ofs;
     ofs.open(request->metadata_filepath);

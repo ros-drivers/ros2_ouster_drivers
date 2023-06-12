@@ -86,7 +86,7 @@ inline std::unique_ptr<ros2_ouster::DataProcessorInterface> createImageProcessor
   const std::string & frame,
   const rclcpp::QoS & qos,
   const ouster::sensor::packet_format & pf,
-  std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator)
+  const std::shared_ptr<sensor::FullRotationAccumulator>& fullRotationAccumulator)
 {
   return std::make_unique<sensor::ImageProcessor>(
     node, mdata, frame, qos, pf,
@@ -105,7 +105,7 @@ inline std::unique_ptr<ros2_ouster::DataProcessorInterface> createPointcloudProc
   const std::string & frame,
   const rclcpp::QoS & qos,
   const ouster::sensor::packet_format & pf,
-  std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator)
+  const std::shared_ptr<sensor::FullRotationAccumulator>& fullRotationAccumulator)
 {
   return std::make_unique<sensor::PointcloudProcessor>(
     node, mdata, frame, qos, pf, fullRotationAccumulator);
@@ -137,7 +137,7 @@ inline std::unique_ptr<ros2_ouster::DataProcessorInterface> createScanProcessor(
   const std::string & frame,
   const rclcpp::QoS & qos,
   const ouster::sensor::packet_format & pf,
-  std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator)
+  const std::shared_ptr<sensor::FullRotationAccumulator>& fullRotationAccumulator)
 {
   return std::make_unique<sensor::ScanProcessor>(
     node, mdata, frame, qos, pf,
@@ -152,7 +152,7 @@ inline std::multimap<ouster::sensor::client_state,
   const std::string & laser_frame,
   const rclcpp::QoS & qos,
   const ouster::sensor::packet_format & pf,
-  std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator,
+  const std::shared_ptr<sensor::FullRotationAccumulator>& fullRotationAccumulator,
   std::uint32_t mask = ros2_ouster::DEFAULT_PROC_MASK)
 {
   std::multimap<ouster::sensor::client_state,

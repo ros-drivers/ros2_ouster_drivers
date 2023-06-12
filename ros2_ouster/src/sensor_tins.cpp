@@ -95,12 +95,10 @@ void SensorTins::configure(
   // loadSensorInfoFromJsonFile actually returns a sensor_info object, so
   // fill in the params specific to the ros2_ouster::Metadata object, that
   // aren't normally supplied in the metadata file.
-  _metadata.imu_port = _driver_config.imu_port;
-  _metadata.lidar_port = _driver_config.lidar_port;
   _metadata.timestamp_mode = _driver_config.timestamp_mode;
 
   // Fill anything missing with defaults and resize the packet containers
-  ros2_ouster::populate_missing_metadata_defaults(_metadata);
+  ros2_ouster::populate_missing_metadata_defaults(_metadata, ouster::sensor::MODE_UNSPEC);
   _lidar_packet.resize(getPacketFormat().lidar_packet_size + 1);
   _imu_packet.resize(getPacketFormat().imu_packet_size + 1);
 
@@ -113,6 +111,11 @@ void SensorTins::configure(
             _driver_config.ethernet_device + " is valid.");
     exit(-1);
   }
+}
+
+bool SensorTins::shouldReset(const ouster::sensor::client_state & state, const uint8_t * packet)
+{
+  return false;
 }
 
 ouster::sensor::client_state SensorTins::get()

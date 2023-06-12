@@ -56,38 +56,55 @@ public:
   ImageProcessor(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     const ouster::sensor::sensor_info & mdata,
-    const std::string & frame,
+    std::string  frame,
     const rclcpp::QoS & qos,
     const ouster::sensor::packet_format & pf,
     std::shared_ptr<sensor::FullRotationAccumulator> fullRotationAccumulator)
-  : DataProcessorInterface(), _node(node), _frame(frame), _pf(pf)
+  : DataProcessorInterface(), _node(node), _frame(std::move(frame)), _pf(pf)
   {
-    _fullRotationAccumulator = fullRotationAccumulator;
+    _fullRotationAccumulator = std::move(fullRotationAccumulator);
     _height = mdata.format.pixels_per_column;
     _width = mdata.format.columns_per_frame;
     _px_offset = mdata.format.pixel_shift_by_row;
-    _ls = ouster::LidarScan{_width, _height};
+    _ls = ouster::LidarScan{_width, _height, mdata.format.udp_profile_lidar};
 
+    //TODO(images): figure out if the processors are still valid, add reflectivity
     _range_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
       "range_image", qos);
     _intensity_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "intensity_image", qos);
+      "signal_image", qos);
     _ambient_image_pub = _node->create_publisher<sensor_msgs::msg::Image>(
-      "ambient_image", qos);
+      "nearir_image", qos);
   }
 
   /**
   * @brief A destructor clearing memory allocated
   */
-  ~ImageProcessor()
+  ~ImageProcessor() override
   {
     _range_image_pub.reset();
     _ambient_image_pub.reset();
     _intensity_image_pub.reset();
   }
 
-  void generate_images(const std::chrono::nanoseconds timestamp, const uint64_t override_ts)
+  void generate_images(const std::chrono::nanoseconds timestamp, const uint64_t override_ts, int return_index)
   {
+    const bool second = (return_index == 1);
+
+    // across supported lidar profiles range is always 32-bit
+    auto range_channel_field =
+            second ? ouster::sensor::ChanField::RANGE2 : ouster::sensor::ChanField::RANGE;
+    ouster::img_t<uint32_t> range = _ls.field<uint32_t>(range_channel_field);
+
+    ouster::img_t<uint16_t> reflectivity = ros2_ouster::util::get_or_fill_zero<uint16_t>(
+            ros2_ouster::util::suitable_return(ouster::sensor::ChanField::REFLECTIVITY, second), _ls);
+
+    ouster::img_t<uint32_t> signal = ros2_ouster::util::get_or_fill_zero<uint32_t>(
+            ros2_ouster::util::suitable_return(ouster::sensor::ChanField::SIGNAL, second), _ls);
+
+    ouster::img_t<uint16_t> near_ir = ros2_ouster::util::get_or_fill_zero<uint16_t>(
+            ros2_ouster::util::suitable_return(ouster::sensor::ChanField::NEAR_IR, second), _ls);
+
     _range_image.width = _width;
     _range_image.height = _height;
     _range_image.step = _width;
@@ -131,7 +148,7 @@ public:
         const size_t vv = (v + _width - _px_offset[u]) % _width;
         const size_t index = u * _width + vv;
 
-        if (_ls.field(ouster::LidarScan::RANGE)(index) == 0) {
+        if (range.data()[index] == 0) {
           reinterpret_cast<uint8_t *>(
             _range_image.data.data())[u * _width + v] = 0;
         } else {
@@ -139,11 +156,11 @@ public:
             _range_image.data.data())[u * _width + v] =
             _pixel_value_max -
             std::min(
-            std::round(_ls.field(ouster::LidarScan::RANGE)(index) * _range_multiplier),
+            std::round(range.data()[index] * _range_multiplier),
             static_cast<double>(_pixel_value_max));
         }
-        ambient_image_eigen(u, v) = _ls.field(ouster::LidarScan::AMBIENT)(index);
-        intensity_image_eigen(u, v) = _ls.field(ouster::LidarScan::INTENSITY)(index);
+        ambient_image_eigen(u, v) = near_ir.data()[index];
+        intensity_image_eigen(u, v) = signal.data()[index];
       }
     }
 
@@ -180,7 +197,8 @@ public:
     }
 
     _ls = *_fullRotationAccumulator->getLidarScan();
-    generate_images(_fullRotationAccumulator->getTimestamp(), override_ts);
+    //TODO(dual-packet-format): figure out if it makes sense to publish dual images
+    generate_images(_fullRotationAccumulator->getTimestamp(), override_ts, 0);
     return true;
   }
 

@@ -102,6 +102,13 @@ public:
    * @return packet format struct
    */
   virtual ouster::sensor::packet_format getPacketFormat() = 0;
+
+  /**
+   * @brief Indicate whether a reactivation operation is required
+   * @param packet data to read from
+   * @return sensor metadata struct
+   */
+  virtual bool shouldReset(const ouster::sensor::client_state & state, const uint8_t * packet) = 0;
 };
 
 }  // namespace ros2_ouster

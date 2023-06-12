@@ -31,6 +31,7 @@ struct Configuration
   std::string timestamp_mode;
   std::string metadata_filepath;
   std::string ethernet_device;
+  std::string lidar_udp_profile;
 };
 
 }  // namespace ros2_ouster

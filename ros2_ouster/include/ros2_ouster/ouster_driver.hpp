@@ -142,6 +142,10 @@ private:
   */
   void processData();
 
+  void handlePollError();
+  bool handleLidarPacket(const  ouster::sensor::client_state & state);
+  bool handleImuPacket(const  ouster::sensor::client_state & state);
+
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr _reset_srv;
   rclcpp::Service<ouster_msgs::srv::GetMetadata>::SharedPtr _metadata_srv;
 
@@ -169,6 +173,13 @@ private:
   std::condition_variable _process_cond;
   std::mutex _ringbuffer_mutex;
   bool _processing_active;
+
+  int _poll_error_count = 0;
+  static constexpr int _max_poll_error_count = 10;
+  int _lidar_packet_error_count = 0;
+  static constexpr int _max_lidar_packet_error_count = 60;
+  int _imu_packet_error_count = 0;
+  static constexpr int _max_imu_packet_error_count = 60;
 };
 
 }  // namespace ros2_ouster

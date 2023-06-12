@@ -19,28 +19,171 @@
 #include <vector>
 #include <algorithm>
 
-#include "pcl/point_cloud.h"
-#include "pcl/point_types.h"
-#include "pcl_conversions/pcl_conversions.h"
-#include "ros2_ouster/client/point.h"
-#include "ros2_ouster/interfaces/metadata.hpp"
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
-#include "geometry_msgs/msg/transform_stamped.hpp"
-#include "sensor_msgs/msg/imu.hpp"
-#include "sensor_msgs/msg/laser_scan.hpp"
-#include "tf2/LinearMath/Transform.h"
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <tf2/LinearMath/Transform.h>
 #ifdef TF2_CPP_HEADERS
+  #include <tf2_eigen/tf2_eigen.hpp>
   #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #else
+  #include <tf2_eigen/tf2_eigen.h>
   #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #endif
 
 #include "ouster_msgs/msg/metadata.hpp"
 
 #include "ros2_ouster/client/client.h"
+#include "ros2_ouster/client/point.h"
+#include "ros2_ouster/interfaces/metadata.hpp"
 
 namespace ros2_ouster
 {
+template <typename T>
+using PointsT = Eigen::Array<T, -1, 3>;
+using PointsF = PointsT<float>;
+
+using Cloud = pcl::PointCloud<ouster_ros::Point>;
+
+namespace util {
+
+/**
+ * Converts a staggered range image to Cartesian points.
+ *
+ * @param[in, out] points The resulting point cloud, should be pre-allocated and
+ * have the same dimensions as the direction array.
+ * @param[in] range a range image in the same format as the RANGE field of a
+ * LidarScan.
+ * @param[in] direction the direction of an xyz lut.
+ * @param[in] offset the offset of an xyz lut.
+ *
+ * @return Cartesian points where ith row is a 3D point which corresponds
+ *         to ith pixel in LidarScan where i = row * w + col.
+ */
+template <typename T>
+void cartesianT(PointsT<T>& points,
+                const Eigen::Ref<const ouster::img_t<uint32_t>>& range,
+                const PointsT<T>& direction, const PointsT<T>& offset) {
+  assert(points.rows() == direction.rows() &&
+         "points & direction row count mismatch");
+  assert(points.rows() == offset.rows() &&
+         "points & offset row count mismatch");
+  assert(points.rows() == range.size() &&
+         "points and range image size mismatch");
+
+  const auto pts = points.data();
+  const auto* const rng = range.data();
+  const auto* const dir = direction.data();
+  const auto* const ofs = offset.data();
+
+  const auto N = range.size();
+  const auto col_x = 0 * N;  // 1st column of points (x)
+  const auto col_y = 1 * N;  // 2nd column of points (y)
+  const auto col_z = 2 * N;  // 3rd column of points (z)
+
+#ifdef __OUSTER_UTILIZE_OPENMP__
+#pragma omp parallel for schedule(static)
+#endif
+  for (auto i = 0; i < N; ++i) {
+    const auto r = rng[i];
+    const auto idx_x = col_x + i;
+    const auto idx_y = col_y + i;
+    const auto idx_z = col_z + i;
+    if (r == 0) {
+      pts[idx_x] = pts[idx_y] = pts[idx_z] = static_cast<T>(0.0);
+    } else {
+      pts[idx_x] = r * dir[idx_x] + ofs[idx_x];
+      pts[idx_y] = r * dir[idx_y] + ofs[idx_y];
+      pts[idx_z] = r * dir[idx_z] + ofs[idx_z];
+    }
+  }
+}
+
+struct read_and_cast {
+  template <typename T, typename U>
+  void operator()(Eigen::Ref<const ouster::img_t<T>> field,
+                  ouster::img_t<U>& dest) {
+    dest = field.template cast<U>();
+  }
+};
+
+inline ouster::sensor::ChanField suitable_return(ouster::sensor::ChanField input_field, bool second) {
+  switch (input_field) {
+    case ouster::sensor::ChanField::RANGE:
+    case ouster::sensor::ChanField::RANGE2:
+      return second ? ouster::sensor::ChanField::RANGE2
+                    : ouster::sensor::ChanField::RANGE;
+    case ouster::sensor::ChanField::SIGNAL:
+    case ouster::sensor::ChanField::SIGNAL2:
+      return second ? ouster::sensor::ChanField::SIGNAL2
+                    : ouster::sensor::ChanField::SIGNAL;
+    case ouster::sensor::ChanField::REFLECTIVITY:
+    case ouster::sensor::ChanField::REFLECTIVITY2:
+      return second ? ouster::sensor::ChanField::REFLECTIVITY2
+                    : ouster::sensor::ChanField::REFLECTIVITY;
+    case ouster::sensor::ChanField::NEAR_IR:
+      return ouster::sensor::ChanField::NEAR_IR;
+    default:
+      throw std::runtime_error("Unreachable");
+  }
+}
+
+template <typename T>
+inline ouster::img_t<T> get_or_fill_zero(ouster::sensor::ChanField f,
+                                         const ouster::LidarScan& ls) {
+  if (!ls.field_type(f)) {
+    return ouster::img_t<T>::Zero(ls.h, ls.w);
+  }
+
+  ouster::img_t<T> result{ls.h, ls.w};
+  ouster::impl::visit_field(ls, f, read_and_cast(), result);
+  return result;
+}
+
+template <typename PointT, typename RangeT, typename ReflectivityT,
+         typename NearIrT, typename SignalT>
+void copy_scan_to_cloud(Cloud& cloud, const ouster::LidarScan& ls,
+                        uint64_t scan_ts, const PointT& points,
+                        const ouster::img_t<RangeT>& range,
+                        const ouster::img_t<ReflectivityT>& reflectivity,
+                        const ouster::img_t<NearIrT>& near_ir,
+                        const ouster::img_t<SignalT>& signal) {
+  auto timestamp = ls.timestamp();
+
+  const auto rg = range.data();
+  const auto rf = reflectivity.data();
+  const auto nr = near_ir.data();
+  const auto sg = signal.data();
+
+#ifdef __OUSTER_UTILIZE_OPENMP__
+#pragma omp parallel for collapse(2)
+#endif
+  for (auto u = 0; u < ls.h; u++) {
+    for (auto v = 0; v < ls.w; v++) {
+      const auto col_ts = timestamp[v];
+      const auto ts = col_ts > scan_ts ? col_ts - scan_ts : 0UL;
+      const auto idx = u * ls.w + v;
+      const auto xyz = points.row(idx);
+      cloud.points[idx] = ouster_ros::Point{
+              {static_cast<float>(xyz(0)), static_cast<float>(xyz(1)),
+               static_cast<float>(xyz(2)), 1.0f},
+              static_cast<float>(sg[idx]),
+              static_cast<uint32_t>(ts),
+              static_cast<uint16_t>(rf[idx]),
+              static_cast<uint16_t>(u),
+              static_cast<uint16_t>(nr[idx]),
+              static_cast<uint32_t>(rg[idx]),
+      };
+    }
+  }
+}
+
+} //namespace util
+
 /**
  * @brief Convert ClientState to string
  */
@@ -89,12 +232,13 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
   msg.timestamp_mode = mdata.timestamp_mode;
   msg.beam_azimuth_angles = mdata.beam_azimuth_angles;
   msg.beam_altitude_angles = mdata.beam_altitude_angles;
+  msg.beam_to_lidar_transform = ros2_ouster::toVector(mdata.beam_to_lidar_transform);
   msg.imu_to_sensor_transform = ros2_ouster::toVector(mdata.imu_to_sensor_transform);
   msg.lidar_to_sensor_transform = ros2_ouster::toVector(mdata.lidar_to_sensor_transform);
   msg.serial_no = mdata.sn;
   msg.firmware_rev = mdata.fw_rev;
-  msg.imu_port = mdata.imu_port;
-  msg.lidar_port = mdata.lidar_port;
+  msg.imu_port = mdata.udp_port_imu;
+  msg.lidar_port = mdata.udp_port_lidar;
   return msg;
 }
 
@@ -102,26 +246,17 @@ inline ouster_msgs::msg::Metadata toMsg(const ros2_ouster::Metadata & mdata)
  * @brief Convert transformation to message format
  */
 inline geometry_msgs::msg::TransformStamped toMsg(
-  const Eigen::Matrix<double, 4, 4, Eigen::DontAlign> & mat, const std::string & frame,
-  const std::string & child_frame, const rclcpp::Time & time)
+  const ouster::mat4d & mat, const std::string & frame,
+  const std::string & child_frame, const rclcpp::Time & timestamp)
 {
-  assert(mat.size() == 16);
+  Eigen::Affine3d aff;
+  aff.linear() = mat.block<3, 3>(0, 0);
+  aff.translation() = mat.block<3, 1>(0, 3) * 1e-3;
 
-  tf2::Transform tf;
-
-  tf.setOrigin({mat(3) / 1e3, mat(7) / 1e3, mat(11) / 1e3});
-  tf.setBasis(
-    {
-      mat(0), mat(1), mat(2),
-      mat(4), mat(5), mat(6),
-      mat(8), mat(9), mat(10)
-    });
-
-  geometry_msgs::msg::TransformStamped msg;
-  msg.header.stamp = time;
+  geometry_msgs::msg::TransformStamped msg = tf2::eigenToTransform(aff);
+  msg.header.stamp = timestamp;
   msg.header.frame_id = frame;
   msg.child_frame_id = child_frame;
-  msg.transform = tf2::toMsg(tf);
 
   return msg;
 }
@@ -143,7 +278,7 @@ inline sensor_msgs::msg::Imu toMsg(
   m.orientation.x = 0;
   m.orientation.y = 0;
   m.orientation.z = 0;
-  m.orientation.w = 1;
+  m.orientation.w = 0;
 
   m.header.stamp = override_ts == 0 ? rclcpp::Time(pf.imu_gyro_ts(buf)) : rclcpp::Time(override_ts);
   m.header.frame_id = frame;
@@ -192,7 +327,7 @@ inline sensor_msgs::msg::Imu toMsg(
  *         row-major ordered consistent to the shape of the LiDAR array.
  */
 inline sensor_msgs::msg::PointCloud2 toMsg(
-  const pcl::PointCloud<ouster_ros::Point> & cloud,
+  const Cloud & cloud,
   const std::chrono::nanoseconds timestamp,
   const std::string & frame,
   const uint64_t override_ts)
@@ -208,13 +343,24 @@ inline sensor_msgs::msg::PointCloud2 toMsg(
  * @brief Convert cloud to scan message format
  */
 inline sensor_msgs::msg::LaserScan toMsg(
-  const ouster::LidarScan ls,
+  const ouster::LidarScan& ls,
   const std::chrono::nanoseconds timestamp,
   const std::string & frame,
   const ouster::sensor::sensor_info & mdata,
   const uint8_t ring_to_use,
-  const uint64_t override_ts)
+  const uint64_t override_ts,
+  int return_index)
 {
+  const bool second = (return_index == 1);
+
+  // across supported lidar profiles range is always 32-bit
+  auto range_channel_field =
+          second ? ouster::sensor::ChanField::RANGE2 : ouster::sensor::ChanField::RANGE;
+  ouster::img_t<uint32_t> range = ls.field<uint32_t>(range_channel_field);
+
+  ouster::img_t<uint32_t> signal = util::get_or_fill_zero<uint32_t>(
+          util::suitable_return(ouster::sensor::ChanField::SIGNAL, second), ls);
+
   sensor_msgs::msg::LaserScan msg;
   rclcpp::Time t(timestamp.count());
   msg.header.stamp = override_ts == 0 ? t : rclcpp::Time(override_ts);
@@ -234,10 +380,10 @@ inline sensor_msgs::msg::LaserScan toMsg(
   // due to the condition being reduced to i >= 0
   for (size_t i = ls.w * ring_to_use + ls.w; i-- > ls.w * ring_to_use;) {
     msg.ranges.push_back(
-      static_cast<float>((ls.field(ouster::LidarScan::RANGE)(i) * ouster::sensor::range_unit))
+      static_cast<float>((range.data()[i] * ouster::sensor::range_unit))
     );
     msg.intensities.push_back(
-      static_cast<float>((ls.field(ouster::LidarScan::INTENSITY)(i)))
+      static_cast<float>((signal.data()[i]))
     );
   }
 
@@ -251,31 +397,36 @@ inline sensor_msgs::msg::LaserScan toMsg(
 * @param ls input lidar data
 * @param cloud output pcl pointcloud to populate
 */
-static void toCloud(
-  const ouster::XYZLut & xyz_lut,
-  ouster::LidarScan::ts_t scan_ts,
-  const ouster::LidarScan & ls, pcl::PointCloud<ouster_ros::Point> & cloud)
-{
-  cloud.resize(ls.w * ls.h);
-  auto points = ouster::cartesian(ls, xyz_lut);
+inline void toCloud(const ouster::XYZLut & xyz_lut, uint64_t scan_ts,
+             const ouster::LidarScan& ls, Cloud& cloud,
+             int return_index) {
+  const bool second = (return_index == 1);
 
-  for (auto u = 0; u < ls.h; u++) {
-    for (auto v = 0; v < ls.w; v++) {
-      const auto xyz = points.row(u * ls.w + v);
-      const auto pix = ls.data.row(u * ls.w + v);
-      const auto ts = (ls.header(v).timestamp - scan_ts).count();
-      cloud(v, u) = ouster_ros::Point{
-        {{static_cast<float>(xyz(0)),
-          static_cast<float>(xyz(1)),
-          static_cast<float>(xyz(2)), 1.0f}},
-        static_cast<float>(pix(ouster::LidarScan::INTENSITY)),
-        static_cast<uint32_t>(ts),
-        static_cast<uint16_t>(pix(ouster::LidarScan::REFLECTIVITY)),
-        static_cast<uint8_t>(u),
-        static_cast<uint16_t>(pix(ouster::LidarScan::AMBIENT)),
-        static_cast<uint32_t>(pix(ouster::LidarScan::RANGE))};
-    }
-  }
+  assert(cloud.width == static_cast<std::uint32_t>(ls.w) &&
+         cloud.height == static_cast<std::uint32_t>(ls.h) &&
+         "point cloud and lidar scan size mismatch");
+
+  // across supported lidar profiles range is always 32-bit
+  auto range_channel_field =
+          second ? ouster::sensor::ChanField::RANGE2 : ouster::sensor::ChanField::RANGE;
+  ouster::img_t<uint32_t> range = ls.field<uint32_t>(range_channel_field);
+
+  ouster::img_t<uint16_t> reflectivity = util::get_or_fill_zero<uint16_t>(
+          util::suitable_return(ouster::sensor::ChanField::REFLECTIVITY, second), ls);
+
+  ouster::img_t<uint32_t> signal = util::get_or_fill_zero<uint32_t>(
+          util::suitable_return(ouster::sensor::ChanField::SIGNAL, second), ls);
+
+  ouster::img_t<uint16_t> near_ir = util::get_or_fill_zero<uint16_t>(
+          util::suitable_return(ouster::sensor::ChanField::NEAR_IR, second), ls);
+
+  const PointsF lut_direction = xyz_lut.direction.cast<float>();
+  const PointsF lut_offset = xyz_lut.offset.cast<float>();
+  PointsF points = PointsF(lut_direction.rows(), lut_offset.cols());
+  util::cartesianT(points, range, lut_direction, lut_offset);
+
+  util::copy_scan_to_cloud(cloud, ls, scan_ts, points, range, reflectivity, near_ir,
+                     signal);
 }
 
 }  // namespace ros2_ouster

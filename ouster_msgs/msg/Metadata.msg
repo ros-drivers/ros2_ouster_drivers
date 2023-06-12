@@ -3,9 +3,10 @@ string lidar_mode
 string timestamp_mode
 float64[] beam_azimuth_angles
 float64[] beam_altitude_angles
+float64[] beam_to_lidar_transform
 float64[] imu_to_sensor_transform
 float64[] lidar_to_sensor_transform
 string serial_no
 string firmware_rev
-int8 imu_port
-int8 lidar_port
+uint16 imu_port
+uint16 lidar_port

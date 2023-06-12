@@ -14,6 +14,7 @@
 #ifndef ROS2_OUSTER__INTERFACES__METADATA_HPP_
 #define ROS2_OUSTER__INTERFACES__METADATA_HPP_
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -39,19 +40,19 @@ struct Metadata : ouster::sensor::sensor_info
     beam_azimuth_angles = {};
     beam_altitude_angles = {};
     lidar_origin_to_beam_origin_mm = 0.;
+    beam_to_lidar_transform = {};
     imu_to_sensor_transform = {};
     lidar_to_sensor_transform = {};
     extrinsic = {};
+    init_id = 0;
+    udp_port_lidar = 0;
+    udp_port_imu = 0;
     timestamp_mode = "UNKNOWN";
-    imu_port = 0;
-    lidar_port = 0;
   }
   Metadata(
     const ouster::sensor::sensor_info & info, int _imu_port,
-    int _lidar_port, const std::string & _timestamp_mode)
-  : imu_port(_imu_port),
-    lidar_port(_lidar_port),
-    timestamp_mode(_timestamp_mode)
+    int _lidar_port, std::string _timestamp_mode)
+      : timestamp_mode(std::move(_timestamp_mode))
   {
     name = info.name;
     sn = info.sn;
@@ -62,20 +63,23 @@ struct Metadata : ouster::sensor::sensor_info
     beam_azimuth_angles = info.beam_azimuth_angles;
     beam_altitude_angles = info.beam_altitude_angles;
     lidar_origin_to_beam_origin_mm = info.lidar_origin_to_beam_origin_mm;
+    beam_to_lidar_transform = info.beam_to_lidar_transform;
     imu_to_sensor_transform = info.imu_to_sensor_transform;
     lidar_to_sensor_transform = info.lidar_to_sensor_transform;
     extrinsic = info.extrinsic;
+    udp_port_lidar = _lidar_port;
+    udp_port_imu = _imu_port;
   }
+
   std::string timestamp_mode;
-  int imu_port;
-  int lidar_port;
 };
 
 
 /**
  * @brief fill in values that could not be parsed from metadata.
  */
-inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & info)
+inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & info,
+                                               ouster::sensor::lidar_mode specified_lidar_mode)
 {
   if (info.name.empty()) {
     info.name = "UNKNOWN";
@@ -85,8 +89,20 @@ inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & inf
     info.sn = "UNKNOWN";
   }
 
+  ouster::util::version v = ouster::util::version_of_string(info.fw_rev);
+  if (v == ouster::util::invalid_version) {
+    std::cerr << "Unknown sensor firmware version; output may not be reliable"
+              << std::endl;
+  }
+  else if (v < ouster::sensor::min_version) {
+    std::cerr << "Firmware < " << to_string(ouster::sensor::min_version).c_str()
+              << " not supported; output may not be reliable" << std::endl;
+  }
+
   if (!info.mode) {
-    info.mode = ouster::sensor::MODE_UNSPEC;
+    std::cerr << "Lidar mode not found in metadata; output may not be reliable"
+              << std::endl;
+    info.mode = specified_lidar_mode;
   }
 
   if (info.prod_line.empty()) {
@@ -94,6 +110,8 @@ inline void populate_missing_metadata_defaults(ouster::sensor::sensor_info & inf
   }
 
   if (info.beam_azimuth_angles.empty() || info.beam_altitude_angles.empty()) {
+    std::cerr << "Beam angles not found in metadata; using design values"
+              << std::endl;
     info.beam_azimuth_angles = ouster::sensor::gen1_azimuth_angles;
     info.beam_altitude_angles = ouster::sensor::gen1_altitude_angles;
   }
