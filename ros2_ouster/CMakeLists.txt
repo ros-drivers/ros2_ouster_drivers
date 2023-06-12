@@ -23,6 +23,7 @@ find_package(ouster_msgs REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common)
 find_package(jsoncpp REQUIRED)
 find_package(CURL REQUIRED)
+find_package(tf2_eigen REQUIRED)
 
 include_directories(
   include
@@ -49,6 +50,7 @@ set(dependencies
   ouster_msgs
   tf2_geometry_msgs
   pcl_conversions
+  tf2_eigen
 )
 
 add_library(${library_name} SHARED

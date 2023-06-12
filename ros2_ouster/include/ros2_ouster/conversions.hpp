@@ -27,10 +27,11 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <tf2/LinearMath/Transform.h>
-#include <tf2_eigen/tf2_eigen.h>
 #ifdef TF2_CPP_HEADERS
+  #include <tf2_eigen/tf2_eigen.hpp>
   #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #else
+  #include <tf2_eigen/tf2_eigen.h>
   #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #endif
 
